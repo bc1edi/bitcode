@@ -12,6 +12,7 @@ import { loadCommands, expandCommand } from "./commands.mjs";
 import { loadAgents, findAgent, agentsDir } from "./agents.mjs";
 import { expandMentions } from "./mentions.mjs";
 import { newSessionId, listSessions, latestSession, loadSession, saveSession } from "./session.mjs";
+import { savePlan } from "./plans.mjs";
 import * as t from "./theme.mjs";
 
 function out(s = "") {
@@ -49,6 +50,11 @@ Interactive slash commands:
   /subagent [name] [prompt]
                        list personas (~/.bitcode/agents/*.md), or delegate
                        a sub-task to one and print just its final answer
+  /plan <task>         investigate read-only and write an implementation
+                       plan (no bash/write/edit/wallet_send/... available);
+                       saved under ~/.bitcode/plans/
+  /build [notes]       execute the plan from /plan with full tools (normal
+                       approval prompts apply unless --yolo)
   /tools               list available tools
   /reset               clear conversation history
   /exit, /quit         leave
@@ -394,6 +400,8 @@ async function interactive({
           tools,
           persist,
           forgetName,
+          cwd,
+          approve,
           getActive: () => active,
           setActive: (x) => {
             active = x;
@@ -436,6 +444,55 @@ async function handleSlash(input, ctx) {
     case "tools":
       out(t.faint(ctx.tools.map((x) => x.name).join(", ")));
       return;
+    case "plan": {
+      if (!arg) {
+        out(t.danger("usage: /plan <task>"));
+        return;
+      }
+      const readOnlyTools = ctx.tools.filter((tl) => !tl.mutating);
+      const planSystem =
+        `${ctx.system}\n\n` +
+        "You are in PLAN MODE: only read-only tools are available right now " +
+        "(no bash, write_file, edit_file, wallet_send, btc_broadcast, bitcoin_rpc, subagent, ...). " +
+        "Investigate as needed with the tools you do have, then respond with a clear, " +
+        "structured implementation plan (numbered steps, files to touch, risks) for the " +
+        "task below. You cannot make changes in this mode — don't claim to have.";
+      ctx.messages.push({ role: "user", content: expandMentions(arg) });
+      let text;
+      try {
+        text = await runAgent({
+          target: ctx.getActive(),
+          system: planSystem,
+          messages: ctx.messages,
+          tools: readOnlyTools,
+          hooks: buildHooks(),
+        });
+      } catch (err) {
+        out(t.danger(`error: ${err.message}`));
+        return;
+      }
+      const file = savePlan(ctx.cwd, { task: arg, text });
+      ctx.persist();
+      out(t.faint(`plan saved to ${file} — run /build to execute it`));
+      return;
+    }
+    case "build": {
+      const instruction = arg ? `Implement the plan above. Additional guidance: ${arg}` : "Implement the plan above.";
+      ctx.messages.push({ role: "user", content: instruction });
+      try {
+        await runAgent({
+          target: ctx.getActive(),
+          system: ctx.system,
+          messages: ctx.messages,
+          tools: ctx.tools,
+          hooks: buildHooks({ approve: ctx.approve }),
+        });
+      } catch (err) {
+        out(t.danger(`error: ${err.message}`));
+      }
+      ctx.persist();
+      return;
+    }
     case "model":
       if (!arg) {
         out(t.faint(`active model: `) + t.body(ctx.getActive().spec));
@@ -500,7 +557,7 @@ async function handleSlash(input, ctx) {
       return;
     }
     case "help":
-      out(t.faint("/model [spec]  /models  /subagent [name] [prompt]  /tools  /reset  /exit"));
+      out(t.faint("/model [spec]  /models  /subagent [name] [prompt]  /plan <task>  /build [notes]  /tools  /reset  /exit"));
       if (ctx.commands.length) out(t.faint(`custom: ${ctx.commands.map((c) => "/" + c.name).join("  ")}`));
       return;
     default:

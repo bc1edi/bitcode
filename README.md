@@ -60,10 +60,21 @@ bitcode models                            # list providers + default models
 /subagent [name] [prompt]
                 list personas (~/.bitcode/agents/*.md), or delegate a
                 sub-task to one and print just its final answer
+/plan <task>    investigate read-only (no bash/write/edit/wallet_send/...)
+                and write a structured implementation plan; saved under
+                ~/.bitcode/plans/
+/build [notes]  execute the plan from /plan with the full tool set — same
+                approval prompts as normal chat, unless --yolo
 /tools          list tools
 /reset          clear conversation history
 /exit           quit
 ```
+
+`/plan` then `/build` mirrors a plan/execute workflow: `/plan` can only read
+(mutating tools, including `subagent`, are hidden from the model for that
+turn), so it can't accidentally act — it can only investigate and propose.
+`/build` replays with every tool available, so review the plan before
+running it.
 
 Custom commands: drop a markdown file at `~/.bitcode/commands/<name>.md`
 and it becomes its own `/<name>` command. The body is a prompt template —

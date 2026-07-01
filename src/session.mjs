@@ -7,7 +7,7 @@ import { randomBytes } from "node:crypto";
 import { homedir } from "node:os";
 import path from "node:path";
 
-function slug(cwd) {
+export function slug(cwd) {
   return cwd.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "root";
 }
 
