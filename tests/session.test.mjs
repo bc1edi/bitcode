@@ -4,7 +4,7 @@ import os from "node:os";
 import { mkdtempSync } from "node:fs";
 import path from "node:path";
 
-const { saveSession, loadSession, listSessions, exportSession, newSessionId } = await import(
+const { saveSession, loadSession, listSessions, latestSession, exportSession, newSessionId } = await import(
   "../src/session.mjs"
 );
 
@@ -49,4 +49,16 @@ test("exportSession renders markdown and json", () => {
 test("session IDs cannot escape the session directory", () => {
   assert.throws(() => loadSession(cwd, "../../config"), /invalid session id/);
   assert.throws(() => saveSession(cwd, { id: "../escape", messages: [] }), /invalid session id/);
+});
+
+test("explicit homes isolate the same session without changing the process environment", () => {
+  const home = mkdtempSync(path.join(os.tmpdir(), "bc-sess-isolated-"));
+  const id = newSessionId();
+  saveSession(cwd, { id, messages, name: 'default' });
+  saveSession(cwd, { id, messages: [], name: 'isolated' }, { home });
+  assert.equal(loadSession(cwd, id).name, 'default');
+  assert.equal(loadSession(cwd, id, { home }).name, 'isolated');
+  assert.equal(listSessions(cwd, { home }).length, 1);
+  assert.equal(latestSession(cwd, { home }).id, id);
+  assert.equal(JSON.parse(exportSession(cwd, id, 'json', { home })).name, 'isolated');
 });

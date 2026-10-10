@@ -10,8 +10,8 @@ export function slug(cwd) {
   return cwd.replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-+|-+$/g, "") || "root";
 }
 
-export function sessionsDir(cwd) {
-  return path.join(bitcodeHome(), "sessions", slug(cwd));
+export function sessionsDir(cwd, { home = bitcodeHome() } = {}) {
+  return path.join(home, "sessions", slug(cwd));
 }
 
 export function newSessionId() {
@@ -19,15 +19,15 @@ export function newSessionId() {
   return `${stamp}-${randomBytes(3).toString("hex")}`;
 }
 
-function sessionFile(cwd, id) {
+function sessionFile(cwd, id, options) {
   if (typeof id !== "string" || !/^[a-zA-Z0-9][a-zA-Z0-9_-]{0,159}$/.test(id)) throw new Error("invalid session id");
-  return path.join(sessionsDir(cwd), `${id}.json`);
+  return path.join(sessionsDir(cwd, options), `${id}.json`);
 }
 
 // Lightweight listing: parses each file just for its header fields, not the
 // full (potentially large) messages array.
-export function listSessions(cwd) {
-  const dir = sessionsDir(cwd);
+export function listSessions(cwd, options) {
+  const dir = sessionsDir(cwd, options);
   if (!existsSync(dir)) return [];
   return readdirSync(dir)
     .filter((f) => f.endsWith(".json"))
@@ -51,12 +51,12 @@ export function listSessions(cwd) {
     .sort((a, b) => (a.updatedAt < b.updatedAt ? 1 : -1));
 }
 
-export function latestSession(cwd) {
-  return listSessions(cwd)[0] || null;
+export function latestSession(cwd, options) {
+  return listSessions(cwd, options)[0] || null;
 }
 
-export function loadSession(cwd, id) {
-  const file = sessionFile(cwd, id);
+export function loadSession(cwd, id, options) {
+  const file = sessionFile(cwd, id, options);
   const data = JSON.parse(readFileSync(file, "utf8"));
   return {
     id: data.id || id,
@@ -68,8 +68,8 @@ export function loadSession(cwd, id) {
   };
 }
 
-export function saveSession(cwd, { id, model, network, messages, name, satId }) {
-  const dir = sessionsDir(cwd);
+export function saveSession(cwd, { id, model, network, messages, name, satId }, options) {
+  const dir = sessionsDir(cwd, options);
   mkdirSync(dir, { recursive: true });
   const payload = {
     id,
@@ -81,15 +81,15 @@ export function saveSession(cwd, { id, model, network, messages, name, satId }) 
     messages,
   };
   // Atomic write: a Ctrl+C mid-write must not corrupt an existing session.
-  const file = sessionFile(cwd, id);
+  const file = sessionFile(cwd, id, options);
   const tmp = `${file}.${process.pid}.tmp`;
   writeFileSync(tmp, JSON.stringify(payload, null, 2), { mode: 0o600 });
   renameSync(tmp, file);
 }
 
 // Serialize a saved session to a portable transcript. format: "md" | "json".
-export function exportSession(cwd, id, format = "md") {
-  const s = loadSession(cwd, id);
+export function exportSession(cwd, id, format = "md", options) {
+  const s = loadSession(cwd, id, options);
   if (format === "json") return JSON.stringify(s, null, 2);
 
   const lines = [`# bitcode session — ${s.id}`, ""];

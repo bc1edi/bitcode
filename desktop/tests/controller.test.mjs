@@ -5,8 +5,27 @@ import { execFileSync } from 'node:child_process';
 import path from 'node:path';
 import { setup, sessionIn, until, tick, config } from './helpers.mjs';
 import { hash } from '../core/primitives.mjs';
+import { loadSession, saveSession, sessionsDir } from '../../src/session.mjs';
 
 const pendingOf = events => events.filter(([ch, a]) => ch === 'approval' && a.status === 'pending').map(([, a]) => a);
+
+test('sessions persist, reopen and delete within the controller home', async () => {
+  const first = setup();
+  let reopened;
+  try {
+    const { s } = await sessionIn(first.c, first.root);
+    const sessionFile = path.join(sessionsDir(first.root, { home: first.home }), `${s.sessionId}.json`);
+    assert.ok(existsSync(sessionFile));
+    assert.equal(loadSession(first.root, s.sessionId, { home: first.home }).id, s.sessionId);
+    const messages = [{ role: 'user', content: 'Persist this conversation' }];
+    saveSession(first.root, { id: s.sessionId, messages }, { home: first.home });
+    first.c.shutdown();
+    reopened = setup({ home: first.home }).c;
+    assert.deepEqual((await reopened.invoke('session.open', { sessionId: s.sessionId })).messages.map(m => m.content), [messages[0].content]);
+    await reopened.invoke('session.delete', { sessionId: s.sessionId }, 'ui:1');
+    assert.equal(existsSync(sessionFile), false);
+  } finally { first.c.shutdown(); reopened?.shutdown(); }
+});
 
 test('model errors survive RPC and worker failure with copyable, redacted diagnostics', async () => {
   const { c, root, workers } = setup({ callModelImpl: async () => {

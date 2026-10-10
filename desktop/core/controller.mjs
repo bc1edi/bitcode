@@ -356,21 +356,21 @@ export function createController({ home, appDir, agents = [], emit = () => {}, s
   // ---- sessions (§12) ----
   function persistSession(s) {
     const p = projects.get(s.projectId);
-    if (p) saveSession(p.root, { id: s.sessionId, model: s.model, network: null, messages: s.messages, name: s.name });
+    if (p) saveSession(p.root, { id: s.sessionId, model: s.model, network: null, messages: s.messages, name: s.name }, { home });
     sessions.set(s.sessionId, s); saveMeta();
   }
   const transcript = messages => messages.map(m => ({ role: m.role, content: redactor.text(String(m.content ?? '')).slice(0, m.role === 'tool' ? 2000 : 200_000), name: m.name, tools: m.toolCalls?.map(t => t.name) }));
   const sessionMeta = s => ({ sessionId: s.sessionId, projectId: s.projectId, name: s.name, mode: s.mode, model: s.model, profile: s.profile || 'code', rgbNetwork: s.rgbNetwork || null, satModels: s.satModels, satId: s.satId || '', keep: !!s.keep, updatedAt: s.updatedAt,
     expiresAt: s.keep ? null : s.updatedAt + RETENTION_MS, active: [...runs.values()].some(r => r.sessionId === s.sessionId && !r.endedAt) });
   function loadMessages(s) {
-    if (!s.messages) { try { s.messages = loadSession(project(s.projectId).root, s.sessionId).messages; } catch { s.messages = []; } }
+    if (!s.messages) { try { s.messages = loadSession(project(s.projectId).root, s.sessionId, { home }).messages; } catch { s.messages = []; } }
     return s.messages;
   }
   function prune() {
     for (const s of [...sessions.values()]) {
       if (s.keep || now() - (s.updatedAt || 0) < RETENTION_MS || sessionMeta(s).active) continue;
       const p = projects.get(s.projectId);
-      if (p) rmSync(path.join(sessionsDir(p.root), `${s.sessionId}.json`), { force: true });
+      if (p) rmSync(path.join(sessionsDir(p.root, { home }), `${s.sessionId}.json`), { force: true });
       sessions.delete(s.sessionId);
     }
     saveMeta();
@@ -488,7 +488,7 @@ export function createController({ home, appDir, agents = [], emit = () => {}, s
     },
     'session.delete': ({ sessionId }) => {
       const s = session(sessionId); if (sessionMeta(s).active) throw fail('BUSY', 'Session has an active run');
-      rmSync(path.join(sessionsDir(project(s.projectId).root), `${sessionId}.json`), { force: true }); sessions.delete(sessionId); saveMeta(); return true;
+      rmSync(path.join(sessionsDir(project(s.projectId).root, { home }), `${sessionId}.json`), { force: true }); sessions.delete(sessionId); saveMeta(); return true;
     },
     'session.export': ({ sessionId }) => { const s = session(sessionId); return transcript(loadMessages(s)).filter(m => m.role !== 'tool').map(m => `## ${m.role}\n\n${m.content}`).join('\n\n'); },
     'mode.set': async ({ sessionId, mode }) => {
