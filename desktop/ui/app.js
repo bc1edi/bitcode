@@ -21,6 +21,7 @@ const SATS = ['node', 'script', 'hash', 'merkle'];
 const unattendedBlocked = () => (S.git && !S.git.repo ? t('E_WORKTREE_NO_REPO') : S.git && S.git.repo && !S.git.hasCommits ? t('E_WORKTREE_NO_COMMIT') : '');
 const MODES = ['manual', 'assisted', 'unattended'];
 const S = {
+  selecting: null, selected: new Set(),
   view: 'chat', info: null, status: null, settings: null, projects: [], projectId: null, sessions: [], sessionId: null, session: null,
   work: new Map(), closing: new Map(), attachments: [], collapsed: new Set(), tree: new Map(), expanded: new Set(['.']), git: null, tabs: [], active: null, panel: null, runs: new Map(), pending: [],
   sats: Object.fromEntries(SATS.map(s => [s, { st: 'idle' }])), live: new Map(), agentLog: [], worktrees: [], models: [], agent: '', commitMsg: '', draft: '', commands: [], menu: { items: [], index: 0 }, picker: { open: false, data: null, filter: '', loading: false }, notes: [], newModel: null, search: '', searching: false, renaming: null, expandedProjects: new Set(), sideHidden: (() => { try { return localStorage.getItem('bitcode.sideHidden') === '1'; } catch { return false; } })()
@@ -464,6 +465,47 @@ const ago = ms => {
   if (m < 1) return t('now'); if (m < 60) return `${m} min`; const hh = Math.round(m / 60); if (hh < 24) return `${hh} h`;
   const d = Math.round(hh / 24); return d === 1 ? t('yesterday') : d < 7 ? `${d} ${t('daysShort')}` : new Date(ms).toLocaleDateString(document.documentElement.lang, { day: 'numeric', month: 'short' });
 };
+// ---------- deleting chats: one, a selection, or all of them behind a typed word ----------
+const BURN_WORD = 'burnall';
+const fmt = (key, vars) => Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, v), t(key));
+function exitSelect() { S.selecting = null; S.selected.clear(); }
+// Kept and running chats are never bulk-deleted; the controller enforces the same rule.
+const skipCounts = list => ({ keep: list.filter(s => s.keep).length, active: list.filter(s => !s.keep && activeRun(s.sessionId)).length });
+const skipText = ({ keep, active }) => keep || active ? fmt('burnSkips', { list: [keep && fmt('skipKeep', { k: keep }), active && fmt('skipActive', { a: active })].filter(Boolean).join(' · ') }) : '';
+async function afterDelete(r) {
+  exitSelect(); await loadSessions();
+  if (S.sessionId && r.deleted.includes(S.sessionId)) { S.sessionId = null; S.session = null; }
+  toast([fmt('chatsDeleted', { n: r.deleted.length }), skipText(r.skipped)].filter(Boolean).join(' '));
+  renderShell();
+}
+async function deleteSelected(p) {
+  const all = S.sessions.filter(s => s.projectId === p.projectId), picked = all.filter(s => S.selected.has(s.sessionId));
+  if (!picked.length) return;
+  if (picked.length === all.length) return burnDialog({ projectId: p.projectId });
+  const skip = skipCounts(picked);
+  if (!confirm([fmt('deleteSelectedConfirm', { n: picked.length - skip.keep - skip.active }), skipText(skip)].filter(Boolean).join('\n'))) return;
+  await afterDelete(await api('session.deleteMany', { sessionIds: picked.map(s => s.sessionId) }));
+}
+function burnDialog({ projectId = null } = {}) {
+  const list = S.sessions.filter(s => !projectId || s.projectId === projectId), skip = skipCounts(list), n = list.length - skip.keep - skip.active;
+  const name = projectId && S.projects.find(p => p.projectId === projectId)?.name;
+  const dialog = h('dialog', { class: 'sat-info burn', 'aria-labelledby': 'burn-title' });
+  const go = h('button', { class: 'btn danger', disabled: true, onClick: guard(async () => {
+    const r = await api('session.deleteMany', { all: true, projectId, confirm: input.value }); dialog.close(); await afterDelete(r);
+  }) }, fmt('burnBtn', { n }));
+  const input = h('input', { type: 'text', autocomplete: 'off', spellcheck: false, 'aria-label': fmt('burnType', { w: BURN_WORD }),
+    onInput: e => { go.disabled = e.target.value !== BURN_WORD || !n; },
+    onKeydown: e => { if (e.key === 'Enter' && !go.disabled) go.click(); } });
+  fill(dialog,
+    h('h2', { id: 'burn-title' }, name ? fmt('burnTitleProject', { p: name }) : t('burnTitleAll')),
+    h('p', {}, fmt('burnBody', { n })),
+    skipText(skip) ? h('p', { class: 'status' }, skipText(skip)) : null,
+    h('p', { class: 'burnlabel' }, t('burnTypeBefore'), h('code', {}, BURN_WORD), t('burnTypeAfter')),
+    input,
+    h('div', { class: 'row end' }, h('button', { class: 'btn', onClick: () => dialog.close() }, t('cancel')), go));
+  dialog.addEventListener('close', () => dialog.remove()); document.body.append(dialog); dialog.showModal(); input.focus();
+}
+
 function renderSidebar() {
   const el = $('sidebar'); if (!el) return;
   const q = S.search.trim().toLowerCase();
@@ -471,6 +513,15 @@ function renderSidebar() {
     icon(ic), h('span', { class: 'label' }, label), badge ? h('span', { class: 'badge num' }, badge) : kbd ? h('kbd', {}, kbd) : null);
   const threadRow = s => {
     const run = activeRun(s.sessionId), waiting = S.pending.some(a => a.sessionId === s.sessionId), on = s.sessionId === S.sessionId && S.view === 'chat';
+    if (S.selecting === s.projectId) {
+      const picked = S.selected.has(s.sessionId);
+      return h('label', { class: `trow sel${picked ? ' on' : ''}`, title: s.keep ? `${s.name} · ${t('kept')}` : s.name },
+        h('input', { type: 'checkbox', checked: picked, onChange: e => { e.target.checked ? S.selected.add(s.sessionId) : S.selected.delete(s.sessionId); renderSidebar(); } }),
+        h('span', { class: 'tname' }, s.name),
+        s.keep ? h('span', { class: 'tkeep', title: t('kept') }, icon('star', { size: 12 })) : null,
+        run ? h('span', { class: 'tstate run', title: t(`run_${run.state}`) }) : null,
+        h('span', { class: 'ttime num' }, ago(s.updatedAt)));
+    }
     if (S.renaming === s.sessionId) return h('div', { class: 'trow editing' }, h('input', { type: 'text', value: s.name, class: 'rename', 'aria-label': t('rename'),
       onKeydown: guard(async e => { if (e.key === 'Escape') { S.renaming = null; renderSidebar(); } if (e.key === 'Enter') { await api('session.update', { sessionId: s.sessionId, name: e.target.value.trim() || s.name }); S.renaming = null; await loadSessions(); if (S.session?.sessionId === s.sessionId) S.session.name = e.target.value.trim() || s.name; renderSidebar(); renderTopbar(); } }),
       onBlur: () => { S.renaming = null; renderSidebar(); } }));
@@ -489,14 +540,23 @@ function renderSidebar() {
     const all = S.sessions.filter(s => s.projectId === p.projectId && (!q || s.name.toLowerCase().includes(q)));
     if (q && !all.length && !p.name.toLowerCase().includes(q)) return null;
     const open = q || !S.collapsed.has(p.projectId), expanded = S.expandedProjects.has(p.projectId);
-    const shown = expanded || q ? all : all.slice(0, 6);
+    const selecting = S.selecting === p.projectId;
+    const shown = expanded || q || selecting ? all : all.slice(0, 6);
+    const count = all.filter(s => S.selected.has(s.sessionId)).length;
+    const selBar = selecting ? h('div', { class: 'selbar' },
+      h('label', { class: 'selall' }, h('input', { type: 'checkbox', checked: !!all.length && count === all.length,
+        onChange: e => { for (const s of all) e.target.checked ? S.selected.add(s.sessionId) : S.selected.delete(s.sessionId); renderSidebar(); } }), t('selectAll')),
+      h('span', { class: 'spacer' }),
+      h('button', { class: 'btn sm danger', disabled: !count, onClick: guard(() => deleteSelected(p)) }, `${t('delete')} (${count})`),
+      h('button', { class: 'ibtn', title: t('cancel'), 'aria-label': t('cancel'), onClick: () => { exitSelect(); renderSidebar(); } }, icon('close', { size: 14 }))) : null;
     const live = all.filter(x => activeRun(x.sessionId)).length;
     return h('div', { class: 'pgroup' },
       h('div', { class: `prow${p.projectId === S.projectId ? ' cur' : ''}`, role: 'button', tabindex: 0, title: p.root, onClick: () => { open ? S.collapsed.add(p.projectId) : S.collapsed.delete(p.projectId); renderSidebar(); } },
         icon(open ? 'chevronDown' : 'chevronRight', { size: 12, cls: 'chev' }), icon('folder', { size: 15 }), h('span', { class: 'pname' }, p.name),
         live ? h('span', { class: 'tstate run', title: `${live} ${t('runsActive').toLowerCase()}` }) : null,
+        all.length && !selecting ? h('button', { class: 'padd', title: `${t('selectChats')} · ${p.name}`, 'aria-label': t('selectChats'), onClick: e => { e.stopPropagation(); S.selecting = p.projectId; S.selected.clear(); S.collapsed.delete(p.projectId); renderSidebar(); } }, icon('check', { size: 14 })) : null,
         h('button', { class: 'padd', title: `${t('newChat')} · ${p.name}`, 'aria-label': t('newChat'), onClick: guard(async e => { e.stopPropagation(); await goHome(p.projectId); }) }, icon('compose', { size: 14 }))),
-      open ? h('div', { class: 'threads' }, shown.map(threadRow),
+      open ? h('div', { class: 'threads' }, selBar, shown.map(threadRow),
         !all.length ? h('div', { class: 'tempty' }, t('noChats')) : null,
         all.length > shown.length ? h('button', { class: 'tmore', onClick: () => { S.expandedProjects.add(p.projectId); renderSidebar(); } }, `${t('showMore')} (${all.length - shown.length})`) : null) : null);
   });
@@ -978,6 +1038,9 @@ function settingsPage() {
       h('td', {}, h('span', { class: `chip ${m.hasKey ? 'ok' : 'warn'}` }, m.hasKey ? t('hasKey') : t('noKey'))),
       h('td', {}, m.locality === 'cloud' ? h('div', { class: 'row' }, (() => { const i = h('input', { type: 'password', autocomplete: 'off', placeholder: 'API key' }); keyInputs.set(m.name, i); return i; })(),
         h('button', { class: 'btn sm', onClick: guard(async () => { const v = keyInputs.get(m.name).value; if (!v) return; const r = await api('secrets.put', { name: m.name, value: v }); keyInputs.get(m.name).value = ''; toast(r.persisted ? t('secretSecure') : t('secretInsecure')); S.models = await api('models.list'); renderCenter(); }) }, t('saveKey'))) : null)))),
+    h('div', { class: 'section' }, t('historyL')),
+    h('div', { class: 'form' },
+      h('label', {}, t('deleteAllHistory')), h('span', {}, h('button', { class: 'btn sm danger', disabled: !S.sessions.length, onClick: () => burnDialog() }, t('deleteAllBtn')))),
     h('div', { class: 'section' }, t('diagnostics')),
     h('div', { class: 'form' },
       h('label', {}, 'Sandbox'), h('span', {}, h('span', { class: `chip ${S.status?.sandbox.available ? 'ok' : 'err'}` }, S.status?.sandbox.available ? t('sandboxOk') : `${t('sandboxMissing')} ${S.status?.sandbox.detail || ''}`)),

@@ -27,6 +27,33 @@ test('sessions persist, reopen and delete within the controller home', async () 
   } finally { first.c.shutdown(); reopened?.shutdown(); }
 });
 
+test('bulk delete skips kept and running chats and needs the typed word for all', async () => {
+  const { c, root, home, workers } = setup();
+  try {
+    const { p, s: plain } = await sessionIn(c, root);
+    const other = await c.invoke('session.create', { projectId: p.projectId }, 'ui:1');
+    const kept = await c.invoke('session.create', { projectId: p.projectId }, 'ui:1');
+    const busy = await c.invoke('session.create', { projectId: p.projectId }, 'ui:1');
+    await c.invoke('session.update', { sessionId: kept.sessionId, keep: true });
+    await c.invoke('chat.submit', { sessionId: busy.sessionId, text: 'work' }, 'ui:1');
+    await until(() => workers.length);
+    const file = id => path.join(sessionsDir(root, { home }), `${id}.json`);
+
+    await assert.rejects(c.invoke('session.deleteMany', { sessionIds: [plain.sessionId] }, 'worker'), { code: 'FORBIDDEN_ORIGIN' });
+    const some = await c.invoke('session.deleteMany', { sessionIds: [plain.sessionId, kept.sessionId] }, 'ui:1');
+    assert.deepEqual(some, { deleted: [plain.sessionId], skipped: { keep: 1, active: 0 } });
+    assert.equal(existsSync(file(plain.sessionId)), false);
+
+    for (const confirm of [undefined, 'BURNALL', 'burn all']) {
+      await assert.rejects(c.invoke('session.deleteMany', { all: true, projectId: p.projectId, confirm }, 'ui:1'), { code: 'INVALID_PARAMS' });
+    }
+    assert.ok(existsSync(file(other.sessionId)));
+    const all = await c.invoke('session.deleteMany', { all: true, confirm: 'burnall' }, 'ui:1');
+    assert.deepEqual(all, { deleted: [other.sessionId], skipped: { keep: 1, active: 1 } });
+    assert.deepEqual((await c.invoke('session.list', {})).map(x => x.sessionId).sort(), [kept.sessionId, busy.sessionId].sort());
+  } finally { c.shutdown(); }
+});
+
 test('model errors survive RPC and worker failure with copyable, redacted diagnostics', async () => {
   const { c, root, workers } = setup({ callModelImpl: async () => {
     throw Object.assign(new Error('endpoint rejected sk-cloud-secret'), { statusCode: 401 });

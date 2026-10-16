@@ -28,6 +28,7 @@ import { satEvents } from '../../src/sat-events.mjs';
 export const MODES = ['manual', 'assisted', 'unattended'];
 const SATS = ['node', 'script', 'hash', 'merkle'];
 const RETENTION_MS = 30 * 24 * 3600_000;
+export const BURN_WORD = 'burnall';
 const DEFAULT_SETTINGS = { v: 1, lang: 'it', theme: 'dark', maxActive: 3, maxLocal: 1, model: null, satModels: {}, localOnly: false };
 const DEFAULT_POLICY = { version: 1, commands: [], network: { destinations: [] } };
 const TTL = { patch: 900_000, command: 900_000, tool: 900_000, network: 300_000, egress: 300_000, policy: 300_000, integrate: 900_000, payment: 300_000 };
@@ -451,7 +452,7 @@ export function createController({ home, appDir, agents = [], emit = () => {}, s
   // ---- public API (§3) ----
   const rgb = createRgb({ config, fetchImpl: rgbFetch, mcpToolsImpl: rgbMcpTools, wdkAccountImpl: rgbWdkAccount });
   const finance = createFinance({ home, emit, configImpl: configOverride ? () => configOverride : undefined, saveConfigImpl: configOverride ? () => {} : undefined, fetchImpl: financeFetch });
-  const human = [...finance.human, 'models.addLocalProvider', 'approval.resolve', 'mode.set', 'policy.propose', 'settings.set', 'chat.submit', 'worktree.integrate', 'worktree.discard', 'git.init', 'session.delete', 'run.start'];
+  const human = [...finance.human, 'models.addLocalProvider', 'approval.resolve', 'mode.set', 'policy.propose', 'settings.set', 'chat.submit', 'worktree.integrate', 'worktree.discard', 'git.init', 'session.delete', 'session.deleteMany', 'run.start'];
   const methods = {
     ...finance.methods,
     'rgb.overview': () => rgb.overview(),
@@ -489,6 +490,23 @@ export function createController({ home, appDir, agents = [], emit = () => {}, s
     'session.delete': ({ sessionId }) => {
       const s = session(sessionId); if (sessionMeta(s).active) throw fail('BUSY', 'Session has an active run');
       rmSync(path.join(sessionsDir(project(s.projectId).root, { home }), `${sessionId}.json`), { force: true }); sessions.delete(sessionId); saveMeta(); return true;
+    },
+    // Bulk delete never removes kept or running chats. Deleting a whole project's
+    // history, or everything, also needs the typed word, checked here as well as in the UI.
+    'session.deleteMany': ({ sessionIds, all = false, projectId, confirm } = {}) => {
+      if (all && confirm !== BURN_WORD) throw fail('INVALID_PARAMS', `Type ${BURN_WORD} to delete all chats`);
+      if (!all && !Array.isArray(sessionIds)) throw fail('INVALID_PARAMS', 'sessionIds must be an array');
+      if (all && projectId) project(projectId);
+      const targets = all ? [...sessions.values()].filter(s => !projectId || s.projectId === projectId) : sessionIds.map(id => session(id));
+      const skipped = { keep: 0, active: 0 }, deleted = [];
+      for (const s of targets) {
+        if (s.keep) { skipped.keep++; continue; }
+        if (sessionMeta(s).active) { skipped.active++; continue; }
+        const p = projects.get(s.projectId);
+        if (p) rmSync(path.join(sessionsDir(p.root, { home }), `${s.sessionId}.json`), { force: true });
+        sessions.delete(s.sessionId); deleted.push(s.sessionId);
+      }
+      saveMeta(); return { deleted, skipped };
     },
     'session.export': ({ sessionId }) => { const s = session(sessionId); return transcript(loadMessages(s)).filter(m => m.role !== 'tool').map(m => `## ${m.role}\n\n${m.content}`).join('\n\n'); },
     'mode.set': async ({ sessionId, mode }) => {

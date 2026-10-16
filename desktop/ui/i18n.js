@@ -1,5 +1,9 @@
 // UI strings only: tool names, commands, identifiers and file content are never translated.
 const it = {
+  selectChats: 'Seleziona chat', selectAll: 'Seleziona tutte', chatsDeleted: 'Chat eliminate: {n}.', deleteSelectedConfirm: 'Eliminare definitivamente le chat selezionate ({n})? Spariscono anche dalla CLI.',
+  burnSkips: 'Non vengono eliminate: {list}.', skipKeep: '{k} con ★ Keep', skipActive: '{a} in esecuzione', burnTitleAll: 'Eliminare tutta la cronologia?', burnTitleProject: 'Eliminare tutte le chat di {p}?',
+  burnBody: 'Chat da eliminare definitivamente, anche dalla CLI: {n}. Non si può annullare.', burnTypeBefore: 'Per confermare scrivi ', burnTypeAfter: ' qui sotto.', burnType: 'Scrivi {w} per confermare',
+  burnBtn: 'Elimina chat ({n})', historyL: 'Cronologia', deleteAllHistory: 'Tutte le chat di tutti i progetti', deleteAllBtn: 'Elimina tutta la cronologia…',
   gitInit: 'Inizializza repository Git', gitInitConfirm: 'Creare un repository Git in questa cartella? Non viene aggiunto nessun file: il primo commit lo fai tu.', gitInitDone: 'Repository creato. Per «Senza supervisione» serve ancora un primo commit.',
   E_WORKTREE_NO_REPO: 'La modalità «Senza supervisione» richiede un repository Git nella cartella del progetto: usa Git → Inizializza.', E_WORKTREE_NO_COMMIT: 'La modalità «Senza supervisione» richiede almeno un commit nel repository: fai il primo commit dal pannello Git.',
   attachL: 'Allega', attachFiles: 'File…', attachFolder: 'Cartella…', dropHint: 'Rilascia per allegare file o cartelle', attachDefault: 'Guarda gli allegati.', attachRemove: 'Rimuovi l’allegato', attachBusy: 'Allego…', attachSkipped: 'non allegati', scAttach: 'Allega file',
@@ -92,6 +96,10 @@ const it = {
   E_PROVIDER_UNAVAILABLE: 'Modello non configurato.', E_PTY_UNAVAILABLE: 'Terminale non disponibile.', E_FORBIDDEN_ORIGIN: 'Origine non autorizzata.', E_WORKTREE_UNAVAILABLE: 'La modalità senza supervisione richiede un repository Git.'
 };
 const en = {
+  selectChats: 'Select chats', selectAll: 'Select all', chatsDeleted: 'Chats deleted: {n}.', deleteSelectedConfirm: 'Permanently delete the selected chats ({n})? They also disappear from the CLI.',
+  burnSkips: 'Not deleted: {list}.', skipKeep: '{k} with ★ Keep', skipActive: '{a} running', burnTitleAll: 'Delete all history?', burnTitleProject: 'Delete every chat in {p}?',
+  burnBody: 'Chats to delete permanently, also from the CLI: {n}. This cannot be undone.', burnTypeBefore: 'To confirm, type ', burnTypeAfter: ' below.', burnType: 'Type {w} to confirm',
+  burnBtn: 'Delete chats ({n})', historyL: 'History', deleteAllHistory: 'Every chat in every project', deleteAllBtn: 'Delete all history…',
   gitInit: 'Initialise Git repository', gitInitConfirm: 'Create a Git repository in this folder? No file is added: you make the first commit.', gitInitDone: 'Repository created. “Unattended” still needs a first commit.',
   E_WORKTREE_NO_REPO: 'Unattended mode needs a Git repository in the project folder: use Git → Initialise.', E_WORKTREE_NO_COMMIT: 'Unattended mode needs at least one commit in the repository: make the first commit from the Git panel.',
   attachL: 'Attach', attachFiles: 'Files…', attachFolder: 'Folder…', dropHint: 'Drop to attach files or folders', attachDefault: 'Have a look at the attachments.', attachRemove: 'Remove attachment', attachBusy: 'Attaching…', attachSkipped: 'not attached', scAttach: 'Attach files',

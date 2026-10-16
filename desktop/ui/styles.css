@@ -484,3 +484,17 @@ table.list th { font-size: 12px; color: var(--muted); font-weight: 500; }
 .dropzone[hidden] { display: none; }
 .dropcard { display: grid; gap: 10px; justify-items: center; padding: 28px 40px; border-radius: 16px; background: var(--elevated); color: var(--ink); font-size: 16px; box-shadow: 0 20px 60px #000a; }
 .dropcard svg { color: var(--accent); }
+
+/* Selecting chats to delete, and the typed-word confirmation for deleting them all. */
+.selbar { display: flex; align-items: center; gap: 4px; padding: 2px 4px 6px 26px; }
+.selbar .btn { white-space: nowrap; }
+.selbar .ibtn { width: 26px; height: 26px; }
+.selbar .selall { display: flex; align-items: center; gap: 6px; color: var(--body); font-size: 12px; cursor: pointer; white-space: nowrap; }
+.selbar .spacer { flex: 1; }
+.trow.sel { padding-left: 26px; }
+.trow.sel input { margin: 0; flex: none; }
+.trow.sel.on { background: var(--card); color: var(--ink); }
+.burn { max-width: 460px; }
+.burn .burnlabel code { padding: 1px 5px; border-radius: 4px; background: var(--elevated); color: var(--ink); font-weight: 600; user-select: all; }
+.burn input[type=text] { width: 100%; margin: 4px 0 16px; font-family: var(--mono, monospace); }
+.burn .row.end { justify-content: flex-end; gap: 8px; }
