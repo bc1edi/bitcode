@@ -1,0 +1,22 @@
+{
+  "checks": [
+    "en: static metadata, reduced motion, no overflow at 320/390/800/1023/1024/1440",
+    "en: anchors, sticky capability switching, catalog disclosures, keyboard tabs and clipboard",
+    "en: mobile inline terminals, focus containment, Escape, scroll lock, language hash preservation",
+    "it: static metadata, reduced motion, no overflow at 320/390/800/1023/1024/1440",
+    "it: anchors, sticky capability switching, catalog disclosures, keyboard tabs and clipboard",
+    "it: mobile inline terminals, focus containment, Escape, scroll lock, language hash preservation",
+    "intro staged/headline/collapsing/full, session/hash skips, CLS 0.0000",
+    "browser scroll restoration skips the intro",
+    "genesis by logo and /genesis, dismissible with Escape",
+    "hidden-tab typing pauses and resumes; explicit pause renders complete excerpts",
+    "fine-pointer logo menu; Shift preserves native context menu",
+    "recorded video plays on request with native controls and pauses when hidden",
+    "without JavaScript: headings, eight inline recordings, four installation methods and mobile navigation available",
+    "initially hidden tab skips the intro",
+    "blocked storage, zero external requests, zero browser errors, axe WCAG AA clean"
+  ],
+  "cls": 0,
+  "errors": [],
+  "external": []
+}

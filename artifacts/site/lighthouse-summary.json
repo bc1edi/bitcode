@@ -1,0 +1,62 @@
+[
+  {
+    "lang": "en",
+    "device": "mobile",
+    "scores": {
+      "performance": 98,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "cls": 0,
+    "lcpMs": 2027.62995,
+    "lighthouseVersion": "13.4.1",
+    "fetchTime": "2026-10-19T18:28:19.050Z",
+    "url": "http://127.0.0.1:4173/"
+  },
+  {
+    "lang": "en",
+    "device": "desktop",
+    "scores": {
+      "performance": 100,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "cls": 0,
+    "lcpMs": 482.6232,
+    "lighthouseVersion": "13.4.1",
+    "fetchTime": "2026-10-19T18:28:29.636Z",
+    "url": "http://127.0.0.1:4173/"
+  },
+  {
+    "lang": "it",
+    "device": "mobile",
+    "scores": {
+      "performance": 98,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "cls": 0,
+    "lcpMs": 2027.5642598052464,
+    "lighthouseVersion": "13.4.1",
+    "fetchTime": "2026-10-19T18:28:40.220Z",
+    "url": "http://127.0.0.1:4173/it/"
+  },
+  {
+    "lang": "it",
+    "device": "desktop",
+    "scores": {
+      "performance": 100,
+      "accessibility": 100,
+      "best-practices": 100,
+      "seo": 100
+    },
+    "cls": 0,
+    "lcpMs": 482.83005,
+    "lighthouseVersion": "13.4.1",
+    "fetchTime": "2026-10-19T18:28:50.867Z",
+    "url": "http://127.0.0.1:4173/it/"
+  }
+]

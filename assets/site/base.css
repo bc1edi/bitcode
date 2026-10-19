@@ -424,4 +424,3 @@
       *, *::before, *::after { animation: none !important; transition: none !important; }
         .hero-logo-wordmark { color: var(--ink); font-size: clamp(2.75rem, 4.3vw, 3.75rem); font-weight: 600; line-height: 1; letter-spacing: -.06em; }
     }
-  
