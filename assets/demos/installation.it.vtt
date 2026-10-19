@@ -1,0 +1,16 @@
+WEBVTT
+
+00:00:00.000 --> 00:00:05.215
+Ottieni il sorgente. Servono Node.js 22+, Git e Bash.
+
+00:00:05.215 --> 00:00:08.315
+Entra nella cartella del progetto.
+
+00:00:08.315 --> 00:00:13.569
+Installa l’agente. La compilazione dei wallet opzionali viene saltata.
+
+00:00:13.569 --> 00:00:22.162
+Controlla provider, strumenti e dipendenze opzionali.
+
+00:00:22.162 --> 00:00:29.696
+bitcode è installato. Ora scegli il provider.

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://bitcode-agent.vercel.app/sitemap.xml

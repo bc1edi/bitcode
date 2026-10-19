@@ -1,0 +1,3 @@
+⚡ bitcode  agent · ollama/gpt-oss:20b  · signet  ● ready
+
+4

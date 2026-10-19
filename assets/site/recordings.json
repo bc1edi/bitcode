@@ -1,0 +1,187 @@
+{
+  "method": "Original CLI stdout in a disposable BITCODE_HOME; catalog excerpts are not command executions. RGB and MCP captures have no configured node/server. Local inference is Ollama gpt-oss:20b. No funds moved. Fee excerpt comes from the existing September 11 transcript. Terminal output stays in its original language in both locales.",
+  "sessions": {
+    "bitcoin": {
+      "command": "/btc:fees",
+      "context": "ui.excerpt",
+      "recordedAt": "2026-09-11T11:34:04.297Z",
+      "source": "/assets/demos/features-transcript.txt",
+      "sourceCommit": "277207d8b79862a8ae0c25db319a5e941249c392",
+      "lines": [
+        {
+          "text": "⚡ bitcode  agent · ollama/qwen3.8:27b  · mainnet  ● ready",
+          "type": false,
+          "wait": 180,
+          "className": ""
+        },
+        {
+          "text": "type a request, or /help for commands. Ctrl+D to quit.",
+          "type": false,
+          "wait": 180,
+          "className": ""
+        },
+        {
+          "text": "› /btc:fees Reply in at most 50 words. No tables.",
+          "type": true,
+          "wait": 400,
+          "className": "prompt"
+        },
+        {
+          "text": "R E A S O N I N G",
+          "type": false,
+          "wait": 180,
+          "className": ""
+        },
+        {
+          "text": "   READING   {}",
+          "type": false,
+          "wait": 180,
+          "className": ""
+        },
+        {
+          "text": "    ✓ network mainnet",
+          "type": false,
+          "wait": 180,
+          "className": "result"
+        },
+        {
+          "text": "      fastest 2 · 30min 1 · 1h 1 · economy 1 · min 1 (sat/vB)",
+          "type": false,
+          "wait": 180,
+          "className": ""
+        },
+        {
+          "text": "Fees are rock bottom: fastest 2 sat/vB, 30min/1h/economy/min all 1 sat/vB.",
+          "type": false,
+          "wait": 180,
+          "className": ""
+        }
+      ]
+    },
+    "lightning": {
+      "command": "/ln:decode",
+      "context": "ui.catalog",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/commands-recorded.txt",
+      "invocation": "node bitcode.mjs commands --json",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs commands --json",
+          "type": true
+        },
+        {
+          "text": "{\"name\":\"ln:decode\",\"description\":\"Decode a Lightning invoice\"}"
+        }
+      ]
+    },
+    "liquid": {
+      "command": "/liquid:asset",
+      "context": "ui.catalog",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/commands-recorded.txt",
+      "invocation": "node bitcode.mjs commands --json",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs commands --json",
+          "type": true
+        },
+        {
+          "text": "{\"name\":\"liquid:asset\",\"description\":\"Inspect Liquid asset metadata\"}"
+        }
+      ]
+    },
+    "cashu": {
+      "command": "/cashu:mint",
+      "context": "ui.catalog",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/commands-recorded.txt",
+      "invocation": "node bitcode.mjs commands --json",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs commands --json",
+          "type": true
+        },
+        {
+          "text": "{\"name\":\"cashu:mint\",\"description\":\"Create a Cashu mint quote\"}"
+        }
+      ]
+    },
+    "code": {
+      "command": "/repo:review",
+      "context": "ui.catalog",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/commands-recorded.txt",
+      "invocation": "node bitcode.mjs commands --json",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs commands --json",
+          "type": true
+        },
+        {
+          "text": "{\"name\":\"repo:review\",\"description\":\"Review working tree changes\"}"
+        }
+      ]
+    },
+    "rgb": {
+      "command": "--profile rgb",
+      "context": "ui.rgb",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/rgb-recorded.txt",
+      "invocation": "node bitcode.mjs --profile rgb tools --json",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs --profile rgb tools --json",
+          "type": true
+        },
+        {
+          "text": "[]"
+        }
+      ]
+    },
+    "extensions": {
+      "command": "/mcp",
+      "context": "ui.mcp",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/extensions-recorded.txt",
+      "invocation": "node bitcode.mjs mcp",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs mcp",
+          "type": true
+        },
+        {
+          "text": "[]"
+        }
+      ]
+    },
+    "local": {
+      "command": "-m ollama/gpt-oss:20b",
+      "context": "ui.local",
+      "recordedAt": "2026-10-19T18:16:35.735Z",
+      "sourceCommit": "8a8f5cf061d70a54787cc2694603fc4ec02eea65",
+      "source": "/assets/site/local-recorded.txt",
+      "invocation": "node bitcode.mjs -m ollama/gpt-oss:20b --read-only --no-session --max-steps 1 -p \"Return only the result of 2 + 2. Do not use tools.\"",
+      "lines": [
+        {
+          "text": "$ node bitcode.mjs -m ollama/gpt-oss:20b --read-only --no-session --max-steps 1 -p \"Return only the result of 2 + 2. Do not use tools.\"",
+          "type": true
+        },
+        {
+          "text": "⚡ bitcode  agent · ollama/gpt-oss:20b  · signet  ● ready"
+        },
+        {
+          "text": ""
+        },
+        {
+          "text": "4"
+        }
+      ]
+    }
+  }
+}
