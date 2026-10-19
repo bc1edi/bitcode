@@ -1,8 +1,9 @@
 // Bundles the Electron main process, the sandboxed agent worker, the preload
 // bridge and the renderer into dist/. The worker bundle is self-contained
 // because the sandbox mounts only dist/ (as /app), never the repository.
+// dist/cli carries the unbundled terminal CLI for the package's /usr/bin/bitcode.
 import { build } from 'esbuild';
-import { cpSync, mkdirSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { chmodSync, cpSync, existsSync, mkdirSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
 import { deflateSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -33,10 +34,46 @@ cpSync(path.join(here, 'ui/styles.css'), path.join(dist, 'ui/styles.css'));
 cpSync(path.join(here, 'node_modules/@xterm/xterm/css/xterm.css'), path.join(dist, 'ui/xterm.css'));
 cpSync(path.join(repo, 'ui/sats/fonts'), path.join(dist, 'ui/fonts'), { recursive: true });
 writeFileSync(path.join(dist, 'ui/icon.png'), iconPng(256));
+// electron-builder installs a directory of NxN.png files as the hicolor icon theme sizes.
+mkdirSync(path.join(dist, 'icons'));
+for (const size of [16, 24, 32, 48, 64, 128, 256, 512]) writeFileSync(path.join(dist, 'icons', `${size}x${size}.png`), iconPng(size));
 cpSync(path.join(repo, 'agents'), path.join(dist, 'agents'), { recursive: true });
 cpSync(path.join(repo, 'commands'), path.join(dist, 'commands'), { recursive: true });
 cpSync(path.join(repo, 'sats'), path.join(dist, 'sats'), { recursive: true });
+copyCli(path.join(dist, 'cli'));
 console.log('desktop build → dist/');
+
+// The CLI resolves agents, commands, Sats and its version relative to src/, so
+// it ships as a tree rather than a bundle, with only its production dependencies.
+function copyCli(out) {
+  for (const entry of ['bitcode.mjs', 'package.json', 'LICENSE', 'src', 'agents', 'commands', 'sats', 'ui/sats'])
+    cpSync(path.join(repo, entry), path.join(out, entry), { recursive: true, filter: f => !f.endsWith('.test.mjs') });
+  cpSync(path.join(repo, 'assets/sats'), path.join(out, 'assets/sats'), { recursive: true, filter: f => !f.includes(`${path.sep}sources`) });
+  const copied = new Set();
+  const visit = (name, from) => {
+    for (let dir = from; ; dir = path.dirname(dir)) {
+      const candidate = path.join(dir, 'node_modules', name);
+      if (existsSync(path.join(candidate, 'package.json'))) {
+        if (copied.has(candidate)) return;
+        copied.add(candidate);
+        cpSync(candidate, path.join(out, path.relative(repo, candidate)), { recursive: true });
+        const pkg = JSON.parse(readFileSync(path.join(candidate, 'package.json'), 'utf8'));
+        for (const dep of Object.keys({ ...pkg.dependencies, ...pkg.optionalDependencies })) visit(dep, candidate);
+        return;
+      }
+      if (dir === repo) { if (!isOptional(name)) throw new Error(`CLI dependency not installed: ${name} (run npm ci in the repository)`); return; }
+    }
+  };
+  const root = JSON.parse(readFileSync(path.join(repo, 'package.json'), 'utf8'));
+  const optional = new Set(Object.keys(root.optionalDependencies || {}));
+  const isOptional = name => optional.has(name);
+  for (const dep of Object.keys({ ...root.dependencies, ...root.optionalDependencies })) visit(dep, repo);
+  // Electron's binary runs the CLI as plain Node; the main process never loads it.
+  mkdirSync(path.join(dist, 'bin'));
+  const launcher = path.join(dist, 'bin', 'bitcode');
+  writeFileSync(launcher, '#!/bin/sh\n# Bitcode CLI on the Node.js runtime bundled with the desktop app.\nELECTRON_RUN_AS_NODE=1 exec /opt/Bitcode/bitcode-desktop /opt/Bitcode/resources/app/dist/cli/bitcode.mjs "$@"\n');
+  chmodSync(launcher, 0o755);
+}
 
 // App/tray icon drawn from the 4×5 pixel "b": orange body, ink base, on a
 // cream rounded tile. Encoded as PNG with zlib so no raster asset is shipped.

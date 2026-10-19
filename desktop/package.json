@@ -1,6 +1,6 @@
 {
   "name": "bitcode-desktop",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Bitcode desktop workspace for coding and Bitcoin",
   "homepage": "https://github.com/faktotum-project/bitcode",
@@ -11,6 +11,7 @@
   "license": "MIT",
   "type": "module",
   "main": "dist/main.mjs",
+  "desktopName": "bitcode-desktop.desktop",
   "scripts": {
     "build": "node build.mjs",
     "start": "npm run build && electron .",
@@ -34,14 +35,18 @@
         "deb"
       ],
       "category": "Development",
-      "icon": "dist/ui/icon.png",
+      "icon": "dist/icons",
+      "syncDesktopName": true,
       "desktop": {
         "entry": {
-          "StartupWMClass": "Bitcode"
+          "StartupNotify": "true",
+          "Keywords": "bitcoin;coding;agent;ai;terminal;"
         }
       }
     },
     "deb": {
+      "afterInstall": "packaging/linux/after-install.sh",
+      "afterRemove": "packaging/linux/after-remove.sh",
       "depends": [
         "libgtk-3-0",
         "libnss3",

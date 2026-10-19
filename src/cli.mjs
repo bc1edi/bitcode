@@ -11,7 +11,8 @@ import { providerHealth } from "./providers.mjs";
 import { isLocalProvider, describeLocalModel, localSetupHint } from "./local-models.mjs";
 import { localInventory, bestLocalModel, runtimeProvider } from "./local-inventory.mjs";
 import { loadPlugins } from "./plugins.mjs";
-import { dependencyReport } from "./diagnostics.mjs";
+import { dependencyReport, sandboxReport } from "./diagnostics.mjs";
+import { launchDesktop } from "./desktop-launch.mjs";
 import { VERSION } from "./version.mjs";
 import { closeCashuDaemons } from "./cashu/mint.mjs";
 import { closeProcesses } from "./processes.mjs";
@@ -149,6 +150,7 @@ Usage:
   bitcode mcp                         inspect MCP connections
   bitcode config                     print the config file path
   bitcode doctor                     print a diagnostics report
+  bitcode desktop                    open the Bitcode desktop app, if installed
   bitcode wallet seed                reveal the wallet's mnemonic (human only)
   bitcode finance status             show protected signet/testnet proposals
   bitcode finance policy <payment> <daily> <fee> <reserve>  set limits in sats
@@ -234,7 +236,7 @@ export function parseArgs(argv) {
     else if (a === "-m" || a === "--model") opts.model = value(++i, a);
     else if (a === "-p" || a === "--print") { opts.print = true; opts.prompt = value(++i, a); }
     else if (a.startsWith("-")) throw new Error(`unknown option: ${a}`);
-    else if (!opts.command && !opts.prompt && !positionals.length && ["models", "config", "doctor", "wallet", "finance", "tools", "commands", "skills", "mcp", "provider", "login", "session"].includes(a)) {
+    else if (!opts.command && !opts.prompt && !positionals.length && ["models", "config", "doctor", "desktop", "wallet", "finance", "tools", "commands", "skills", "mcp", "provider", "login", "session"].includes(a)) {
       opts.command = a;
       if (a === "wallet") opts.walletSub = argv[++i];
     } else positionals.push(a);
@@ -278,6 +280,7 @@ export async function main(argv) {
       local: inv.servers.map(({ name, label, baseURL, configured, running, models }) => ({ name, label, baseURL, configured, running, models })), idle: inv.idle }, opts);
   }
   if (opts.command === "wallet") return walletCommand(opts.walletSub, config);
+  if (opts.command === "desktop") { const r = launchDesktop(); return opts.json ? printData(r, opts) : out(`bitcode: desktop started (${r.executable})`); }
   if (opts.command === "finance") return financeCommand(opts.commandArgs || [], config, opts);
   if (opts.command === "commands") return printData(loadCommands().map(({ name, description }) => ({ name, description })), opts);
   if (opts.command === "skills") return printData(loadSkills(), opts);
@@ -292,7 +295,7 @@ export async function main(argv) {
       if (opts.command === "tools") return printData(tools.map(({ name, description, parameters, mutating }) => ({ name, description, parameters, mutating })), opts);
       if (opts.command === "mcp") return printData(ext.mcpServers, opts);
       const lines = doctorLines(config, { toolCount: tools.length, ...ext });
-      return opts.json ? printData({ version: VERSION, node: process.version, tools: tools.length, dependencies: dependencyReport(config), ...ext }, opts) : lines.forEach(out);
+      return opts.json ? printData({ version: VERSION, node: process.version, tools: tools.length, dependencies: dependencyReport(config), sandbox: sandboxReport(), ...ext }, opts) : lines.forEach(out);
     } finally { await closeMcpConnections(); await closeWavelength(); }
   }
 
@@ -547,6 +550,10 @@ function doctorLines(config, { toolCount, plugins = [], mcpServers = [] } = {}) 
   else for (const p of plugins) lines.push("  " + (p.ok ? t.ok(p.name) : t.danger(`${p.name} — ${p.error}`)));
   lines.push(t.label("Dependencies"));
   for (const dep of dependencyReport(config)) lines.push(`  ${dep.path ? t.ok(dep.name) : t.faint(`${dep.name} unavailable`)} — ${dep.path || dep.purpose}`);
+  lines.push(t.label("Sandbox"));
+  const sandbox = sandboxReport();
+  lines.push(`  ${sandbox.available ? t.ok("bwrap") : t.faint("bwrap unavailable")} — ${sandbox.detail}`);
+  if (sandbox.hint) lines.push("  " + t.faint(sandbox.hint));
   lines.push(t.label("MCP servers"));
   if (!mcpServers.length) lines.push("  " + t.faint("none"));
   else for (const s of mcpServers) lines.push("  " + (s.ok ? t.ok(`${s.name} (${s.tools} tools)`) : t.danger(`${s.name} — ${s.error}`)));

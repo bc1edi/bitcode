@@ -62,8 +62,20 @@ See [docs/sats.md](docs/sats.md).
 
 The same agent and Sats in an Electron workspace: projects, editor, Git,
 terminal, a bubblewrap-isolated agent worker, a Bitcoin test wallet and RGB
-wallet sessions with payment approvals. No installable release yet; see
-[desktop/](desktop/) and the [plan](docs/desktop-plan.md).
+wallet sessions with payment approvals. See [desktop/](desktop/) and the
+[plan](docs/desktop-plan.md).
+
+```bash
+npm run dist:desktop              # builds desktop/release/bitcode-desktop_<version>_amd64.deb
+sudo apt install ./desktop/release/bitcode-desktop_*_amd64.deb
+bitcode-desktop                   # or: bitcode desktop
+```
+
+The package (Linux, amd64) also installs the terminal CLI as `/usr/bin/bitcode`
+on the bundled Node.js runtime, unless another `bitcode` already owns that path.
+The app stays in the tray, can start at login (Settings → System), restores its
+window and blocks system suspension only while an agent run is active.
+`bitcode doctor` checks that Bubblewrap can create its namespaces.
 
 ## What's inside
 

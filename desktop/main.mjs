@@ -1,7 +1,7 @@
 // Electron main process: windows, tray, notifications, secret store, PTYs and
 // the trusted origin of every control message. The renderer has no Node.
-import { app, BrowserWindow, Menu, Notification, Tray, clipboard, dialog, ipcMain, nativeImage, safeStorage, shell, session as electronSession } from 'electron';
-import { existsSync, watch, writeFileSync } from 'node:fs';
+import { app, BrowserWindow, Menu, Notification, Tray, clipboard, dialog, ipcMain, nativeImage, powerSaveBlocker, safeStorage, screen, shell, session as electronSession } from 'electron';
+import { existsSync, mkdirSync, rmSync, watch, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bitcodeHome } from '../src/paths.mjs';
@@ -10,11 +10,14 @@ import { createController, fileVersion } from './core/controller.mjs';
 import { probeSandbox, spawnWorker } from './core/sandbox.mjs';
 import { atomicJSON, fail, loadJSON, workspacePath } from './core/primitives.mjs';
 import { createAttachments } from './core/attachments.mjs';
+import { HIDDEN_ARG, MIN_WINDOW, autostartEntry, autostartFile, createCrashPolicy, restoreBounds, trayModel } from './core/shell.mjs';
 
 const appDir = path.dirname(fileURLToPath(import.meta.url)); // dist/
 const home = bitcodeHome();
 const UI = path.join(appDir, 'ui', 'index.html');
-let win = null, tray = null, quitting = false, controller;
+let win = null, tray = null, quitting = false, controller, awakeBlocker = null;
+const startHidden = process.argv.includes(HIDDEN_ARG);
+const windowFile = path.join(home, 'desktop', 'window.json');
 
 if (!app.requestSingleInstanceLock()) app.quit();
 app.on('second-instance', () => show()); // re-opening path when the tray icon is not visible
@@ -79,16 +82,53 @@ function watchProject({ projectId, root }) {
 }
 
 function send(channel, payload) { if (win && !win.isDestroyed()) win.webContents.send('bitcode:event', { channel, payload }); }
-function notify(title, body) { if (Notification.isSupported() && (!win?.isVisible() || !win.isFocused())) new Notification({ title, body, silent: false }).show(); }
+// A notification without a live reference can be collected before its click arrives.
+const shownNotifications = new Set();
+function notify(title, body, target) {
+  if (!Notification.isSupported() || (win?.isVisible() && win.isFocused())) return;
+  const n = new Notification({ title, body, silent: false });
+  shownNotifications.add(n);
+  const release = () => shownNotifications.delete(n);
+  n.on('click', () => { show(); if (target) send('navigate', target); release(); });
+  n.on('close', release); n.on('failed', release);
+  n.show();
+}
 function show() { if (!win) createWindow(); else { win.show(); win.focus(); } }
+const toggle = () => (win?.isVisible() && win.isFocused() ? win.hide() : show());
 
-function createWindow() {
-  win = new BrowserWindow({ width: 1440, height: 900, minWidth: 980, minHeight: 620, title: 'Bitcode', backgroundColor: '#f7f7f4', icon: path.join(appDir, 'ui', 'icon.png'),
+let geometryTimer = null;
+function saveGeometry() {
+  clearTimeout(geometryTimer); geometryTimer = null;
+  if (!win || win.isDestroyed() || win.isMinimized() || win.isFullScreen()) return;
+  try { atomicJSON(windowFile, { ...(win.isMaximized() ? win.getNormalBounds() : win.getBounds()), maximized: win.isMaximized() }); } catch {}
+}
+const queueGeometry = () => { clearTimeout(geometryTimer); geometryTimer = setTimeout(saveGeometry, 400); };
+
+function watchRenderer(w) {
+  const policy = createCrashPolicy();
+  w.webContents.on('render-process-gone', async (_, { reason }) => {
+    const step = policy.next(reason);
+    if (step === 'reload') return setTimeout(() => { if (!w.isDestroyed()) w.webContents.reload(); }, 100);
+    if (step !== 'stop') return;
+    const { response } = await dialog.showMessageBox({ type: 'error', buttons: ['Ricarica', 'Esci'], defaultId: 0, cancelId: 1,
+      message: 'La finestra di Bitcode continua a chiudersi', detail: `Motivo: ${reason}. Le attività in corso proseguono nel processo principale.` });
+    if (response === 0 && !w.isDestroyed()) { policy.reset(); w.webContents.reload(); } else quit();
+  });
+}
+
+function createWindow({ visible = true } = {}) {
+  let saved = null; try { saved = restoreBounds(loadJSON(windowFile, null), screen.getAllDisplays().map(d => d.workArea)); } catch {}
+  win = new BrowserWindow({ width: saved?.width || 1440, height: saved?.height || 900, ...(saved ? { x: saved.x, y: saved.y } : {}), minWidth: MIN_WINDOW.width, minHeight: MIN_WINDOW.height, show: visible,
+    title: 'Bitcode', backgroundColor: '#f7f7f4', icon: path.join(appDir, 'ui', 'icon.png'),
     webPreferences: { preload: path.join(appDir, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, spellcheck: false } });
+  if (saved?.maximized) win.maximize();
   win.setMenuBarVisibility(false);
   win.webContents.on('will-navigate', e => e.preventDefault());
   win.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
-  win.on('close', e => { if (!quitting) { e.preventDefault(); win.hide(); updateTray(); } });
+  for (const event of ['resize', 'move', 'maximize', 'unmaximize']) win.on(event, queueGeometry);
+  for (const event of ['show', 'hide']) win.on(event, updateTray);
+  watchRenderer(win);
+  win.on('close', e => { saveGeometry(); if (!quitting) { e.preventDefault(); win.hide(); } });
   win.on('closed', () => { win = null; });
   win.loadFile(UI);
   // Smoke check for CI/dev: render, save a screenshot, exit.
@@ -98,15 +138,25 @@ function createWindow() {
   }, 2500));
 }
 
+// Suspension would stall running agents, so it is blocked only while any run is active.
+function keepAwake(active) {
+  if (active && awakeBlocker === null) awakeBlocker = powerSaveBlocker.start('prevent-app-suspension');
+  else if (!active && awakeBlocker !== null) { powerSaveBlocker.stop(awakeBlocker); awakeBlocker = null; }
+}
+
 function updateTray() {
+  const runs = controller.activeRuns(), model = trayModel({ runs, pending: controller.pending() });
+  keepAwake(runs.length > 0);
   if (!tray) return;
-  const runs = controller.activeRuns(), pending = controller.pending();
-  tray.setToolTip(`Bitcode · ${runs.length} attività · ${pending.length} richieste`);
+  const activity = () => { show(); send('navigate', { view: 'activity' }); };
+  tray.setToolTip(model.tooltip);
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: 'Apri Bitcode', click: show },
-    { label: `${runs.length} attività in corso`, enabled: false },
-    { label: `${pending.length} richieste in attesa`, enabled: !!pending.length, click: () => { show(); send('navigate', { view: 'activity' }); } },
-    ...runs.slice(0, 5).map(r => ({ label: `Annulla: ${r.prompt.slice(0, 40)}`, click: () => controller.invoke('run.cancel', { runId: r.runId }, 'tray') })),
+    { label: win?.isVisible() ? 'Nascondi Bitcode' : 'Apri Bitcode', click: toggle },
+    { type: 'separator' },
+    ...(model.approvals.length ? [{ label: 'Richieste in attesa', enabled: false }, ...model.approvals.map(a => ({ label: a.label, click: activity })),
+      ...(model.moreApprovals ? [{ label: `Altre ${model.moreApprovals}…`, click: activity }] : []), { type: 'separator' }] : []),
+    { label: runs.length ? `${runs.length} attività in corso` : 'Nessuna attività in corso', enabled: false },
+    ...model.runs.map(r => ({ label: `Annulla: ${r.label}`, click: () => controller.invoke('run.cancel', { runId: r.runId }, 'tray') })),
     { type: 'separator' },
     { label: 'Esci', click: quit }
   ]));
@@ -119,8 +169,21 @@ async function quit() {
       message: `${active} attività in corso`, detail: 'Uscendo le attività vengono interrotte e non riprendono automaticamente.' });
     if (response !== 1) return;
   }
-  quitting = true; controller.shutdown(); for (const t of ptys.values()) t.kill(); app.quit();
+  shutdown(); app.quit();
 }
+function shutdown() { quitting = true; saveGeometry(); keepAwake(false); controller?.shutdown(); for (const t of ptys.values()) t.kill(); }
+
+// Autostart is offered only for packaged builds: a development Electron binary cannot start the app on its own.
+const launcher = () => (process.env.APPIMAGE && path.isAbsolute(process.env.APPIMAGE) ? process.env.APPIMAGE : process.execPath);
+const autostart = {
+  get: () => ({ supported: process.platform === 'linux' && app.isPackaged, enabled: existsSync(autostartFile({ home: app.getPath('home') })) }),
+  set: enabled => {
+    if (!autostart.get().supported) throw fail('UNSUPPORTED', 'Avvio automatico disponibile solo nel pacchetto installato');
+    const file = autostartFile({ home: app.getPath('home') });
+    if (enabled) { mkdirSync(path.dirname(file), { recursive: true }); writeFileSync(file, autostartEntry({ executable: launcher() }), { mode: 0o644 }); } else rmSync(file, { force: true });
+    return autostart.get();
+  }
+};
 
 // ---- attachments: files and folders shared in a chat are copied into the project's allegati/ ----
 const attachments = new Map();
@@ -155,6 +218,8 @@ const mainMethods = {
   'clipboard.write': ({ text }) => { if (typeof text !== 'string' || text.length > 1_000_000) throw fail('INVALID_PARAMS'); clipboard.writeText(text); return true; },
   'clipboard.read': () => clipboard.readText().slice(0, 1_000_000),
   // Links in answers open in the system browser; only plain http(s) URLs, never file:, javascript: or custom schemes.
+  'app.autostart.get': () => autostart.get(),
+  'app.autostart.set': ({ enabled }) => autostart.set(enabled === true),
   'app.openExternal': async ({ url }) => { const u = new URL(String(url)); if (!['http:', 'https:'].includes(u.protocol) || u.username || u.password) throw fail('INVALID_PARAMS'); await shell.openExternal(u.href); return true; },
   'app.quit': quit
 };
@@ -176,13 +241,19 @@ app.whenReady().then(() => {
     spawnWorker: opts => spawnWorker({ ...opts, runtime: process.execPath }),
     emit: (channel, payload) => {
       send(channel, payload);
-      if (channel === 'approval' && payload.status === 'pending') notify('Bitcode · approvazione richiesta', `${payload.subject?.project || ''} · ${payload.kind}`);
-      if (channel === 'run' && ['success', 'error', 'interrupted'].includes(payload.state)) notify(`Bitcode · attività ${payload.state === 'success' ? 'completata' : 'terminata con errore'}`, payload.prompt.slice(0, 60));
+      if (channel === 'approval' && payload.status === 'pending') notify('Bitcode · approvazione richiesta', `${payload.subject?.project || ''} · ${payload.kind}`, { view: 'activity' });
+      if (channel === 'run' && ['success', 'error', 'interrupted'].includes(payload.state)) notify(`Bitcode · attività ${payload.state === 'success' ? 'completata' : 'terminata con errore'}`, payload.prompt.slice(0, 60), { view: 'chat', sessionId: payload.sessionId });
       if (channel === 'run' || channel === 'approval') updateTray();
     } });
   controller.invoke('project.list').then(list => list.forEach(watchProject));
-  try { tray = new Tray(nativeImage.createFromPath(path.join(appDir, 'ui', 'icon.png')).resize({ width: 22, height: 22 })); tray.on('click', show); updateTray(); } catch { tray = null; }
-  createWindow();
+  try { tray = new Tray(nativeImage.createFromPath(path.join(appDir, 'ui', 'icon.png')).resize({ width: 22, height: 22 })); tray.on('click', toggle); updateTray(); } catch { tray = null; }
+  // --hidden (used by autostart) starts in the tray; without a tray the window must stay reachable.
+  createWindow({ visible: !(startHidden && tray) });
 });
 app.on('window-all-closed', () => { /* stay alive in the tray; quit is explicit */ });
-app.on('before-quit', e => { if (!quitting) { e.preventDefault(); quit(); } });
+// Electron turns SIGTERM, SIGINT and SIGHUP into this event. A nested app.quit()
+// during it is ignored, so without active runs the quit proceeds right here.
+app.on('before-quit', e => {
+  if (quitting) return;
+  if (controller?.activeRuns().length) { e.preventDefault(); quit(); } else shutdown();
+});

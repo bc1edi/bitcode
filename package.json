@@ -1,6 +1,6 @@
 {
   "name": "bitcode",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Multi-provider terminal coding and Bitcoin agent with Responses, MCP, managed processes and local skills",
   "type": "module",
   "bin": {

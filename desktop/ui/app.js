@@ -444,7 +444,7 @@ window.bitcode.subscribe(({ channel, payload }) => {
   } else if (channel === 'pty' && payload.ptyId === ptyId) {
     if (payload.data) term?.write(payload.data); if (payload.exit !== undefined) { term?.write('\r\n[exit]\r\n'); ptyId = null; ptyProject = null; }
   } else if (channel === 'finance') { finView.onEvent(payload);
-  } else if (channel === 'navigate') { S.view = payload.view; renderShell(); }
+  } else if (channel === 'navigate') { if (payload.sessionId && S.sessions.some(x => x.sessionId === payload.sessionId)) openSession(payload.sessionId).then(renderShell, e => toast(errorText(e), true)); else { S.view = payload.view; renderShell(); } }
 });
 
 // ---------- shell ----------
@@ -1016,6 +1016,7 @@ function settingsPage() {
   const modelField = (spec, auto, onClick, empty) => h('button', { class: 'modelfield num', onClick }, h('span', { class: `loc ${spec ? modelLocality(spec) : 'unknown'}` }),
     h('span', { class: 'mf' }, spec || empty), auto ? h('span', { class: 'chip' }, t('auto')) : null, h('span', { class: 'caret' }, '▾'));
   if (!S.picker.data && !S.picker.loading) loadModels().then(() => { if (S.view === 'settings') renderCenter(); }).catch(() => {});
+  if (S.autostart === undefined) { S.autostart = null; api('app.autostart.get').then(a => { S.autostart = a; if (S.view === 'settings') renderCenter(); }).catch(() => {}); }
   const keyInputs = new Map();
   return h('div', { class: 'page' }, h('h1', {}, t('settings')),
     h('datalist', { id: 'models' }, S.models.map(m => h('option', { value: `${m.name}/${m.defaultModel || ''}` }))),
@@ -1038,6 +1039,9 @@ function settingsPage() {
       h('td', {}, h('span', { class: `chip ${m.hasKey ? 'ok' : 'warn'}` }, m.hasKey ? t('hasKey') : t('noKey'))),
       h('td', {}, m.locality === 'cloud' ? h('div', { class: 'row' }, (() => { const i = h('input', { type: 'password', autocomplete: 'off', placeholder: 'API key' }); keyInputs.set(m.name, i); return i; })(),
         h('button', { class: 'btn sm', onClick: guard(async () => { const v = keyInputs.get(m.name).value; if (!v) return; const r = await api('secrets.put', { name: m.name, value: v }); keyInputs.get(m.name).value = ''; toast(r.persisted ? t('secretSecure') : t('secretInsecure')); S.models = await api('models.list'); renderCenter(); }) }, t('saveKey'))) : null)))),
+    S.autostart?.supported ? [h('div', { class: 'section' }, t('systemL')),
+      h('div', { class: 'form' },
+        h('label', { title: t('autostartHint') }, t('autostartL')), h('input', { type: 'checkbox', checked: S.autostart.enabled, onChange: guard(async e => { S.autostart = await api('app.autostart.set', { enabled: e.target.checked }); renderCenter(); }) }))] : null,
     h('div', { class: 'section' }, t('historyL')),
     h('div', { class: 'form' },
       h('label', {}, t('deleteAllHistory')), h('span', {}, h('button', { class: 'btn sm danger', disabled: !S.sessions.length, onClick: () => burnDialog() }, t('deleteAllBtn')))),

@@ -38,7 +38,11 @@ export function mayAutoApprove({ tool, args = {}, permissions }) {
   return false;
 }
 
-export function bubblewrapAvailable() {
-  const probe = spawnSync("bwrap", ["--version"], { stdio: "ignore" });
-  return !probe.error && probe.status === 0;
+// An installed bwrap can still be unable to create namespaces (for example
+// under Ubuntu's AppArmor userns restriction), so probe the sandbox's own flags.
+export function bubblewrapStatus() {
+  const probe = spawnSync("bwrap", ["--die-with-parent", "--unshare-net", "--ro-bind", "/", "/", "/bin/true"], { encoding: "utf8", timeout: 5000 });
+  if (probe.error) return { available: false, detail: probe.error.code === "ENOENT" ? "bwrap is not installed" : probe.error.message };
+  return probe.status === 0 ? { available: true, detail: "namespaces available" } : { available: false, detail: probe.stderr.trim() || `bwrap exited ${probe.status}` };
 }
+export const bubblewrapAvailable = () => bubblewrapStatus().available;
