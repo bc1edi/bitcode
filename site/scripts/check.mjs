@@ -25,6 +25,12 @@ for(const [i,lang] of ['en','it'].entries()){
  for(const match of html.matchAll(/(?:src|poster)="(\/assets\/[^"]+)"/g))assert.ok((await stat(new URL(pub+match[1].slice(1),root))).isFile(),match[1]);
  assert.equal((html.match(/preload="none" loading="lazy"/g)||[]).length,3);
  assert.equal((html.match(/srclang="it"/g)||[]).length,3);
+ assert.equal((html.match(/<video\b/g)||[]).length,3,"Only the recorded demos are video elements; the hero loop is added by the runtime");
+ for(const match of html.matchAll(/srcset="(\/assets\/[^"]+)"/g))assert.ok((await stat(new URL(pub+match[1].slice(1),root))).isFile(),match[1]);
+ const hero=html.match(/<figure class="hero-team" data-hero-video data-src-desktop="([^"]+)" data-src-mobile="([^"]+)">/);
+ assert.ok(hero,"Hero figure declares both loop variants");
+ for(const base of hero.slice(1))for(const ext of ["webm","mp4","webp"])assert.ok((await stat(new URL(pub+base.slice(1)+"."+ext,root))).isFile(),base+"."+ext);
+ assert.match(html,/<img class="hero-poster" src="\/assets\/site\/hero\/sats-team-desktop\.webp"[^>]+alt="[^"]+"/,"Poster is a real image with alternative text");
 }
 const contract=JSON.parse(await read('site/src/design-contract.json'));
 const css=await read(pub+'assets/site/base.css');const tokens=Object.fromEntries([...css.match(/:root\s*\{(.*?)\}/s)[1].matchAll(/(--[\w-]+):\s*([^;]+);/g)].map(m=>[m[1],m[2]]));
