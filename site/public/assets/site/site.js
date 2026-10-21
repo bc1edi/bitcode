@@ -1,4 +1,4 @@
-/* Original motion implementation. No runtime dependencies or network requests. */
+/* Original motion implementation. No runtime dependencies or network requests to other origins. */
 (() => {
   'use strict';
   const root = document.documentElement;
@@ -6,11 +6,11 @@
   const t = data.ui;
   const reduced = matchMedia('(prefers-reduced-motion: reduce)');
   const desktop = matchMedia('(min-width: 1024px)');
+  const compact = matchMedia('(max-width: 800px)');
+  const saveData = navigator.connection?.saveData === true;
   const readPreference = (storage, key) => { try { return window[storage].getItem(key); } catch { return null; } };
   const savePreference = (storage, key, value) => { try { window[storage].setItem(key, value); } catch { /* Privacy mode keeps the default. */ } };
   let paused = reduced.matches || readPreference('localStorage', 'bitcode-motion') === 'paused';
-  let introTimers = [];
-  let introFull = true;
   let activeStory = 'bitcoin';
   let frame = 0;
   const players = [];
@@ -29,7 +29,7 @@
     allowed() {
       const mode = this.element.dataset.player;
       return !paused && !document.hidden && this.visible &&
-        (mode === 'hero' ? introFull : mode === 'sticky' ? desktop.matches && this.element.dataset.session === activeStory : !desktop.matches);
+        (mode === 'hero' ? true : mode === 'sticky' ? desktop.matches && this.element.dataset.session === activeStory : !desktop.matches);
     }
     update() {
       clearTimeout(this.timer);
@@ -68,31 +68,13 @@
   document.querySelectorAll('[data-session]').forEach(element => players.push(new SessionPlayer(element)));
   const refreshPlayers = () => players.forEach(player => player.update());
 
-  function completeIntro() {
-    introTimers.forEach(clearTimeout); introTimers = [];
-    root.dataset.intro = 'full'; introFull = true;
-    savePreference('sessionStorage', 'bitcode-intro', 'seen');
-    refreshPlayers(); queueFrame();
-  }
-  const skipIntro = paused || scrollY > 0 || location.hash || document.hidden || readPreference('sessionStorage','bitcode-intro');
-  if (!skipIntro) {
-    introFull = false; root.dataset.intro = 'staged';
-    introTimers.push(setTimeout(() => { root.dataset.intro = 'headline'; }, 1660));
-    introTimers.push(setTimeout(() => { root.dataset.intro = 'collapsing'; }, 2780));
-    introTimers.push(setTimeout(completeIntro, 3550));
-    introTimers.push(setTimeout(completeIntro, 10000));
-  } else completeIntro();
-  document.querySelector('.site-header').addEventListener('pointerenter', () => { root.dataset.navVisible = ''; });
-  document.addEventListener('pointermove', event => { if (event.clientY <= 96) root.dataset.navVisible = ''; }, { passive: true });
-  document.addEventListener('focusin', () => { if (!introFull) completeIntro(); });
-  document.addEventListener('pointerdown', () => { if (!introFull) completeIntro(); }, { passive: true, once: true });
-  addEventListener('hashchange', () => { if (!introFull) completeIntro(); queueFrame(); });
-
   const cards = [...document.querySelectorAll('[data-story]')];
   const headings = cards.map(card => card.querySelector('h3'));
-  const fades = [...document.querySelectorAll('[data-fade]')];
-  const stages = [...document.querySelectorAll('[data-stage]')];
-  const terminal = document.getElementById('terminal');
+  const chapters = [...document.querySelectorAll('[data-sat]')];
+  const scene = document.querySelector('[data-sats-scene]');
+  const stageFigures = [...document.querySelectorAll('[data-stage-sat]')];
+  const stageCount = document.querySelector('[data-stage-count]');
+  let activeSat = '';
   const rail = document.querySelector('.story-sticky');
   const navLinks = [...document.querySelectorAll('.nav-link[href^="#"]')];
   const navSections = navLinks.map(link => document.querySelector(link.hash));
@@ -106,27 +88,16 @@
   function updateFrame() {
     frame = 0;
     const vh = innerHeight;
-    if (!introFull && scrollY > 0) completeIntro();
-    const progress = paused ? 1 : clamp(scrollY / (desktop.matches ? 300 : 220));
-    const fadeValues = fades.map(el => {
-      const r = el.getBoundingClientRect();
-      // Use each section's opening viewport-sized block so long sections remain readable.
-      const center = r.top + Math.min(r.height,vh) / 2;
-      return paused ? 1 : clamp((1.4 * vh - center) / (.85 * vh));
-    });
     const headingTops = headings.map(el => el.getBoundingClientRect().top);
-    const stageTops = stages.map(el => el.getBoundingClientRect().top);
+    const chapterTops = chapters.map(el => el.getBoundingClientRect().top);
     const navTops = navSections.map(el => el.getBoundingClientRect().top);
     const tabRect = selectedTab.getBoundingClientRect();
     const listRect = tabList.getBoundingClientRect();
     let nextStory = 0;
     headingTops.forEach((top,i) => { if (top <= vh * .5) nextStory = i; });
-    root.style.setProperty('--intro-progress',String(progress));
-    root.style.setProperty('--sections-opacity',String(paused ? 1 : clamp((progress - .8)/.2)));
-    terminal.style.setProperty('--hero-x', (desktop.matches ? -40 : 0) + 'px');
-    terminal.style.setProperty('--hero-scale',desktop.matches ? '.08' : '.04');
-    fades.forEach((el,i) => el.style.setProperty('--fade',String(fadeValues[i])));
-    stages.forEach((el,i) => el.style.setProperty('--stage-progress',String(paused ? 1 : clamp((vh * .9 - stageTops[i])/(vh * .35) - i * .1))));
+    let nextSat = 0;
+    chapterTops.forEach((top,i) => { if (top <= vh * .45) nextSat = i; });
+    root.toggleAttribute('data-scrolled', scrollY > 8);
     rail.style.setProperty('--rail-release',Math.min(0,headingTops[headingTops.length-1] - vh*.2)+'px');
     tabList.style.setProperty('--tab-x',Math.round(tabRect.left-listRect.left)+'px');
     tabList.style.setProperty('--tab-width',Math.round(tabRect.width)+'px');
@@ -139,8 +110,17 @@
       });
       refreshPlayers();
     }
+    // The sticky Sats stage follows the chapter crossing the upper half of the viewport.
+    const satId = chapters[nextSat].dataset.sat;
+    if (satId !== activeSat) {
+      activeSat = satId;
+      scene.dataset.activeSat = satId;
+      chapters.forEach(chapter => chapter.classList.toggle('is-active', chapter.dataset.sat === satId));
+      stageFigures.forEach(figure => figure.toggleAttribute('data-active', figure.dataset.stageSat === satId));
+      stageCount.textContent = String(nextSat + 1).padStart(2, '0');
+    }
     let activeNav = -1;
-    navTops.forEach((top,i) => { if (top < vh * .45) activeNav = i; });
+    navTops.forEach((top,i) => { if (top < vh * .45 && (activeNav < 0 || top > navTops[activeNav])) activeNav = i; });
     navLinks.forEach((link,i) => i === activeNav ? link.setAttribute('aria-current','location') : link.removeAttribute('aria-current'));
   }
   function queueFrame() { if (!frame) frame = requestAnimationFrame(updateFrame); }
@@ -156,13 +136,65 @@
   } else players.forEach(player => player.finish());
   desktop.addEventListener('change', () => { closeMenu(); refreshPlayers(); queueFrame(); });
 
+  // Entrances run once per element. Anything already scrolled past is shown at once.
+  const reveals = [...document.querySelectorAll('[data-reveal]')];
+  const revealAll = () => reveals.forEach(el => el.classList.add('is-revealed'));
+  let revealObserver = null;
+  if ('IntersectionObserver' in window && !paused) {
+    root.classList.add('reveal');
+    revealObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+      if (entry.isIntersecting || entry.boundingClientRect.top < 0) { entry.target.classList.add('is-revealed'); revealObserver.unobserve(entry.target); }
+    }), { rootMargin: '0px 0px -8% 0px' });
+    reveals.forEach(el => revealObserver.observe(el));
+  } else revealAll();
+
+  // Decorative hero loop, separate from the recorded demo players. It is created only
+  // after the page has loaded, never with reduced motion, data saving or the global pause,
+  // and it stops when the hero leaves the viewport or the tab is hidden.
+  const heroFigure = document.querySelector('[data-hero-video]');
+  let heroVideo = null;
+  let heroVisible = true;
+  let pageLoaded = document.readyState === 'complete';
+  const heroVideoAllowed = () => pageLoaded && !paused && !saveData && !document.hidden && heroVisible;
+  function createHeroVideo() {
+    const base = compact.matches ? heroFigure.dataset.srcMobile : heroFigure.dataset.srcDesktop;
+    const video = document.createElement('video');
+    video.className = 'hero-video';
+    video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'auto';
+    video.disablePictureInPicture = true; video.tabIndex = -1;
+    video.setAttribute('aria-hidden', 'true'); video.setAttribute('muted', ''); video.setAttribute('playsinline', '');
+    video.poster = base + '.webp';
+    [['webm', 'video/webm'], ['mp4', 'video/mp4']].forEach(([extension, type]) => {
+      const source = document.createElement('source'); source.src = base + '.' + extension; source.type = type; video.appendChild(source);
+    });
+    video.addEventListener('playing', () => { heroFigure.dataset.video = 'playing'; });
+    video.addEventListener('pause', () => { if (heroFigure.dataset.video === 'playing') heroFigure.dataset.video = 'paused'; });
+    video.querySelector('source:last-child').addEventListener('error', () => removeHeroVideo());
+    heroFigure.appendChild(video);
+    return video;
+  }
+  function removeHeroVideo() {
+    if (!heroVideo) return;
+    heroVideo.pause(); heroVideo.remove(); heroVideo = null; delete heroFigure.dataset.video;
+  }
+  function updateHeroVideo() {
+    if (!heroVideoAllowed()) { heroVideo?.pause(); return; }
+    heroVideo ??= createHeroVideo();
+    heroVideo.play().catch(() => { /* Autoplay refused: the poster stays. */ });
+  }
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(entries => { heroVisible = entries[0].isIntersecting; updateHeroVideo(); }).observe(heroFigure);
+  }
+  if (!pageLoaded) addEventListener('load', () => { pageLoaded = true; updateHeroVideo(); }, { once: true });
+  compact.addEventListener('change', () => { removeHeroVideo(); updateHeroVideo(); });
+
   function setMotion(value) {
     paused = value || reduced.matches;
     root.dataset.motion = paused ? 'paused' : 'playing';
-    if(paused){completeIntro();players.forEach(p=>p.finish());}
+    if(paused){players.forEach(p=>p.finish());revealAll();}
     motionToggle.textContent = paused ? t.motionResume : t.motionPause;
     motionToggle.setAttribute('aria-pressed',String(paused));
-    refreshPlayers();queueFrame();
+    refreshPlayers();updateHeroVideo();queueFrame();
   }
   const motionToggle=document.getElementById('motion-toggle');motionToggle.hidden=false;
   motionToggle.addEventListener('click',()=>{setMotion(!paused);savePreference('localStorage','bitcode-motion',paused?'paused':'playing');});
@@ -242,7 +274,7 @@
   });
 
   // Native playback is retained. Video bytes are requested only on user action.
-  const videos=[...document.querySelectorAll('video')];
+  const videos=[...document.querySelectorAll('.recording-player video')];
   videos.forEach(video=>{
     const message=video.parentElement.querySelector('.video-message');
     const start=document.createElement('button');start.type='button';start.className='video-start';
@@ -284,6 +316,6 @@
   genesis.addEventListener('click',event=>{if(event.target===genesis){const r=genesis.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeGenesis();}});
   let typed='';
   document.addEventListener('keydown',event=>{if(event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,[contenteditable],dialog'))return;if(event.key.length===1){typed=(typed+event.key).slice(-8);if(typed==='/genesis'){openGenesis();typed='';}}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){completeIntro();videos.forEach(v=>v.pause());}refreshPlayers();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)videos.forEach(v=>v.pause());refreshPlayers();updateHeroVideo();});
   queueFrame();
 })();
