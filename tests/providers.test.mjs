@@ -154,3 +154,14 @@ test("401 is unhealthy, even when the endpoint is reachable", async () => {
   handler = (_req, res) => { res.writeHead(401); res.end(); };
   assert.equal((await providerHealth(provider(), "bad")).ok, false);
 });
+
+test("Chat reasoning deltas reach onReasoning and stay out of the answer text", async () => {
+  handler = (req, res) => {
+    res.writeHead(200, { "content-type": "text/event-stream" });
+    for (const delta of [{ reasoning: "think " }, { reasoning_content: "more" }, { content: "answer" }]) res.write("data: " + JSON.stringify({ choices: [{ delta }] }) + "\n\n");
+    res.end("data: [DONE]\n\n");
+  };
+  let thought = "", visible = "";
+  const r = await callModel({ provider: provider(), model: "m", system: "s", messages: [{ role: "user", content: "x" }], tools: [], onDelta: s => visible += s, onReasoning: s => thought += s });
+  assert.equal(r.text, "answer"); assert.equal(visible, "answer"); assert.equal(thought, "think more");
+});

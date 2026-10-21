@@ -22,13 +22,13 @@ const ANTHROPIC_VERSION = "2023-06-01";
 const REQUEST_TIMEOUT_MS = 600_000;
 const DEFAULT_MAX_TOKENS = 4096;
 
-export async function callModel({ provider, model, apiKey, system, messages, tools, onDelta, signal }) {
+export async function callModel({ provider, model, apiKey, system, messages, tools, onDelta, onReasoning, signal }) {
   if (provider.api === "anthropic") {
     return callAnthropic({ provider, model, apiKey, system, messages, tools, onDelta, signal });
   }
   if (provider.api === "responses") return callResponses({ provider, model, apiKey, system, messages, tools, onDelta, signal });
   if (provider.api === "openai") {
-    return callOpenAI({ provider, model, apiKey, system, messages, tools, onDelta, signal });
+    return callOpenAI({ provider, model, apiKey, system, messages, tools, onDelta, onReasoning, signal });
   }
   throw new Error(`unsupported provider api: ${provider.api}`);
 }
@@ -237,7 +237,7 @@ async function callOpenAI(args) {
   }
 }
 
-async function callOpenAIOnce({ provider, model, apiKey, system, messages, tools, onDelta, onChunk, signal }) {
+async function callOpenAIOnce({ provider, model, apiKey, system, messages, tools, onDelta, onReasoning, onChunk, signal }) {
   const headers = {};
   if (apiKey) headers.authorization = `Bearer ${apiKey}`;
 
@@ -287,6 +287,9 @@ async function callOpenAIOnce({ provider, model, apiKey, system, messages, tools
       text += delta.content;
       onDelta?.(delta.content);
     }
+    // Reasoning deltas (Ollama `reasoning`, vLLM/DeepSeek `reasoning_content`) are shown live, never added to the answer.
+    const thought = delta.reasoning ?? delta.reasoning_content;
+    if (typeof thought === "string" && thought) onReasoning?.(thought);
     for (const tcd of delta.tool_calls || []) {
       const i = tcd.index ?? 0;
       calls[i] ??= { id: tcd.id, name: "", args: "" };
