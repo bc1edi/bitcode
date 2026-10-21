@@ -1,29 +1,72 @@
 # bitcode
 
-Your code. Your Bitcoin. Your agents.
+**Your code. Your Bitcoin. Your agents.**
 
-A coding and Bitcoin agent for the terminal, with a Linux desktop app in
-preview. Written in Node.js ESM. Works with seven model providers (OpenAI,
-Anthropic, OpenRouter, Groq, Ollama, LM Studio, QVAC), MCP, local skills and
-custom commands. Four Sats (Node, Script, Hash, Merkle) each run with their own
-role and code-enforced limits. Bitcoin and RGB payment tools are test-network
-only and always need your explicit approval.
+[![CI](https://github.com/faktotum-project/bitcode/actions/workflows/ci.yml/badge.svg)](https://github.com/faktotum-project/bitcode/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+![Node.js 22+](https://img.shields.io/badge/node-22%2B-339933)
+
+[Website](https://bitcode-agent.vercel.app/) · [Full reference](docs/reference.md) · [Italiano](README.it.md)
+
+bitcode is a coding agent for the terminal that can also work with Bitcoin,
+Lightning and RGB assets. It runs on cloud or fully local models, and it treats
+money differently from code: it works on test networks by default, every
+payment needs your explicit approval, and spending limits are enforced by code,
+not by the prompt. A Linux desktop app ships the same agent in a full workspace.
+
+![bitcode desktop](assets/desktop/desktop-preview.webp)
 
 ## Quick start
 
-Requires Node.js **22+** and Bash. No build step.
-
 ```bash
+git clone https://github.com/faktotum-project/bitcode.git && cd bitcode
 npm ci --ignore-scripts
-node bitcode.mjs login            # choose a provider and enter your API key
-node bitcode.mjs                  # interactive session
+node bitcode.mjs login                       # choose a provider and enter your API key
+node bitcode.mjs                             # interactive session
 node bitcode.mjs -p "fix the failing test"   # one-shot
-node bitcode.mjs doctor           # check your setup
 ```
 
-Local models need no key: `node bitcode.mjs -m ollama/gpt-oss:20b`.
+No API key? Use a local model: `node bitcode.mjs -m ollama/gpt-oss:20b`.
 
-## Local inference with QVAC
+## Install and run
+
+Requires Node.js **22+** and Bash. There is no build step.
+
+`npm ci --ignore-scripts` installs the coding agent only. The optional Cashu and
+Wavelength wallet binaries are built separately, when you need them:
+
+```bash
+npm run build:cdk          # Cashu (cdk-cli): Rust toolchain + deps/cdk submodule
+npm run build:wavelength   # downloads the pinned waved/wavecli release
+npm link --ignore-scripts  # exposes the global `bitcode` command
+bitcode doctor             # reports what is configured and what is missing
+```
+
+State and keys live in `~/.bitcode` (owner-only files); set `BITCODE_HOME` to
+use another directory. See [install and run](docs/reference.md#install-and-run)
+for every option.
+
+## Models and providers
+
+Pick a model with `-m <provider>/<model>`, or switch inside a session with
+`/model` and `/models`.
+
+| Provider | Runs | Key |
+|---|---|---|
+| `anthropic` | cloud | `ANTHROPIC_API_KEY` |
+| `openai` | cloud (Responses API) | `OPENAI_API_KEY` |
+| `openrouter` | cloud | `OPENROUTER_API_KEY` |
+| `groq` | cloud | `GROQ_API_KEY` |
+| `ollama` | local | none |
+| `lmstudio` | local | none |
+| `qvac` | local | none |
+
+Local models are discovered at runtime: `/models` lists what is installed on
+your machine. Any OpenAI-compatible endpoint can be added in
+`~/.bitcode/config.json`. Details in
+[models and providers](docs/reference.md#models-and-providers).
+
+### Local inference with QVAC
 
 ```bash
 npm --prefix integrations/qvac ci
@@ -31,39 +74,57 @@ npm --prefix integrations/qvac start          # server on 127.0.0.1:11435
 node bitcode.mjs -m qvac/bitcode-local
 ```
 
-`/models` lists QVAC's configured aliases. See
-[setup and model configuration](integrations/qvac/README.md).
+See [QVAC setup and model configuration](integrations/qvac/README.md).
 
-## RGB assets
+## Tools
 
-The `rgb` profile operates an RGB Lightning Node through `kaleido-mcp`: check
-balances, create invoices and send RGB assets in plain language. Every change
-to the node's state goes through the payment gate. Signet (Mutinynet) test
-funds only.
+Tools are grouped in profiles. Switch with `--profile` or `/profile`.
+
+| Profile | What the agent can do |
+|---|---|
+| `code` (default) | files, shell and managed processes, Git, web fetch, planning, skills, subagents, MCP servers |
+| `bitcoin` | adds chain and mempool queries, BIP84 wallet, Lightning/tapd, Cashu, Liquid (read-only), Wavelength (read-only) |
+| `rgb` | operates an RGB Lightning Node through `kaleido-mcp`: balances, invoices, transfers |
+
+Extend it with [MCP servers](docs/reference.md#mcp), local skills, custom slash
+commands in `commands/` and [plugins](docs/reference.md#plugins). The full list
+is in [tools](docs/reference.md#tools).
+
+### RGB assets
 
 ```bash
 node bitcode.mjs -m qvac/bitcode-rgb-4b --profile rgb
 ```
 
-Switch inside a session with `/profile rgb`. See
-[node setup and configuration](integrations/kaleido/README.md).
+Check balances, create invoices and send RGB assets in plain language, on
+Signet (Mutinynet) test funds. See [node setup](integrations/kaleido/README.md).
 
-## Sats
+## Safety and approvals
 
-```text
-/sats              list the Sats
-/sat merkle        use a Sat for the next messages
-node bitcode.mjs --sats   open the animated companion
-```
+- **Test networks by default.** The protected `bitcode finance` path accepts
+  only signet, testnet and testnet4. The wallet tools refuse mainnet broadcasts
+  unless you set `bitcoin.allowMainnetSpend=true`.
+- **You approve every payment.** Financial tools always ask for confirmation,
+  in every permission mode. One-shot runs refuse them unless you pass
+  `--allow-payments`.
+- **Limits in code.** `bitcode finance policy` sets per-payment, daily, fee and
+  reserve limits in satoshis. A model can only *prepare* a proposal;
+  `bitcode finance execute` shows the exact payment and asks you to type its ID.
+- **Undo for code.** `/diff` and `/undo` restore the files changed by the last
+  agent turn.
+- **Sandboxed shell.** In `full-auto`, shell commands run inside Bubblewrap with
+  no network access and only the project and `/tmp` writable.
 
-See [docs/sats.md](docs/sats.md).
+Shell commands and plugins you trust can still reach your machine: the payment
+gate is tool policy, not an OS sandbox. See
+[execution and approval policy](docs/reference.md#execution-and-approval-policy)
+and [financial proposals](docs/reference.md#financial-proposals-phase-1-testnet-path).
 
-## Desktop (preview)
+## Desktop app (Linux)
 
-The same agent and Sats in an Electron workspace: projects, editor, Git,
-terminal, a bubblewrap-isolated agent worker, a Bitcoin test wallet and RGB
-wallet sessions with payment approvals. See [desktop/](desktop/) and the
-[plan](docs/desktop-plan.md).
+The same agent in an Electron workspace: projects, editor, Git, terminal, an
+agent worker isolated with Bubblewrap, a Bitcoin test wallet and RGB wallet
+sessions with payment approvals.
 
 ```bash
 npm run dist:desktop              # builds desktop/release/bitcode-desktop_<version>_amd64.deb
@@ -71,33 +132,53 @@ sudo apt install ./desktop/release/bitcode-desktop_*_amd64.deb
 bitcode-desktop                   # or: bitcode desktop
 ```
 
-The package (Linux, amd64) also installs the terminal CLI as `/usr/bin/bitcode`
-on the bundled Node.js runtime, unless another `bitcode` already owns that path.
-The app stays in the tray, can start at login (Settings → System), restores its
-window and blocks system suspension only while an agent run is active.
-`bitcode doctor` checks that Bubblewrap can create its namespaces.
+The package (amd64) also installs the CLI as `/usr/bin/bitcode`, unless another
+`bitcode` already owns that path. The app lives in the tray, can start at login
+and blocks system suspension only while an agent run is active. See
+[desktop/](desktop/) and the [plan](docs/desktop-plan.md).
 
-## What's inside
+## Sats
 
-| Folder | Content |
+Four specialist subagents, each with a fixed role and a tool allowlist enforced
+in code:
+
+| Sat | Role |
 |---|---|
-| `src/` | agent, providers, MCP, tools, Bitcoin and RGB integrations |
-| `commands/` | custom slash commands |
-| `agents/`, `sats/` | subagent personas and the Sats companion |
-| `desktop/` | Electron desktop app (preview) |
-| `integrations/` | QVAC local inference and the KaleidoSwap RGB kit |
-| `docs/` | [full reference](docs/reference.md), [Sats](docs/sats.md), [architecture](ARCHITECTURE.md), [plans](docs/plans/) |
-| `design/system/` | design system the terminal theme is based on |
+| Node | research and context, read-only chain queries |
+| Script | implementation |
+| Hash | security analysis |
+| Merkle | review |
+
+```text
+/sats                       list the Sats
+/sat merkle                 use a Sat for the next messages
+node bitcode.mjs --sats     open the animated companion
+```
+
+See [docs/sats.md](docs/sats.md).
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| **RGB** | assets issued on Bitcoin, validated client-side and transferred on-chain or over Lightning |
+| **QVAC** | Tether's local AI runtime, used here as an OpenAI-compatible server |
+| **Cashu** | ecash protocol for private payments backed by a Lightning mint |
+| **Wavelength** | Lightning Labs toolkit for self-custodial Bitcoin, Lightning and Ark payments without running a node |
+| **Signet / Mutinynet** | Bitcoin test networks: coins with no value |
+| **MCP** | Model Context Protocol, the standard way to plug external tools into an agent |
 
 ## Development
 
 ```bash
-npm run check    # lint + tests
+npm run check          # lint + tests
+npm run test:desktop   # desktop app tests
 ```
 
-CI runs on Node 22 and 24. See [docs/reference.md](docs/reference.md) for every
-command, the approval policy, providers, plugins and the Bitcoin integrations.
+CI runs on Node 22 and 24. Code layout and internals: [ARCHITECTURE.md](ARCHITECTURE.md)
+and [development](docs/reference.md#development). Changes per version:
+[CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
-MIT
+[MIT](LICENSE)
