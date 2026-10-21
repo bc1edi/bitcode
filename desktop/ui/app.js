@@ -1,6 +1,7 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { EditorState, Compartment } from '@codemirror/state';
 import { keymap } from '@codemirror/view';
+import { gotoLine } from '@codemirror/search';
 import { javascript } from '@codemirror/lang-javascript';
 import { json } from '@codemirror/lang-json';
 import { markdown } from '@codemirror/lang-markdown';
@@ -12,6 +13,7 @@ import { t, setLang, errorText } from './i18n.js';
 import { logo, sat, typing, SAT_META } from './marks.js';
 import { icon } from './icons.js';
 import { createFinanceView } from './finance.js';
+import { createWorkbench, promptHistory } from './workbench.js';
 import { renderMarkdown, commandOf, isRisky } from './markdown.js';
 import { satStateLabel, satStateTable, satEthics } from '../../src/sat-states.mjs';
 import { workText, closingText, actionText, word } from '../../src/work-meter.mjs';
@@ -22,6 +24,7 @@ const unattendedBlocked = () => (S.git && !S.git.repo ? t('E_WORKTREE_NO_REPO') 
 const MODES = ['manual', 'assisted', 'unattended'];
 const S = {
   selecting: null, selected: new Set(),
+  queue: new Map(), files: null, filesProject: null, reasoning: new Map(), reasoningOpen: false,
   view: 'chat', info: null, status: null, settings: null, projects: [], projectId: null, sessions: [], sessionId: null, session: null,
   work: new Map(), closing: new Map(), attachments: [], collapsed: new Set(), tree: new Map(), expanded: new Set(['.']), git: null, tabs: [], active: null, panel: null, runs: new Map(), pending: [],
   sats: Object.fromEntries(SATS.map(s => [s, { st: 'idle' }])), live: new Map(), agentLog: [], worktrees: [], models: [], agent: '', commitMsg: '', draft: '', commands: [], menu: { items: [], index: 0 }, picker: { open: false, data: null, filter: '', loading: false }, notes: [], newModel: null, search: '', searching: false, renaming: null, expandedProjects: new Set(), sideHidden: (() => { try { return localStorage.getItem('bitcode.sideHidden') === '1'; } catch { return false; } })()
@@ -105,7 +108,7 @@ function jumpMessage(dir) {
 }
 const SHORTCUTS = [
   ['mod+wheel · mod+= / mod+-', 'scRead'], ['mod+0', 'scReadReset'], ['alt+↑ / alt+↓', 'scJump'], ['End · Home', 'scEnds'], ['mod+L · /', 'scFocus'],
-  ['mod+shift+C', 'scCopy'], ['mod+U', 'scAttach'], ['mod+1 … 4', 'scPanels'], ['mod+B', 'scSidebar'], ['mod+K', 'scSearch'], ['mod+N', 'scNew'], ['mod+/ · ?', 'scHelp'], ['Esc', 'scClose']
+  ['mod+shift+C', 'scCopy'], ['mod+U', 'scAttach'], ['mod+1 … 7', 'scPanels'], ['mod+P', 'wb_palette'], ['↑ / ↓', 'wb_scHistory'], ['mod+B', 'scSidebar'], ['mod+K', 'scSearch'], ['mod+N', 'scNew'], ['mod+/ · ?', 'scHelp'], ['Esc', 'scClose']
 ];
 function showShortcuts() {
   if (document.querySelector('dialog.shortcuts')) return;
@@ -121,7 +124,8 @@ document.addEventListener('keydown', e => {
   if (mod && !e.altKey && ['=', '+', '-', '_', '0'].includes(e.key) && S.view === 'chat' && !inEditor) { e.preventDefault(); zoomRead(e.key === '0' ? 'reset' : e.key === '-' || e.key === '_' ? -1 : 1); return; }
   if (mod && e.key === '/') { e.preventDefault(); showShortcuts(); return; }
   if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'u' && S.view === 'chat' && S.projectId) { e.preventDefault(); pickAttachments('files'); return; }
-  if (mod && !e.altKey && !e.shiftKey && /^[1-4]$/.test(e.key) && S.projectId && S.view === 'chat') { e.preventDefault(); const k = ['files', 'git', 'terminal', 'agent'][Number(e.key) - 1]; S.panel = S.panel === k ? null : k; renderShell(); return; }
+  if (mod && !e.altKey && !e.shiftKey && /^[1-7]$/.test(e.key) && S.projectId && S.view === 'chat') { e.preventDefault(); const k = PANELS[Number(e.key) - 1]; S.panel = S.panel === k ? null : k; renderShell(); return; }
+  if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'p') { e.preventDefault(); wb.openPalette(); return; }
   if (mod && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'l') { e.preventDefault(); $('prompt')?.focus(); return; }
   if (mod && e.shiftKey && e.key.toLowerCase() === 'c' && !inEditor) { const picked = String(window.getSelection() || ''), a = picked || lastAnswer(); if (a) { e.preventDefault(); copyText(a); } return; }
   if (e.altKey && !mod && (e.key === 'ArrowUp' || e.key === 'ArrowDown') && S.view === 'chat') { e.preventDefault(); jumpMessage(e.key === 'ArrowDown' ? 1 : -1); return; }
@@ -287,7 +291,7 @@ async function openFile(path) {
   const { text, version } = await api('buffer.open', { projectId: S.projectId, path });
   const tab = { kind: 'file', path, projectId: S.projectId, baseVersion: version, saved: text, dirty: false, disk: null };
   tab.view = new EditorView({ parent: h('div'), state: EditorState.create({ doc: text, extensions: [basicSetup, langFor(path), themeSlot.of(isDark() ? oneDark : []),
-    keymap.of([{ key: 'Mod-s', run: () => { save(tab); return true; } }]),
+    keymap.of([{ key: 'Mod-s', run: () => { save(tab); return true; } }, { key: 'Mod-g', run: gotoLine }]),
     EditorView.updateListener.of(u => { if (u.docChanged) { const d = u.state.doc.toString() !== tab.saved; if (d !== tab.dirty) { tab.dirty = d; renderEditorTabs(); } } })] }) });
   S.tabs.push(tab); S.active = tab; renderShell();
 }
@@ -355,6 +359,66 @@ async function ensureTerminal() {
   }
   requestAnimationFrame(() => { try { fit.fit(); } catch {} });
 }
+// SSH terminals for Remote access: one xterm per connection, inside its own dialog.
+const remoteTerms = new Map();
+const openRemoteTerminal = guard(async (host, command = 'bitcode') => {
+  const hostEl = h('div', { class: 'rterm' });
+  const dialog = h('dialog', { class: 'sat-info plan rdialog', 'aria-label': host },
+    h('div', { class: 'row' }, h('h2', {}, `ssh ${host}${command === 'bitcode' ? ' · bitcode' : ''}`), h('span', { class: 'spacer' }), h('button', { class: 'iconbtn', onClick: () => dialog.close(), 'aria-label': t('close') }, '×')), hostEl);
+  document.body.append(dialog); dialog.showModal();
+  const rt = new Terminal({ fontFamily: '"JetBrains Mono", monospace', fontSize: 12, cursorBlink: true, theme: termTheme() }), rfit = new FitAddon(); rt.loadAddon(rfit); rt.open(hostEl);
+  const { ptyId: id } = await api('pty.openSsh', { host, command });
+  remoteTerms.set(id, rt);
+  rt.onData(data => api('pty.write', { ptyId: id, data }).catch(() => {}));
+  rt.onResize(({ cols, rows }) => api('pty.resize', { ptyId: id, cols, rows }).catch(() => {}));
+  requestAnimationFrame(() => { try { rfit.fit(); } catch {} }); rt.focus();
+  dialog.addEventListener('close', () => { if (remoteTerms.has(id)) api('pty.close', { ptyId: id }).catch(() => {}); remoteTerms.delete(id); rt.dispose(); dialog.remove(); });
+});
+function lanSection() {
+  if (S.lan === undefined) { S.lan = null; api('lan.status').then(x => { S.lan = x; if (S.view === 'remote') renderCenter(); }).catch(() => {}); }
+  const l = S.lan; if (!l) return h('p', { class: 'status' }, '…');
+  const pass = h('input', { type: 'password', autocomplete: 'new-password', placeholder: t('wb_lanPasswordPh') });
+  return [h('div', { class: 'section' }, t('wb_modeLan')),
+    h('div', { class: 'form' },
+      h('label', {}, t('wb_lanState')), h('span', {}, l.running ? h('span', { class: 'chip ok' }, t('wb_lanRunning')) : h('span', { class: 'chip warn' }, l.error || (l.passwordSet ? t('wb_lanStopped') : t('wb_lanNeedsPassword')))),
+      l.url ? [h('label', {}, t('wb_lanUrl')), h('span', { class: 'mono' }, l.url)] : null,
+      l.fingerprint ? [h('label', { title: t('wb_lanFingerprintHint') }, t('wb_lanFingerprint')), h('span', { class: 'mono', style: 'font-size:11px;word-break:break-all' }, l.fingerprint)] : null,
+      h('label', {}, t('wb_lanAddress')), h('select', { onChange: guard(async e => { S.lan = await api('lan.configure', { host: e.target.value }); renderCenter(); }) }, l.addresses.map(a => h('option', { value: a, selected: a === l.host }, a))),
+      h('label', {}, t('wb_lanPort')), h('input', { type: 'number', min: 1024, max: 65535, value: l.port, onChange: guard(async e => { S.lan = await api('lan.configure', { port: Number(e.target.value) }); renderCenter(); }) }),
+      h('label', {}, t('wb_lanPassword')), h('span', { class: 'row' }, pass, h('button', { class: 'btn sm', onClick: guard(async () => { S.lan = await api('lan.configure', { password: pass.value }); pass.value = ''; renderCenter(); toast(t('wb_saved')); }) }, t('save')))),
+    h('p', { class: 'status' }, t('wb_lanHint'))];
+}
+function remotePage() {
+  if (S.remote === undefined) { S.remote = null; api('remote.status').then(r => { S.remote = r; if (S.view === 'remote') renderCenter(); }).catch(e => toast(e.message, true)); }
+  const r = S.remote, input = h('input', { type: 'text', placeholder: 'utente@server · alias di ~/.ssh/config' });
+  return h('div', { class: 'page' }, h('h1', {}, t('wb_remote')), h('p', { class: 'lead' }, t('wb_remoteLead')),
+    !r ? h('p', { class: 'status' }, '…') : [
+      h('div', { class: 'section' }, t('wb_remoteMode')),
+      h('div', { class: 'row' }, h('div', { class: 'seg' }, [['off', 'wb_modeOff'], ['ssh', 'wb_modeSsh'], ['lan', 'wb_modeLan']].map(([m, key]) => h('button', { class: (S.settings?.remoteMode || 'off') === m ? 'on' : '',
+          onClick: guard(async () => { S.settings = await api('settings.set', { key: 'remoteMode', value: m }); S.lan = await api('lan.status'); renderCenter(); }) }, t(key)))),
+        h('button', { class: 'btn sm', onClick: guard(async e => {
+          e.currentTarget.disabled = true; toast(t('wb_askingHash'));
+          S.hashAdvice = await api('remote.advice', { facts: { lang: document.documentElement.lang, sshdListening: r.sshd, lanAddresses: r.addresses.length, savedSshHosts: r.hosts.length, localOnly: !!S.settings?.localOnly, lanServerAvailable: true, lanPasswordSet: !!S.lan?.passwordSet, desktopApprovesPayments: true } });
+          renderCenter();
+        }) }, sat('hash', { size: 18 }), ` ${t('wb_askHash')}`)),
+      S.hashAdvice ? h('div', { class: 'card', style: 'margin-top:12px' }, h('div', { class: 'row' }, sat('hash', { size: 28 }), h('b', {}, `Hash: ${t({ off: 'wb_modeOff', ssh: 'wb_modeSsh', lan: 'wb_modeLan' }[S.hashAdvice.mode])}`), h('span', { class: 'spacer' }), h('span', { class: 'status num' }, S.hashAdvice.model)),
+        h('ul', {}, S.hashAdvice.reasons.map(x => h('li', {}, x))), S.hashAdvice.risks.length ? [h('p', { class: 'status' }, t('wb_risks')), h('ul', {}, S.hashAdvice.risks.map(x => h('li', {}, x)))] : null,
+        h('button', { class: 'btn sm primary', disabled: S.settings?.remoteMode === S.hashAdvice.mode, onClick: guard(async () => { S.settings = await api('settings.set', { key: 'remoteMode', value: S.hashAdvice.mode }); S.lan = await api('lan.status'); renderCenter(); toast(t('wb_saved')); }) }, t('wb_applyHash'))) : null,
+      S.settings?.remoteMode === 'lan' ? lanSection() : null,
+      S.settings?.remoteMode === 'off' ? h('p', { class: 'status', style: 'margin-top:12px' }, t('wb_modeOffHint')) : null,
+      S.settings?.remoteMode !== 'off' ? [
+      h('div', { class: 'section' }, t('wb_remoteThis')),
+      h('div', { class: 'form' },
+        h('label', {}, 'SSH'), h('span', {}, h('span', { class: `chip ${r.sshd ? 'ok' : 'warn'}` }, r.sshd ? t('wb_sshdOn') : t('wb_sshdOff'))),
+        h('label', {}, t('wb_remoteCmd')), h('span', { class: 'mono' }, r.addresses.length ? r.addresses.map(a => h('div', {}, `ssh ${r.user}@${a}  →  bitcode`)) : '—')),
+      h('p', { class: 'status' }, r.sshd ? t('wb_remoteThisHint') : t('wb_sshdHint')),
+      h('div', { class: 'section' }, t('wb_remoteOthers')),
+      r.hosts.length ? h('table', { class: 'list' }, r.hosts.map(x => h('tr', {}, h('td', { class: 'mono' }, x), h('td', { class: 'status' }, r.saved.includes(x) ? t('wb_saved') : '~/.ssh/config'),
+        h('td', {}, h('div', { class: 'row' }, h('button', { class: 'btn sm primary', onClick: () => openRemoteTerminal(x, 'bitcode') }, t('wb_openRemoteBitcode')), h('button', { class: 'btn sm', onClick: () => openRemoteTerminal(x, 'shell') }, t('wb_openRemoteShell')),
+          r.saved.includes(x) ? h('button', { class: 'btn sm danger', onClick: guard(async () => { S.remote = await api('remote.save', { hosts: r.saved.filter(y => y !== x) }); renderCenter(); }) }, t('delete')) : null))))) : h('p', { class: 'status' }, t('none')),
+      h('div', { class: 'row', style: 'margin-top:12px' }, input, h('button', { class: 'btn sm', onClick: guard(async () => { const v = input.value.trim(); if (!v) return; S.remote = await api('remote.save', { hosts: [...r.saved, v] }); renderCenter(); }) }, t('wb_add'))),
+      h('p', { class: 'status' }, t('wb_remoteSafety'))] : null]);
+}
 const termTheme = () => isDark() ? { background: '#0b0e11', foreground: '#eaecef', cursor: '#f7931a', selectionBackground: '#2b3139' } : { background: '#f7f7f4', foreground: '#26251e', cursor: '#f7931a', selectionBackground: '#e6e5e0' };
 window.addEventListener('resize', () => { try { fit?.fit(); } catch {} });
 
@@ -367,7 +431,7 @@ async function loadAll() {
   S.sessions = await api('session.list');
 }
 async function selectProject(id, { openLatest = false } = {}) {
-  if (S.projectId !== id) { S.projectId = id; S.tree.clear(); S.expanded = new Set(['.']); for (const tab of S.tabs) tab.view?.destroy(); S.tabs = []; S.active = null; }
+  if (S.projectId !== id) { wb.invalidateGit(); S.files = null; S.projectId = id; S.tree.clear(); S.expanded = new Set(['.']); for (const tab of S.tabs) tab.view?.destroy(); S.tabs = []; S.active = null; }
   await Promise.all([loadTree('.').catch(() => {}), refreshGit(), loadCommandList()]);
   if (openLatest) { const s = S.sessions.find(x => x.projectId === id); if (s) await openSession(s.sessionId); else { S.sessionId = null; S.session = null; } }
 }
@@ -382,7 +446,7 @@ async function openSession(id) {
   S.agent = S.session.satId || '';
   for (const s of SATS) S.sats[s] = { st: 'idle' };
 }
-async function refreshGit() { if (S.projectId) { try { S.git = await api('git.status', { projectId: S.projectId }); } catch { S.git = null; } if (S.panel === 'git' || S.panel === 'files') renderPanel(); } }
+async function refreshGit() { if (S.projectId) { try { S.git = await api('git.status', { projectId: S.projectId }); } catch { S.git = null; } wb.invalidateDiffs(); if (['git', 'files', 'changes'].includes(S.panel)) renderPanel(); } }
 async function refreshStatus() {
   S.status = await api('app.status'); S.pending = S.status.pending; S.settings = S.status.settings;
   for (const r of S.status.runs) S.runs.set(r.runId, r);
@@ -400,12 +464,15 @@ window.bitcode.subscribe(({ channel, payload }) => {
     if (payload.endedAt) {
       const sid = S.sessions.find(x => x.sessionId === payload.sessionId)?.satId || null;
       S.closing.set(payload.sessionId, { id: sid, ok: payload.state === 'success', text: closingText({ outcome: payload.state === 'success' ? 'ok' : payload.state === 'cancelled' ? 'cancelled' : 'error', snap: runSnapshot(payload), lang: wlang() }) });
-      S.live.delete(payload.runId); refreshGit();
+      S.live.delete(payload.runId); S.reasoning.delete(payload.runId); refreshGit();
       if (payload.error && payload.sessionId === S.sessionId) toast(errorText({ code: payload.errorCode, message: payload.error }), true);
       if (payload.worktree) api('worktree.list').then(w => { S.worktrees = w; });
       if (payload.sessionId === S.sessionId) for (const s of SATS) S.sats[s] = { st: 'idle' };
+      if (payload.state === 'success') sendQueued(payload.sessionId);
+      if (wb.multirunChanged(payload.sessionId) && S.view === 'multirun') renderCenter();
     }
     renderSidebar(); if (S.view === 'chat') { renderThread(); renderComposer(); renderTopbar(); } else if (S.view === 'activity') renderCenter();
+  } else if (channel === 'session' && payload.type === 'created') { loadSessions().then(renderSidebar);
   } else if (channel === 'session' && payload.sessionId === S.sessionId) {
     const { type, data } = payload;
     if (type === 'plan.saved') note(t('planSaved'), [data.file, t('planBuildHint')]);
@@ -415,6 +482,8 @@ window.bitcode.subscribe(({ channel, payload }) => {
         const w = workOf(data.runId), t0 = Date.now(); w.total = (w.total || 0) + data.text.length;
         (w.samples ||= []).push({ t: t0, c: w.total }); while (w.samples.length > 1 && t0 - w.samples[0].t > 4000) w.samples.shift();
         const first = w.samples[0], secs = (t0 - first.t) / 1000; if (secs >= 1) w.speed = Math.max(1, Math.round((w.total - first.c) / 4 / secs)); } S.live.set(data.runId, { agent: data.agentId, text: (S.live.get(data.runId)?.text || '') + data.text }); renderThread(); }
+    if (type === 'reasoning.delta') { S.reasoning.set(data.runId, ((S.reasoning.get(data.runId) || '') + data.text).slice(-20000)); renderThread(); }
+    if (type === 'todo' && S.session) { S.session.todo = data.items; renderThread(); }
     if (type === 'tool.detail') { S.agentLog.push({ at: Date.now(), text: `${data.auto ? 'auto' : t('approved')} · ${data.tool} · ${data.summary}` }); if (S.panel === 'agent') renderPanel(); }
   } else if (channel === 'sat' && payload.sessionId === S.sessionId && SATS.includes(payload.satId)) {
     const visual = { writing: 'drafting', waiting_approval: 'waiting', success: 'happy', error: 'concerned', planning: 'thinking', delegating: 'running' };
@@ -441,6 +510,8 @@ window.bitcode.subscribe(({ channel, payload }) => {
       if (!tab.dirty) reload(tab).catch(() => {}); else { tab.disk = payload; renderPanel(); }
     }
     clearTimeout(S.gitTimer); S.gitTimer = setTimeout(refreshGit, 400);
+  } else if (channel === 'pty' && remoteTerms.has(payload.ptyId)) {
+    const rt = remoteTerms.get(payload.ptyId); if (payload.data) rt.write(payload.data); if (payload.exit !== undefined) { rt.write('\r\n[ssh chiuso]\r\n'); remoteTerms.delete(payload.ptyId); }
   } else if (channel === 'pty' && payload.ptyId === ptyId) {
     if (payload.data) term?.write(payload.data); if (payload.exit !== undefined) { term?.write('\r\n[exit]\r\n'); ptyId = null; ptyProject = null; }
   } else if (channel === 'finance') { finView.onEvent(payload);
@@ -534,10 +605,12 @@ function renderSidebar() {
       h('span', { class: 'tmenu' },
         h('button', { title: t('rename'), 'aria-label': t('rename'), onClick: e => { e.stopPropagation(); S.renaming = s.sessionId; renderSidebar(); setTimeout(() => { const i = el.querySelector('.rename'); i?.focus(); i?.select(); }, 0); } }, icon('pencil', { size: 14 })),
         h('button', { title: s.keep ? t('kept') : t('keep'), 'aria-label': t('keep'), onClick: guard(async e => { e.stopPropagation(); await api('session.update', { sessionId: s.sessionId, keep: !s.keep }); await loadSessions(); if (S.session?.sessionId === s.sessionId) Object.assign(S.session, { keep: !s.keep }); renderSidebar(); }) }, icon('star', { size: 14 })),
+        h('button', { title: t('wb_more'), 'aria-label': t('wb_more'), onClick: e => { e.stopPropagation(); const b = e.currentTarget.getBoundingClientRect(); sessionMenu(s, b.left, b.bottom + 4); } }, icon('more', { size: 14 })),
+        h('button', { title: t('wb_archiveOne'), 'aria-label': t('wb_archiveOne'), onClick: guard(async e => { e.stopPropagation(); await api('session.update', { sessionId: s.sessionId, archived: true }); await loadSessions(); if (S.sessionId === s.sessionId) { S.sessionId = null; S.session = null; } renderShell(); toast(t('wb_archived')); }) }, icon('archive', { size: 14 })),
         h('button', { title: t('delete'), 'aria-label': t('delete'), disabled: !!run, onClick: guard(async e => { e.stopPropagation(); if (!confirm(`${t('delete')} «${s.name}»?`)) return; await api('session.delete', { sessionId: s.sessionId }); await loadSessions(); if (S.sessionId === s.sessionId) { S.sessionId = null; S.session = null; } renderShell(); }) }, icon('trash', { size: 14 }))));
   };
   const groups = S.projects.map(p => {
-    const all = S.sessions.filter(s => s.projectId === p.projectId && (!q || s.name.toLowerCase().includes(q)));
+    const all = S.sessions.filter(s => s.projectId === p.projectId && !s.archived && (!q || s.name.toLowerCase().includes(q)));
     if (q && !all.length && !p.name.toLowerCase().includes(q)) return null;
     const open = q || !S.collapsed.has(p.projectId), expanded = S.expandedProjects.has(p.projectId);
     const selecting = S.selecting === p.projectId;
@@ -571,7 +644,13 @@ function renderSidebar() {
       action('compose', t('newChat'), guard(() => S.projectId ? goHome(S.projectId) : openFolder()), { kbd: 'Ctrl N' }),
       searchBox || action('search', t('search'), openSearch, { kbd: 'Ctrl K' }),
       action('bitcoin', t('bitcoin'), () => { S.view = 'bitcoin'; renderShell(); }, { on: S.view === 'bitcoin' }),
-      action('activity', t('activity'), () => { S.view = 'activity'; renderShell(); }, { on: S.view === 'activity', badge: S.pending.length || null })),
+      action('activity', t('activity'), () => { S.view = 'activity'; renderShell(); }, { on: S.view === 'activity', badge: S.pending.length || null }),
+      action('chart', t('wb_stats'), () => { wb.invalidateStats(); S.view = 'stats'; renderShell(); }, { on: S.view === 'stats' }),
+      action('archive', t('wb_archive'), () => { S.view = 'archive'; renderShell(); }, { on: S.view === 'archive', badge: S.sessions.filter(x => x.archived).length || null }),
+      action('issue', t('wb_issues'), () => { S.view = 'issues'; renderShell(); }, { on: S.view === 'issues' }),
+      action('remote', t('wb_remote'), () => { S.remote = undefined; S.view = 'remote'; renderShell(); }, { on: S.view === 'remote' }),
+      action('clock', t('wb_schedules'), () => { S.view = 'schedules'; renderShell(); }, { on: S.view === 'schedules' }),
+      action('plug', t('wb_integrations'), () => { S.view = 'integrations'; renderShell(); }, { on: S.view === 'integrations' })),
     h('div', { class: 'sscroll' },
       h('div', { class: 'ssec' }, h('span', {}, t('projects')), h('button', { class: 'ibtn sm', title: t('openFolder'), 'aria-label': t('openFolder'), onClick: openFolder }, icon('folderPlus', { size: 15 }))),
       S.projects.length ? groups : h('button', { class: 'sact', onClick: openFolder }, icon('folderPlus'), h('span', { class: 'label' }, t('openFolder')))),
@@ -605,7 +684,10 @@ function renderCenter() {
     renderTopbar(); renderThread(); renderComposer();
   } else {
     el.style.display = 'block';
-    fill(el, S.view === 'activity' ? activityPage() : S.view === 'bitcoin' ? bitcoinPage() : settingsPage());
+    const view = S.view, rerender = () => { if (S.view === view) renderCenter(); };
+    const pages = { activity: activityPage, bitcoin: bitcoinPage, stats: () => wb.statsPage(rerender), archive: () => wb.archivePage(rerender), multirun: () => wb.multirunPage(rerender),
+      schedules: () => wb.schedulesPage(rerender), integrations: () => wb.integrationsPage(rerender), issues: () => wb.issuesPage(rerender), remote: remotePage };
+    fill(el, (pages[S.view] || settingsPage)());
   }
 }
 
@@ -629,19 +711,22 @@ function showSatInfo(info) {
 function renderTopbar() {
   const el = $('topbar'); if (!el) return;
   const s = S.session, p = project();
-  const toggle = (key, label) => h('button', { class: `iconbtn${S.panel === key ? ' on' : ''}`, title: key === 'terminal' ? t('terminalShort') : t(key), 'aria-label': key === 'terminal' ? t('terminalShort') : t(key), onClick: () => { S.panel = S.panel === key ? null : key; renderShell(); } }, label);
+  const toggle = (key, label) => h('button', { class: `iconbtn${S.panel === key ? ' on' : ''}`, title: panelLabel(key), 'aria-label': panelLabel(key), onClick: () => { S.panel = S.panel === key ? null : key; renderShell(); } }, label);
   fill(el,
     S.sideHidden ? h('button', { class: 'ibtn', title: `${t('showSidebar')} (Ctrl+B)`, 'aria-label': t('showSidebar'), onClick: toggleSidebar }, icon('sidebar')) : null,
     h('span', { class: 'title', title: s?.name || '' }, s ? s.name : p ? p.name : 'bitcode'),
     p ? h('span', { class: 'chip opt' }, p.name) : null,
     S.git?.repo ? h('span', { class: 'chip opt mono' }, `⎇ ${S.git.branch || 'HEAD'}${S.git.files.length ? ` · ${S.git.files.length}` : ''}`) : null,
+    s ? h('button', { class: 'chip', style: 'cursor:pointer', title: t('wb_timeline'), onClick: () => wb.openTimeline(s).catch(e => toast(e.message, true)) }, `↶ ${t('wb_timeline')}`) : null,
     s ? h('button', { class: 'chip', style: 'cursor:pointer', title: s.keep ? t('kept') : `${t('expiresIn')} ${fmtTime(s.expiresAt)}`,
       onClick: guard(async () => { const r = await api('session.update', { sessionId: s.sessionId, keep: !s.keep }); Object.assign(S.session, { keep: r.keep, expiresAt: r.expiresAt }); renderTopbar(); }) }, s.keep ? `★ ${t('kept')}` : `☆ ${t('keep')}`) : null,
     h('span', { class: 'spacer' }),
     s ? h('div', { class: 'satrow' }, SATS.map(x => h('button', { class: 'iconbtn', 'aria-label': `Sat info ${satName(x)}`, onClick: guard(async () => {
       const res = await api('chat.submit', { sessionId: s.sessionId, text: `/sat info ${x}` }); showSatInfo(res.result);
     }) }, sat(x, { size: 30, state: S.sats[x].st, title: `${satName(x)} · ${t(`role_${x}`)}${satLabel(x, S.sats[x].st).text ? ` — ${satLabel(x, S.sats[x].st).text}` : ''}` })))) : null,
-    p ? h('div', { class: 'tools' }, toggle('files', '▤'), toggle('git', '⎇'), toggle('terminal', '>_'), toggle('agent', '◉')) : null);
+    S.mini ? h('button', { class: `iconbtn${S.pinned ? ' on' : ''}`, title: t('wb_pin'), 'aria-label': t('wb_pin'), onClick: guard(async () => { S.pinned = await api('window.pin', { pinned: !S.pinned }); renderTopbar(); }) }, '📌')
+      : h('button', { class: 'iconbtn', title: t('wb_miniChat'), 'aria-label': t('wb_miniChat'), onClick: guard(() => api('window.miniChat', { projectId: S.projectId || undefined, sessionId: S.sessionId || undefined })) }, '◳'),
+    p && !S.mini ? h('div', { class: 'tools' }, toggle('files', '▤'), toggle('git', '⎇'), toggle('changes', '±'), toggle('knowledge', '✎'), toggle('preview', '◫'), toggle('terminal', '>_'), toggle('agent', '◉')) : null);
 }
 
 function renderThread() {
@@ -652,23 +737,48 @@ function renderThread() {
   const s = S.session, run = activeRun(s.sessionId), model = s.model || S.status?.defaultModel?.spec || '';
   const stick = el.scrollTop + el.clientHeight >= el.scrollHeight - 40;
   const items = [];
-  for (const m of s.messages) {
-    if (m.role === 'tool') continue;
-    if (m.role === 'user') items.push(h('div', { class: 'm-user' }, m.content));
-    else {
-      if (m.content) items.push(h('div', { class: 'm-bot' }, h('div', { class: 'who' }, logo({ size: 16 }), 'Bitcode', h('span', { class: 'num' }, `· ${model}`), h('span', { class: 'spacer' }), h('button', { class: 'copy ghost', type: 'button', title: `${t('copyL')} (${/Mac/i.test(navigator.platform) ? '⌘' : 'Ctrl'}+Shift+C)`, onClick: e => copyText(m.content, e.currentTarget) }, t('copyL'))), md(m.content)));
-      if (m.tools?.length) items.push(h('div', { class: 'm-tools mono' }, m.tools.map(x => h('div', {}, x))));
-    }
-  }
+  // Tool-only assistant turns follow each other one call at a time: they share a single compact block.
+  let toolGroup = null;
+  const flushTools = () => { if (toolGroup) items.push(toolsBlock(toolGroup)); toolGroup = null; };
+  s.messages.forEach((m, i) => {
+    if (m.role === 'tool') return;
+    if (m.role === 'user') { flushTools(); items.push(h('div', { class: 'm-user' }, m.content)); return; }
+    if (m.content) { flushTools(); items.push(h('div', { class: 'm-bot' }, h('div', { class: 'who' }, logo({ size: 16 }), 'Bitcode', h('span', { class: 'num' }, `· ${model}`), h('span', { class: 'spacer' }), h('button', { class: 'copy ghost', type: 'button', title: `${t('copyL')} (${/Mac/i.test(navigator.platform) ? '⌘' : 'Ctrl'}+Shift+C)`, onClick: e => copyText(m.content, e.currentTarget) }, t('copyL'))), md(m.content))); }
+    if (!m.tools?.length) return;
+    toolGroup ??= { names: [], outputs: [] };
+    toolGroup.names.push(...m.tools);
+    for (let j = i + 1; j < s.messages.length && s.messages[j].role === 'tool'; j++) toolGroup.outputs.push(s.messages[j]);
+  });
+  flushTools();
+  for (const [runId, thought] of S.reasoning) if (S.runs.get(runId)?.sessionId === s.sessionId && !S.runs.get(runId)?.endedAt) items.push(h('details', { class: 'reasoning', open: S.reasoningOpen }, h('summary', { onClick: e => { S.reasoningOpen = !e.currentTarget.parentElement.open; } }, t('wb_reasoning')), h('pre', { class: 'toolpre' }, thought)));
   for (const [, l] of S.live) items.push(h('div', { class: 'm-bot live' }, h('div', { class: 'who' }, SATS.includes(l.agent) ? sat(l.agent, { size: 20, state: S.sats[l.agent]?.st || 'drafting' }) : logo({ size: 16 }), SATS.includes(l.agent) ? satName(l.agent) : 'Bitcode', typing(SAT_META[l.agent]?.color)), md(l.text)));
   items.push(...S.pending.filter(a => a.sessionId === s.sessionId).map(approvalCard));
   items.push(...S.notes.map(n => h('div', { class: 'note' }, h('div', { class: 'ntitle' }, n.title), n.lines.length ? h('div', { class: 'nbody mono' }, n.lines.map(l => h('div', {}, l))) : null)));
   if (run) items.push(runLine(run)); else if (S.closing.has(s.sessionId)) items.push(closingLine(S.closing.get(s.sessionId)));
+  if (s.todo?.length) items.push(h('div', { class: 'todocard card' }, h('div', { class: 'row' }, h('b', {}, t('wb_agentTodo')), h('span', { class: 'spacer' }), h('span', { class: 'num status' }, `${s.todo.filter(x => x.done).length}/${s.todo.length}`)),
+    s.todo.map(x => h('div', { class: `todo${x.done ? ' done' : ''}` }, h('span', {}, x.done ? '☑' : '☐'), h('span', { class: 'ttext' }, x.text)))));
+  if (s.goal) items.unshift(h('div', { class: 'goalrow' }, h('span', { class: 'chip warn' }, `◎ ${t('wb_goal')}`), h('span', {}, s.goal)));
   if (!items.length) return fill(el, home(p));
   fill(el, h('div', { class: 'col' }, items));
   if (stick) el.scrollTop = el.scrollHeight;
 }
 
+function toolsBlock({ names, outputs }) {
+  const rows = [];
+  for (const name of names) {
+    const last = rows.at(-1);
+    if (last?.name === name) last.count++; else rows.push({ name, count: 1 });
+  }
+  return h('div', { class: 'm-tools mono' },
+    h('div', { class: 'toolnames' }, rows.map(r => h('span', { class: 'toolname' }, r.name, r.count > 1 ? h('span', { class: 'num' }, ` ×${r.count}`) : null))),
+    outputs.length ? h('button', { class: 'toolout', type: 'button', onClick: () => showToolOutputs(names, outputs) }, `${t('wb_toolOutput')} (${outputs.length})`) : null);
+}
+function showToolOutputs(names, outputs) {
+  const dialog = h('dialog', { class: 'sat-info plan', 'aria-label': t('wb_toolOutput') },
+    h('div', { class: 'row' }, h('h2', {}, t('wb_toolOutput')), h('span', { class: 'spacer' }), h('button', { class: 'iconbtn', autofocus: true, onClick: () => dialog.close(), 'aria-label': t('close') }, '×')),
+    h('div', { class: 'planbody' }, outputs.map((o, i) => h('details', { open: outputs.length === 1 }, h('summary', { class: 'mono' }, o.name || names[i] || `#${i + 1}`), h('pre', { class: 'toolpre' }, o.content)))));
+  dialog.addEventListener('close', () => dialog.remove()); document.body.append(dialog); dialog.showModal();
+}
 function home(p) {
   return h('div', { class: 'home' }, h('div', { class: 'inner' },
     h('div', { class: 'lockup' }, logo({ size: 60, build: true }), h('span', { class: 'word' }, 'bitcode')),
@@ -676,7 +786,7 @@ function home(p) {
     p ? h('h1', {}, t('homeTitle'), ' ', h('em', {}, p.name), '?') : h('h1', {}, t('welcome')),
     h('p', {}, p ? t('homeSub') : t('homeNoProject')),
     !S.status?.sandbox.available ? h('p', { class: 'chip err' }, t('sandboxMissing')) : null,
-    p ? null : h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'btn primary pill', onClick: openFolder }, t('openFolder')), h('button', { class: 'btn pill', onClick: () => { S.view = 'settings'; renderShell(); } }, t('settings')))));
+    p ? wb.starters() : h('div', { class: 'row', style: 'justify-content:center' }, h('button', { class: 'btn primary pill', onClick: openFolder }, t('openFolder')), h('button', { class: 'btn pill', onClick: () => { S.view = 'settings'; renderShell(); } }, t('settings')))));
 }
 
 // ---------- composer: slash menu, model picker, command results ----------
@@ -723,11 +833,22 @@ function renderComposer() {
         if (e.key === 'Tab' || (e.key === 'Enter' && !e.shiftKey)) { e.preventDefault(); return pick(S.menu.items[S.menu.index], e.key === 'Enter'); }
         if (e.key === 'Escape') { e.preventDefault(); S.menu.items = []; drawMenu(); return; }
       }
+      if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && !e.shiftKey && !e.altKey && recallPrompt(input, e.key === 'ArrowUp' ? 1 : -1)) { e.preventDefault(); return; }
       if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
     } });
   input.value = S.draft;
   function updateMenu() {
-    const v = input.value;
+    const v = input.value, at = /(^|\s)@([^\s@]*)$/.exec(v.slice(0, input.selectionStart ?? v.length));
+    if (at && S.projectId) {
+      if (!S.files || S.filesProject !== S.projectId) { S.filesProject = S.projectId; S.files = []; api('fs.files', { projectId: S.projectId }).then(f => { S.files = f; if ($('prompt') === input) updateMenu(); }).catch(() => {}); }
+      const q = at[2].toLowerCase();
+      S.menu.items = S.files.filter(f => f.toLowerCase().includes(q)).sort((a, b) => a.length - b.length).slice(0, 40).map(f => ({ name: f, file: true, at: at[2] }));
+      S.menu.index = 0; drawMenu(); return;
+    }
+    const dollar = /(^|\s)\$([\w-]*)$/.exec(v.slice(0, input.selectionStart ?? v.length));
+    if (dollar && S.projectId) { S.menu.items = wb.skillItems(dollar[2]).map(x => ({ name: x.name, skill: x.description, at: dollar[2] })); S.menu.index = 0; drawMenu(); return; }
+    const hash = /(^|\s)#([\w-]*)$/.exec(v.slice(0, input.selectionStart ?? v.length));
+    if (hash && (S.settings?.snippets || []).length) { S.menu.items = wb.snippetItems(hash[2]).map(x => ({ name: x.name, snippet: x.text, at: hash[2] })); S.menu.index = 0; drawMenu(); return; }
     S.menu.items = v.startsWith('/') && !/\s/.test(v) ? S.commands.filter(c => c.name.toLowerCase().startsWith(v.slice(1).toLowerCase())).slice(0, 60) : [];
     S.menu.index = Math.min(S.menu.index, Math.max(0, S.menu.items.length - 1)); drawMenu();
   }
@@ -735,11 +856,16 @@ function renderComposer() {
     menuEl.hidden = !S.menu.items.length;
     fill(menuEl, S.menu.items.map((c, i) => h('div', { class: `cmditem${i === S.menu.index ? ' on' : ''}${c.scope === 'cli' ? ' off' : ''}`, role: 'option', 'aria-selected': i === S.menu.index ? 'true' : 'false',
       onMousedown: e => { e.preventDefault(); pick(c, !c.args); } },
-      h('span', { class: 'cname mono' }, `/${c.name}`), h('span', { class: 'chint' }, cmdHint(c)),
+      h('span', { class: 'cname mono' }, c.file ? `@${c.name}` : c.snippet ? `#${c.name}` : c.skill !== undefined ? `$${c.name}` : `/${c.name}`), h('span', { class: 'chint' }, c.file ? t('wb_mentionHint') : c.snippet ? c.snippet.slice(0, 80) : c.skill !== undefined ? c.skill : cmdHint(c)),
       c.scope === 'cli' ? h('span', { class: 'chip' }, t('cliOnly')) : c.custom ? h('span', { class: 'chip' }, t('customL')) : null)));
     menuEl.querySelector('.on')?.scrollIntoView({ block: 'nearest' });
   }
   function pick(c, submitNow) {
+    if (c.file || c.snippet || c.skill !== undefined) {
+      const end = input.selectionStart ?? input.value.length, start = end - c.at.length - 1, insert = c.file ? `@${c.name} ` : c.snippet ?? `$${c.name} `;
+      input.value = `${input.value.slice(0, start)}${insert}${input.value.slice(end)}`; S.draft = input.value; S.menu.items = []; drawMenu(); input.focus();
+      const pos = start + insert.length; input.setSelectionRange(pos, pos); return;
+    }
     if (c.scope === 'cli') { toast(`/${c.name}: ${t('cliOnlyLong')}`, true); return; }
     input.value = c.args ? `/${c.name} ` : `/${c.name}`; S.draft = input.value; S.menu.items = []; drawMenu(); input.focus();
     if (submitNow && !c.args) submit();
@@ -748,6 +874,11 @@ function renderComposer() {
     let text = input.value.trim(); if (!text && !S.attachments.length) return; if (!text) text = t('attachDefault');
     const [cmdName] = text.slice(1).split(/\s+/);
     if (text.startsWith('/') && UI_COMMANDS[cmdName]) { S.draft = ''; input.value = ''; S.menu.items = []; drawMenu(); return UI_COMMANDS[cmdName](); }
+    if (!text.startsWith('/')) text = await wb.expandSkills(text);
+    if (S.session && activeRun(S.session.sessionId) && !text.startsWith('/')) {
+      const q = S.queue.get(S.session.sessionId) || []; q.push({ id: crypto.randomUUID(), text: S.attachments.length ? `${text}\n\n${attachmentLines()}` : text }); S.queue.set(S.session.sessionId, q);
+      S.attachments = []; S.draft = ''; historyAt = -1; input.value = ''; renderComposer(); setTimeout(() => $('prompt')?.focus(), 0); return;
+    }
     let session = S.session;
     if (!session) {
       const meta = await api('session.create', { projectId: S.projectId, name: text.replace(/^\/\S+\s*/, '').replace(/\s+/g, ' ').slice(0, 48) || text.slice(0, 48), mode: S.newMode || 'assisted', satId: S.agent, model: S.newModel || undefined });
@@ -756,7 +887,7 @@ function renderComposer() {
     const withFiles = S.attachments.length && !text.startsWith('/') ? `${text}\n\n${attachmentLines()}` : text;
     const res = await api('chat.submit', { sessionId: session.sessionId, text: withFiles, agent: S.agent });
     if (withFiles !== text) S.attachments = [];
-    S.draft = ''; if ($('prompt')) $('prompt').value = '';
+    S.draft = ''; historyAt = -1; if ($('prompt')) $('prompt').value = '';
     if (res.command) showResult(res);
     else { S.notes = []; S.session = await api('session.open', { sessionId: session.sessionId }); renderThread(); renderComposer(); renderSidebar(); }
   });
@@ -766,7 +897,16 @@ function renderComposer() {
   }) }, MODES.map(m => h('option', { value: m, selected: (s?.mode || S.newMode || 'assisted') === m, disabled: m === 'unattended' && !!unattendedBlocked() && (s?.mode || S.newMode) !== m }, t(m))));
   if (unattendedBlocked()) modeSelect.title = unattendedBlocked();
   const currentModel = s?.model || S.newModel || S.status?.defaultModel?.spec || '—';
-  fill(el, h('div', { class: 'composer' }, menuEl, attachmentChips(), input,
+  const queued = s ? S.queue.get(s.sessionId) || [] : [];
+  const queueStrip = queued.length ? h('div', { class: 'qstrip' }, h('span', { class: 'qlabel' }, `${t('wb_queued')} · ${queued.length}`),
+    queued.map(q => h('span', { class: 'chip qitem', title: q.text }, q.text.slice(0, 60), h('button', { class: 'x', 'aria-label': t('delete'), onClick: () => { S.queue.set(s.sessionId, queued.filter(x => x !== q)); renderComposer(); } }, '×')))) : null;
+  const ctxTokens = s ? Math.ceil(JSON.stringify(s.messages || []).length / 4) : 0;
+  const ctxChip = s && s.messages?.length ? h('button', { class: 'chip ctxchip num', title: t('wb_contextHint'), disabled: !!run, onClick: guard(async () => {
+    if (!confirm(t('wb_compactConfirm'))) return;
+    const r = await api('session.compact', { sessionId: s.sessionId }); if (!r.compacted) return toast(t('wb_compactNothing'));
+    S.session = await api('session.open', { sessionId: s.sessionId }); renderThread(); renderComposer(); toast(t('wb_compacted'));
+  }) }, `≈ ${ctxTokens.toLocaleString()} ${t('tokens')}`) : null;
+  fill(el, h('div', { class: 'composer' }, menuEl, queueStrip, attachmentChips(), input,
     h('div', { class: 'bar' },
       h('button', { type: 'button', class: 'attachbtn', title: `${t('attachL')} (${modKey}+U)`, 'aria-label': t('attachL'), disabled: !!run, onClick: e => attachMenu(e.currentTarget) }, icon('paperclip', { size: 16 })),
       s?.profile === 'rgb' ? null : h('select', { 'aria-label': t('agentL'), disabled: !!run, onChange: guard(async e => {
@@ -780,7 +920,10 @@ function renderComposer() {
         h('button', { class: 'modelbtn num', title: t('chooseModel'), 'aria-haspopup': 'listbox', 'aria-expanded': S.picker.open ? 'true' : 'false', disabled: !!run, onClick: () => S.picker.open ? closeModelPicker() : openModelPicker() },
           h('span', { class: `loc ${modelLocality(currentModel)}` }), currentModel, h('span', { class: 'caret' }, '▾')),
         S.picker.open ? modelPopover() : null),
-      h('span', { style: 'flex:1' }),
+      s ? h('button', { type: 'button', class: `attachbtn${s.goal ? ' on' : ''}`, title: s.goal ? `${t('wb_goal')}: ${s.goal}` : t('wb_goal'), 'aria-label': t('wb_goal'), onClick: () => wb.editGoal(s, meta => { S.session.goal = meta.goal; renderComposer(); renderThread(); }) }, '◎') : null,
+      h('button', { type: 'button', class: `attachbtn${S.recording ? ' rec' : ''}`, title: S.settings?.transcriptionModel ? `${t('wb_dictate')} · ${S.settings.transcriptionModel}` : t('wb_dictateOff'), 'aria-label': t('wb_dictate'), disabled: !!run && !S.recording, onClick: () => toggleDictation(input) }, S.recording ? '■' : '🎙'),
+      h('button', { type: 'button', class: 'attachbtn', title: t('wb_multirun'), 'aria-label': t('wb_multirun'), disabled: !!run, onClick: () => wb.openMultirun().catch(e => toast(e.message, true)) }, '⚖'),
+      h('span', { style: 'flex:1' }), ctxChip,
       run ? h('button', { class: 'send stop', title: t('stop'), 'aria-label': t('stop'), onClick: guard(() => api('run.cancel', { runId: run.runId })) }, '■')
         : h('button', { class: 'send', title: t('send'), 'aria-label': t('send'), onClick: submit }, '↑'))),
     h('div', { class: 'hint' }, t('hint')));
@@ -909,11 +1052,17 @@ function renderPanel() {
   const el = $('panel'); if (!el) return;
   $('app').classList.toggle('panel-open', !!S.panel && S.view === 'chat' && !!S.projectId);
   if (!S.panel || !S.projectId) return fill(el);
-  const tabs = h('div', { class: 'ptabs', role: 'tablist' }, ['files', 'git', 'terminal', 'agent'].map(k => h('button', { class: `ptab${S.panel === k ? ' on' : ''}`, onClick: () => { S.panel = k; renderPanel(); renderTopbar(); } }, k === 'terminal' ? t('terminalShort') : t(k))),
+  const tabs = h('div', { class: 'ptabs', role: 'tablist' }, PANELS.map(k => h('button', { class: `ptab${S.panel === k ? ' on' : ''}`, onClick: () => { S.panel = k; renderPanel(); renderTopbar(); } }, panelLabel(k))),
     h('span', { class: 'spacer' }), h('button', { class: 'ptab', 'aria-label': 'close', onClick: () => { S.panel = null; renderShell(); } }, '×'));
   let body;
   if (S.panel === 'files') body = h('div', { class: 'files' }, h('div', { class: 'tree', id: 'tree' }, treeView('.')), h('div', { class: 'editorcol' }, h('div', { class: 'etabs', id: 'etabs' }), h('div', { class: 'editor', id: 'editor' })));
-  else if (S.panel === 'git') body = h('div', { class: 'gitpane' }, gitView());
+  else if (S.panel === 'git') {
+    const extra = wb.gitTools(() => { if (S.panel === 'git') renderPanel(); });
+    body = h('div', { class: 'gitpane' }, extra?.head, extra && extra.tab !== 'changes' ? extra.body : gitView());
+  }
+  else if (S.panel === 'changes') body = h('div', { class: 'gitpane' }, wb.changesPane(() => { if (S.panel === 'changes') renderPanel(); }));
+  else if (S.panel === 'preview') body = h('div', { class: 'gitpane' }, wb.previewPane(() => { if (S.panel === 'preview') renderPanel(); }));
+  else if (S.panel === 'knowledge') body = h('div', { class: 'gitpane' }, wb.knowledgePane(() => { if (S.panel === 'knowledge') { const a = document.activeElement?.classList.contains('knotes'); renderPanel(); if (a) document.querySelector('.knotes')?.focus(); } }));
   else if (S.panel === 'terminal') body = termHost;
   else body = h('div', { class: 'logpane mono', id: 'log' }, S.agentLog.length ? S.agentLog.slice(-300).map(e => h('div', { class: 'ev' }, h('span', { class: 't' }, new Date(e.at).toLocaleTimeString()), h('span', {}, e.text))) : h('div', { class: 'status' }, t('none')));
   fill(el, tabs, h('div', { class: 'pbody' }, body));
@@ -946,8 +1095,13 @@ function renderEditor() {
     : tab.stale ? h('div', { class: 'banner err' }, t('stale'), h('span', { class: 'act' }, h('button', { class: 'btn sm', onClick: guard(() => compare(tab)) }, t('compare')),
       h('button', { class: 'btn sm', onClick: guard(() => reload(tab)) }, t('reload')),
       h('button', { class: 'btn sm danger', onClick: guard(async () => { const cur = await api('buffer.open', { projectId: tab.projectId, path: tab.path }); tab.disk = { version: cur.version }; await save(tab, true); }) }, t('overwrite')))) : null;
+  const isMd = /\.(md|markdown)$/i.test(tab.path);
+  const bar = h('div', { class: 'edbar' }, h('span', { class: 'status mono' }, tab.path), h('span', { style: 'flex:1' }),
+    h('button', { class: 'btn sm ghost', title: `${t('wb_gotoLine')} (Ctrl+G)`, onClick: () => { tab.preview = false; renderEditor(); gotoLine(tab.view); } }, t('wb_gotoLine')),
+    isMd ? h('button', { class: `btn sm${tab.preview ? ' primary' : ''}`, onClick: () => { tab.preview = !tab.preview; renderEditor(); } }, t('wb_preview')) : null);
+  if (isMd && tab.preview) return fill(ed, banner, bar, h('div', { class: 'mdpreview' }, md(tab.view.state.doc.toString())));
   const host = h('div', { class: 'host' }); host.append(tab.view.dom);
-  fill(ed, banner, host); tab.view.requestMeasure();
+  fill(ed, banner, bar, host); tab.view.requestMeasure();
 }
 function gitView() {
   const g = S.git; if (!g) return h('div', { class: 'status' }, '…'); if (!g.repo) return h('div', { class: 'gitinit' }, h('div', { class: 'status' }, t('notRepo')), h('button', { class: 'btn', onClick: guard(async () => { if (!confirm(t('gitInitConfirm'))) return; await api('git.init', { projectId: S.projectId }); await refreshGit(); renderComposer(); toast(t('gitInitDone')); }) }, t('gitInit')));
@@ -1005,6 +1159,75 @@ function activityPage() {
       h('button', { class: 'btn sm primary', onClick: guard(async () => { if (!confirm(t('integrate') + '?')) return; await api('worktree.integrate', { runId: w.runId }); S.worktrees = await api('worktree.list'); refreshGit(); renderCenter(); }) }, t('integrate')),
       h('button', { class: 'btn sm danger', onClick: guard(async () => { if (!confirm(t('discard') + '?')) return; await api('worktree.discard', { runId: w.runId }); S.worktrees = await api('worktree.list'); renderCenter(); }) }, t('discard'))))))) : h('p', { class: 'status' }, t('none')));
 }
+// Queued prompts go out one at a time, only after the previous run succeeded.
+const sendQueued = guard(async sessionId => {
+  const q = S.queue.get(sessionId); if (!q?.length) return;
+  const next = q.shift(); if (!q.length) S.queue.delete(sessionId);
+  await api('chat.submit', { sessionId, text: next.text, agent: S.sessionId === sessionId ? S.agent : undefined });
+  if (S.sessionId === sessionId) { S.session = await api('session.open', { sessionId }); renderThread(); renderComposer(); }
+});
+function sessionMenu(s, x, y) {
+  const after = async (meta, msg) => { await loadSessions(); if (S.sessionId === s.sessionId && meta.sessionId === s.sessionId) Object.assign(S.session, meta); renderShell(); if (msg) toast(msg); };
+  const others = S.projects.filter(p => p.projectId !== s.projectId);
+  openMenu(x, y, [
+    { label: t('wb_aiRename'), run: guard(async () => { toast(t('wb_aiRenaming')); await after(await api('session.rename.ai', { sessionId: s.sessionId })); }) },
+    { label: t('wb_fork'), run: guard(async () => { const f = await api('session.fork', { sessionId: s.sessionId }); await loadSessions(); await openSession(f.sessionId); renderShell(); toast(t('wb_forked')); }) },
+    ...others.map(p => ({ label: `${t('wb_moveTo')} ${p.name}`, disabled: !!activeRun(s.sessionId), run: guard(async () => { await after(await api('session.move', { sessionId: s.sessionId, projectId: p.projectId }), `${t('wb_moved')} ${p.name}`); }) })),
+    '-',
+    { label: t('export'), run: guard(async () => { openDiff(`export · ${s.name}`, await api('session.export', { sessionId: s.sessionId })); }) }
+  ]);
+}
+// Dictation: record with the microphone, transcribe with the model chosen in Settings, insert at the cursor.
+let recorder = null;
+const toggleDictation = guard(async input => {
+  if (recorder) { recorder.stop(); return; }
+  if (!S.settings?.transcriptionModel) { toast(t('wb_dictateOff'), true); S.view = 'settings'; renderShell(); return; }
+  const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const chunks = [], rec = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+  rec.ondataavailable = e => { if (e.data.size) chunks.push(e.data); };
+  rec.onstop = guard(async () => {
+    recorder = null; S.recording = false; for (const tr of stream.getTracks()) tr.stop(); renderComposer();
+    const bytes = new Uint8Array(await new Blob(chunks, { type: 'audio/webm' }).arrayBuffer());
+    let bin = ''; for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    toast(t('wb_transcribing'));
+    const r = await api('audio.transcribe', { audio: btoa(bin), mime: 'audio/webm', lang: document.documentElement.lang });
+    const el = $('prompt'); if (!el || !r.text) return;
+    const at = el.selectionStart ?? el.value.length; el.value = `${el.value.slice(0, at)}${at && !/\s$/.test(el.value.slice(0, at)) ? ' ' : ''}${r.text}${el.value.slice(at)}`; S.draft = el.value; el.focus(); el.dispatchEvent(new Event('input'));
+  });
+  rec.start(); recorder = rec; S.recording = true; renderComposer();
+  setTimeout(() => { if (recorder === rec) rec.stop(); }, 120_000);
+});
+const PANELS = ['files', 'git', 'changes', 'knowledge', 'preview', 'terminal', 'agent'];
+function panelLabel(k) { return t({ terminal: 'terminalShort', changes: 'wb_changesTab', preview: 'wb_previewTab' }[k] || k); }
+// Composer history: ↑ on the first line walks back through this chat's prompts, ↓ forward to the draft.
+let historyAt = -1, historyDraft = '';
+function recallPrompt(input, dir) {
+  const before = input.value.slice(0, input.selectionStart);
+  if (dir > 0 ? before.includes('\n') : input.value.slice(input.selectionEnd).includes('\n')) return false;
+  const list = promptHistory(S.session?.messages);
+  if (dir > 0 && historyAt === -1 && input.value.trim()) return false;
+  const next = historyAt + dir;
+  if (next < -1 || next >= list.length) return false;
+  if (historyAt === -1) historyDraft = input.value;
+  historyAt = next; input.value = next === -1 ? historyDraft : list[next]; S.draft = input.value;
+  input.setSelectionRange(input.value.length, input.value.length); input.dispatchEvent(new Event('input'));
+  return true;
+}
+const wb = createWorkbench({ S, h, fill, api, toast, guard, t, icon, md, diffPre, ago, fmtTime, actions: {
+  draft: text => { if (S.view !== 'chat') { S.view = 'chat'; renderShell(); } S.draft = text; historyAt = -1; renderComposer(); const i = $('prompt'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } },
+  view: v => { S.view = v; renderShell(); },
+  panel: k => { S.view = 'chat'; S.panel = k; renderShell(); },
+  panelLabel: k => panelLabel(k),
+  newChat: () => (S.projectId ? goHome(S.projectId) : openFolder()),
+  openFolder: () => openFolder(),
+  project: id => goHome(id),
+  session: async id => { await openSession(id); renderShell(); },
+  shortcuts: () => showShortcuts(),
+  refreshGit: () => refreshGit(),
+  openFile: async f => { S.view = 'chat'; S.panel = 'files'; renderShell(); await openFile(f); },
+  showText: (title, text) => openDiff(title, text),
+  reloadSessions: async () => { await loadSessions(); renderSidebar(); }
+} });
 const finView = createFinanceView({ h, fill, api, toast, guard, t, icon, rerender: () => { if (S.view === 'bitcoin') renderCenter(); } });
 const bitcoinPage = () => finView.page();
 function settingsPage() {
@@ -1016,9 +1239,13 @@ function settingsPage() {
   const modelField = (spec, auto, onClick, empty) => h('button', { class: 'modelfield num', onClick }, h('span', { class: `loc ${spec ? modelLocality(spec) : 'unknown'}` }),
     h('span', { class: 'mf' }, spec || empty), auto ? h('span', { class: 'chip' }, t('auto')) : null, h('span', { class: 'caret' }, '▾'));
   if (!S.picker.data && !S.picker.loading) loadModels().then(() => { if (S.view === 'settings') renderCenter(); }).catch(() => {});
+  if (S.shell === undefined) { S.shell = null; api('shell.get').then(x => { S.shell = x; if (S.view === 'settings') renderCenter(); }).catch(() => {}); }
   if (S.autostart === undefined) { S.autostart = null; api('app.autostart.get').then(a => { S.autostart = a; if (S.view === 'settings') renderCenter(); }).catch(() => {}); }
   const keyInputs = new Map();
-  return h('div', { class: 'page' }, h('h1', {}, t('settings')),
+  if (S.library === undefined) { S.library = null; api('library.list', { projectId: S.projectId || undefined }).then(l => { S.library = l; if (S.view === 'settings') renderCenter(); }).catch(() => {}); }
+  const lib = S.library;
+  const libList = (rows, empty) => rows?.length ? h('table', { class: 'list' }, rows.map(r => h('tr', {}, h('td', { class: 'num' }, r[0]), h('td', {}, r[1]), h('td', { class: 'num status' }, r[2] || '')))) : h('p', { class: 'status' }, empty);
+  const page = h('div', { class: 'page settings' }, h('h1', {}, t('settings')),
     h('datalist', { id: 'models' }, S.models.map(m => h('option', { value: `${m.name}/${m.defaultModel || ''}` }))),
     h('div', { class: 'section' }, t('appearance')),
     h('div', { class: 'form' },
@@ -1039,9 +1266,44 @@ function settingsPage() {
       h('td', {}, h('span', { class: `chip ${m.hasKey ? 'ok' : 'warn'}` }, m.hasKey ? t('hasKey') : t('noKey'))),
       h('td', {}, m.locality === 'cloud' ? h('div', { class: 'row' }, (() => { const i = h('input', { type: 'password', autocomplete: 'off', placeholder: 'API key' }); keyInputs.set(m.name, i); return i; })(),
         h('button', { class: 'btn sm', onClick: guard(async () => { const v = keyInputs.get(m.name).value; if (!v) return; const r = await api('secrets.put', { name: m.name, value: v }); keyInputs.get(m.name).value = ''; toast(r.persisted ? t('secretSecure') : t('secretInsecure')); S.models = await api('models.list'); renderCenter(); }) }, t('saveKey'))) : null)))),
-    S.autostart?.supported ? [h('div', { class: 'section' }, t('systemL')),
-      h('div', { class: 'form' },
-        h('label', { title: t('autostartHint') }, t('autostartL')), h('input', { type: 'checkbox', checked: S.autostart.enabled, onChange: guard(async e => { S.autostart = await api('app.autostart.set', { enabled: e.target.checked }); renderCenter(); }) }))] : null,
+    h('div', { class: 'section' }, t('systemL')),
+    h('div', { class: 'form' },
+      S.autostart?.supported ? [h('label', { title: t('autostartHint') }, t('autostartL')), h('input', { type: 'checkbox', checked: S.autostart.enabled, onChange: guard(async e => { S.autostart = await api('app.autostart.set', { enabled: e.target.checked }); renderCenter(); }) })] : null,
+      S.shell ? [
+        h('label', { title: t('wb_quakeHint') }, `${t('wb_quake')} (${S.shell.quakeKey})`), h('span', { class: 'row' }, h('input', { type: 'checkbox', checked: S.shell.quake, onChange: guard(async e => { S.shell = await api('shell.set', { key: 'quake', value: e.target.checked }); renderCenter(); }) }),
+          S.shell.quake ? h('span', { class: `chip ${S.shell.registered.quake ? 'ok' : 'warn'}` }, S.shell.registered.quake ? t('wb_shortcutOn') : t('wb_shortcutRefused')) : null),
+        h('label', {}, t('wb_systemShortcut')), h('span', { class: 'status' }, t('wb_systemShortcutHint'), ' ', h('code', {}, 'bitcode-desktop --quake'), ' · ', h('code', {}, 'bitcode-desktop --mini-chat')),
+        h('label', {}, `${t('wb_miniKey')} (Ctrl+Alt+Space)`), h('span', { class: 'row' }, h('input', { type: 'checkbox', checked: S.shell.miniKey, onChange: guard(async e => { S.shell = await api('shell.set', { key: 'miniKey', value: e.target.checked }); renderCenter(); }) }),
+          S.shell.miniKey ? h('span', { class: `chip ${S.shell.registered.mini ? 'ok' : 'warn'}` }, S.shell.registered.mini ? t('wb_shortcutOn') : t('wb_shortcutRefused')) : null)] : null,
+      h('label', { title: t('wb_updateHint') }, t('wb_checkUpdates')), h('span', { class: 'row' },
+        h('button', { class: 'btn sm', onClick: guard(async e => { e.currentTarget.disabled = true; S.update = await api('app.update.check'); renderCenter(); }) }, t('wb_checkUpdates')),
+        S.update ? (S.update.newer ? [h('span', { class: 'chip warn' }, `${t('wb_updateAvailable')} ${S.update.latest}`), S.update.url ? h('button', { class: 'btn sm ghost', onClick: guard(() => api('app.openExternal', { url: S.update.url })) }, t('wb_updateOpen')) : null]
+          : S.update.latest ? h('span', { class: 'chip ok' }, `${t('wb_upToDate')} (${S.update.current})`) : h('span', { class: 'chip' }, t('wb_noRelease'))) : null)),
+    h('div', { class: 'section' }, t('wb_dictation')),
+    h('div', { class: 'form' },
+      h('label', { title: t('wb_dictationHint') }, t('wb_transcriptionModel')), h('input', { type: 'text', placeholder: 'openai/whisper-1 · local/whisper', value: st.transcriptionModel || '', onChange: guard(async e => { S.settings = await api('settings.set', { key: 'transcriptionModel', value: e.target.value.trim() || null }); renderCenter(); }) })),
+    h('p', { class: 'status' }, t('wb_dictationHint')),
+    h('div', { class: 'section' }, t('wb_notifications')),
+    h('div', { class: 'form' },
+      h('label', {}, t('wb_notifyRuns')), h('input', { type: 'checkbox', checked: st.notifyRuns !== false, onChange: set('notifyRuns') }),
+      h('label', {}, t('wb_notifyApprovals')), h('input', { type: 'checkbox', checked: st.notifyApprovals !== false, onChange: set('notifyApprovals') })),
+    h('div', { class: 'section' }, t('wb_snippets')),
+    h('p', { class: 'status' }, t('wb_snippetsHint')),
+    (st.snippets || []).length ? h('table', { class: 'list' }, st.snippets.map(x => h('tr', {}, h('td', { class: 'num' }, `#${x.name}`), h('td', {}, x.text.slice(0, 120)),
+      h('td', {}, h('button', { class: 'btn sm danger', onClick: guard(async () => { S.settings = await api('settings.set', { key: 'snippets', value: st.snippets.filter(y => y !== x) }); renderCenter(); }) }, t('delete')))))) : null,
+    h('div', { class: 'form', style: 'margin-top:10px' },
+      h('label', {}, t('wb_name')), h('input', { type: 'text', id: 'snipname', placeholder: 'fee-policy' }),
+      h('label', {}, t('wb_text')), h('textarea', { id: 'sniptext', class: 'knotes', rows: 3 }),
+      h('label', {}), h('button', { class: 'btn sm', onClick: guard(async () => {
+        const name = $('snipname').value.trim(), text = $('sniptext').value; if (!name || !text.trim()) return;
+        S.settings = await api('settings.set', { key: 'snippets', value: [...(st.snippets || []).filter(y => y.name !== name), { name, text }] }); renderCenter();
+      }) }, t('wb_add'))),
+    h('div', { class: 'section' }, t('wb_library')),
+    h('p', { class: 'status' }, t('wb_libraryHint')),
+    h('h3', { class: 'libh' }, t('wb_agents')), libList(lib?.agents.map(a => [a.name, a.description, a.source]), lib ? t('none') : '…'),
+    h('h3', { class: 'libh' }, t('wb_commands')), libList(S.commands.filter(c => c.custom).map(c => [`/${c.name}`, c.hint]), t('wb_noCustomCommands')),
+    h('h3', { class: 'libh' }, 'Skill'), libList(lib?.skills.map(x => [x.name, x.description, x.file]), S.projectId ? t('none') : t('wb_openProjectFirst')),
+    h('h3', { class: 'libh' }, 'MCP'), libList(lib?.mcp.map(x => [x.name, x.command, x.enabled ? '' : 'off']), t('none')),
     h('div', { class: 'section' }, t('historyL')),
     h('div', { class: 'form' },
       h('label', {}, t('deleteAllHistory')), h('span', {}, h('button', { class: 'btn sm danger', disabled: !S.sessions.length, onClick: () => burnDialog() }, t('deleteAllBtn')))),
@@ -1050,6 +1312,31 @@ function settingsPage() {
       h('label', {}, 'Sandbox'), h('span', {}, h('span', { class: `chip ${S.status?.sandbox.available ? 'ok' : 'err'}` }, S.status?.sandbox.available ? t('sandboxOk') : `${t('sandboxMissing')} ${S.status?.sandbox.detail || ''}`)),
       h('label', {}, t('dataDir')), h('span', { class: 'num' }, info?.home || ''),
       h('label', {}, 'Version'), h('span', { class: 'num' }, info?.version || '')));
+  return settingsShell(page);
+}
+// Settings navigation and search work on the rendered page: every section heading becomes a link, and the
+// filter hides form rows, tables and sections whose text does not match.
+function settingsShell(page) {
+  const sections = [...page.querySelectorAll('.section')];
+  sections.forEach((el, i) => { el.id = `set-${i}`; });
+  const apply = q => {
+    const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean), match = el => words.every(w => el.textContent.toLowerCase().includes(w));
+    let section = null, visible = false;
+    const close = () => { if (section) section.hidden = !!words.length && !visible && !match(section); };
+    for (const el of [...page.children].slice(1)) {
+      if (el.classList.contains('section')) { close(); section = el; visible = false; continue; }
+      if (el.classList.contains('form')) {
+        const kids = [...el.children];
+        for (let i = 0; i < kids.length; i += 2) { const show = !words.length || match(kids[i]) || (section && match(section)); kids[i].hidden = !show; if (kids[i + 1]) kids[i + 1].hidden = !show; visible ||= show; }
+        el.hidden = !kids.some(k => !k.hidden);
+      } else { const show = !words.length || match(el) || (section && match(section)); el.hidden = !show; visible ||= show; }
+    }
+    close();
+  };
+  const search = h('input', { type: 'text', class: 'setsearch', placeholder: t('wb_searchSettings'), value: S.settingsQuery || '', onInput: e => { S.settingsQuery = e.target.value; apply(e.target.value); } });
+  const nav = h('nav', { class: 'setnav' }, search, sections.map(el => h('button', { class: 'setlink', onClick: () => el.scrollIntoView({ behavior: 'smooth', block: 'start' }) }, el.textContent)));
+  if (S.settingsQuery) apply(S.settingsQuery);
+  return h('div', { class: 'setwrap' }, nav, page);
 }
 
 // ---------- boot ----------
@@ -1064,8 +1351,16 @@ function retheme() {
     S.models = await api('models.list').catch(() => []);
     S.worktrees = await api('worktree.list');
     await loadAll();
-    const latest = S.sessions[0];
-    if (latest) await openSession(latest.sessionId); else if (S.projects[0]) await selectProject(S.projects[0].projectId);
+    const q = new URLSearchParams(location.search);
+    if (q.get('mini') === '1') {
+      S.mini = true; S.sideHidden = true; S.panel = null; document.documentElement.classList.add('mini');
+      const pid = S.projects.some(p => p.projectId === q.get('project')) ? q.get('project') : S.projects[0]?.projectId;
+      if (q.get('session') && S.sessions.some(x => x.sessionId === q.get('session'))) await openSession(q.get('session'));
+      else if (pid) await selectProject(pid);
+    } else {
+      const latest = S.sessions[0];
+      if (latest) await openSession(latest.sessionId); else if (S.projects[0]) await selectProject(S.projects[0].projectId);
+    }
     matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { applyTheme(); retheme(); });
     renderShell();
   } catch (e) { fill($('app'), h('div', { class: 'page' }, h('h1', {}, 'Bitcode'), h('p', {}, errorText(e)))); }

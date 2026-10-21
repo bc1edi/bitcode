@@ -19,7 +19,13 @@ const PATHS = {
   trash: 'M4 7h16 M10 11v6 M14 11v6 M6 7l1 13h10l1-13 M9 7V4h6v3',
   paperclip: 'M21 11.5l-8.6 8.6a5 5 0 0 1-7.1-7.1l8.6-8.6a3.3 3.3 0 0 1 4.7 4.7l-8.6 8.6a1.7 1.7 0 0 1-2.4-2.4l7.9-7.9',
   close: 'M6 6l12 12 M18 6L6 18',
-  check: 'M5 12l4 4L19 6'
+  check: 'M5 12l4 4L19 6',
+  chart: 'M4 20V10 M10 20V4 M16 20v-7 M22 20H2',
+  archive: 'M3 4h18v4H3Z M5 8v11a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V8 M10 12h4',
+  clock: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 7v5l3 2',
+  issue: 'M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18Z M12 8v5 M12 16h.01',
+  remote: 'M3 5h18v11H3Z M8 20h8 M12 16v4',
+  plug: 'M9 2v6 M15 2v6 M6 8h12v3a6 6 0 0 1-12 0Z M12 17v5'
 };
 export function icon(name, { size = 16, cls = '' } = {}) {
   const svg = document.createElementNS(NS, 'svg');

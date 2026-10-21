@@ -53,6 +53,9 @@ async function run(input) {
       for (const stream of [proc.stdout, proc.stderr]) stream.on('data', chunk => { output = (output + chunk).slice(-64000); });
       proc.on('error', reject); proc.on('close', code => { stop(); clearTimeout(timer); signal.removeEventListener('abort', stop); resolve(`${code ? 'ERROR: ' : ''}exit ${code}\n${output}`); });
     })) },
+    { name: 'todo_write', mutating: false, description: 'Replace your visible task list for this request: short steps, each done or not. Use it for multi-step work and keep it current.',
+      parameters: { type: 'object', properties: { items: { type: 'array', maxItems: 30, items: schema({ text: string, done: { type: 'boolean' } }) } }, required: ['items'], additionalProperties: false },
+      run: args => rpc('todo.update', args) },
     { name: 'network_fetch', mutating: true, description: 'GET an HTTP(S) URL through the project destination allowlist. No credentials or arbitrary headers.', parameters: schema({ url: string }), run: args => rpc('network.fetch', args) }
   ];
   // RGB wallet sessions: only the node tools the controller offered, each call
