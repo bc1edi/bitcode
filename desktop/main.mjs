@@ -1,7 +1,7 @@
 // Electron main process: windows, tray, notifications, secret store, PTYs and
 // the trusted origin of every control message. The renderer has no Node.
 import { app, BrowserWindow, Menu, Notification, Tray, clipboard, dialog, ipcMain, nativeImage, powerSaveBlocker, safeStorage, screen, shell, session as electronSession } from 'electron';
-import { existsSync, mkdirSync, rmSync, watch, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bitcodeHome } from '../src/paths.mjs';
@@ -11,6 +11,7 @@ import { probeSandbox, spawnWorker } from './core/sandbox.mjs';
 import { atomicJSON, fail, loadJSON, workspacePath } from './core/primitives.mjs';
 import { createAttachments } from './core/attachments.mjs';
 import { HIDDEN_ARG, MIN_WINDOW, autostartEntry, autostartFile, createCrashPolicy, restoreBounds, trayModel } from './core/shell.mjs';
+import { watchTree } from './core/watcher.mjs';
 
 const appDir = path.dirname(fileURLToPath(import.meta.url)); // dist/
 const home = bitcodeHome();
@@ -69,16 +70,13 @@ const watchers = new Map();
 function watchProject({ projectId, root }) {
   if (watchers.has(projectId) || !existsSync(root)) return;
   const pending = new Map();
-  try {
-    const w = watch(root, { recursive: true }, (_, rel) => {
-      if (!rel || /(^|\/)(\.git|node_modules)(\/|$)/.test(rel) || pending.has(rel)) return;
-      pending.set(rel, setTimeout(() => {
-        pending.delete(rel);
-        try { send('file', { projectId, path: rel, version: fileVersion(workspacePath(root, rel)), by: 'disk' }); } catch {}
-      }, 150));
-    });
-    watchers.set(projectId, w);
-  } catch {}
+  watchers.set(projectId, watchTree(root, rel => {
+    if (pending.has(rel)) return;
+    pending.set(rel, setTimeout(() => {
+      pending.delete(rel);
+      try { send('file', { projectId, path: rel, version: fileVersion(workspacePath(root, rel)), by: 'disk' }); } catch {}
+    }, 150));
+  }));
 }
 
 function send(channel, payload) { if (win && !win.isDestroyed()) win.webContents.send('bitcode:event', { channel, payload }); }
