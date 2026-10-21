@@ -1,8 +1,8 @@
 # Analisi del piano Phase 1 per Bitcode
 
-Questa revisione riguarda il piano `1.0.0`. Le correzioni sono state incorporate il 19 ottobre 2026 in [PHASE1 DESIGN.md](PHASE1%20DESIGN.md) versione `1.1.0`, che è il riferimento per l'implementazione successiva. Le osservazioni sul testo originario restano qui come motivazione delle decisioni.
+Questa revisione riguarda il piano `1.0.0`. Le correzioni sono state incorporate il 19 ottobre 2026 in [PHASE1_DESIGN.md](PHASE1_DESIGN.md) versione `1.1.0`, che è il riferimento per l'implementazione successiva. Le osservazioni sul testo originario restano qui come motivazione delle decisioni.
 
-Data: 19 ottobre 2026. Piano esaminato: [PHASE1 DESIGN.md](PHASE1%20DESIGN.md).
+Data: 19 ottobre 2026. Piano esaminato: [PHASE1_DESIGN.md](PHASE1_DESIGN.md).
 Base osservata: commit `98b2a0c`, package `0.3.0`, Node dichiarato `>=22.0.0`.
 Il worktree contiene modifiche preesistenti, anche desktop/provider: questa analisi riguarda i file effettivamente presenti, non certifica uno snapshot di release.
 

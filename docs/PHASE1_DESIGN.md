@@ -295,7 +295,7 @@ Le API devono essere confermate sulle versioni effettivamente selezionate. [PHAS
 
 ## 12. Prompt operativo per l'implementazione successiva
 
-> Implementa Phase 1 seguendo `docs/PHASE1 DESIGN.md` versione `1.1.0`, partendo dal worktree effettivo e preservando le modifiche estranee. Non assumere l'esistenza del tag storico e non creare una seconda architettura parallela a `src/finance/`.
+> Implementa Phase 1 seguendo `docs/PHASE1_DESIGN.md` versione `1.1.0`, partendo dal worktree effettivo e preservando le modifiche estranee. Non assumere l'esistenza del tag storico e non creare una seconda architettura parallela a `src/finance/`.
 >
 > Esegui la checklist della sezione 10 nell'ordine delle dipendenze. Il primo deliverable è l'inventario verificato di runtime, dipendenze, identità OS, rete e policy di test. Nessun fondo reale, seed personale, endpoint pubblico o daemon di produzione. Stato e segreti sintetici fuori dal workspace, senza stamparli in prompt, log o commit.
 >
