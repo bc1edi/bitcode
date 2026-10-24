@@ -17,6 +17,27 @@
   root.classList.add('js');
   if (paused) root.dataset.motion = 'paused';
 
+  // Once the wordmark has dropped in, the intro lockup flies onto the header logo while the canvas clears.
+  // Without JavaScript the CSS alone fades the intro out a little later.
+  const intro=document.querySelector('.intro');
+  if(intro&&paused)intro.remove();
+  else if(intro&&getComputedStyle(intro).display!=='none'){
+    const lockup=intro.querySelector('.intro-lockup'),brand=document.querySelector('.site-header .brand');
+    const lastLetter=[...intro.querySelectorAll('.intro-letter')].at(-1);
+    const fly=()=>{
+      const from=lockup.getBoundingClientRect(),to=brand.querySelector('.brand-logo').getBoundingClientRect();
+      const scale=to.height/from.height;
+      intro.getAnimations().forEach(animation=>animation.cancel());
+      brand.getAnimations().forEach(animation=>animation.cancel());
+      brand.style.opacity='0';
+      const ease='cubic-bezier(.3,0,.15,1)';
+      lockup.animate([{transform:'none'},{transform:`translate(${to.left-from.left}px,${to.top-from.top}px) scale(${scale})`}],{duration:460,easing:ease,fill:'forwards'});
+      intro.animate([{backgroundColor:getComputedStyle(intro).backgroundColor},{backgroundColor:'transparent'}],{duration:340,delay:140,easing:'ease',fill:'forwards'})
+        .finished.then(()=>{brand.style.opacity='';intro.remove();});
+    };
+    lastLetter.addEventListener('animationend',()=>setTimeout(fly,140),{once:true});
+  }
+
   // A player retains the exact character/line position across visibility changes.
   // Screen readers receive the complete static excerpt, never partial typing.
   class SessionPlayer {

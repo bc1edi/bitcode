@@ -21,6 +21,29 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 
 /* The pixel b assembles once on load, with the transaction lifecycle colours. */
 
+/* Intro (~1.2 s, every load): the pixel b is built from falling, turning pieces that pass through the
+   transaction states, the wordmark drops in behind a pixel mask, then the lockup flies to the header.
+   Never with reduced motion; the runtime removes it at once under the global pause. */
+@media (prefers-reduced-motion: no-preference) {
+  .intro { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: var(--canvas); pointer-events: none; animation: intro-out 300ms ease 1500ms forwards; }
+  .intro-lockup { width: min(56vw, 520px); height: auto; overflow: visible; transform-origin: 0 0; }
+  .intro-piece { fill: var(--orange); transform-box: fill-box; transform-origin: center; animation: intro-drop 330ms steps(6, end) calc(var(--i) * 60ms) both, intro-mine 400ms linear calc(var(--i) * 60ms) both; }
+  .intro-piece--ink { fill: var(--ink); animation-name: intro-drop, intro-mine-ink; }
+  .intro-mark { animation: intro-clear 160ms ease 660ms both; }
+  .intro-word { fill: var(--ink); }
+  .intro-letter { animation: intro-letter 240ms steps(4, end) calc(500ms + var(--i) * 40ms) both; }
+  #intro-pixels rect { fill: white; opacity: 0; animation: intro-pixel 1ms steps(1, end) calc(500ms + var(--d)) forwards; }
+  .site-header .brand { animation: intro-brand 140ms ease 1500ms both; }
+}
+@keyframes intro-drop { from { transform: translate(calc(var(--dx) * 100%), -260%) rotate(calc(var(--turns) * 90deg)); } to { transform: none; } }
+@keyframes intro-mine { 0% { fill: var(--pending); } 25% { fill: var(--relayed); } 50% { fill: var(--mempool); } 70% { fill: var(--confirming); } 85% { fill: var(--confirmed); } 100% { fill: var(--orange); } }
+@keyframes intro-mine-ink { 0% { fill: var(--pending); } 50% { fill: var(--mempool); } 85% { fill: var(--confirmed); } 100% { fill: var(--ink); } }
+@keyframes intro-clear { 50% { filter: brightness(1.8) drop-shadow(0 0 .2px var(--orange)); } }
+@keyframes intro-letter { from { transform: translateY(-140px); opacity: 0; } 25% { opacity: 1; } to { transform: none; opacity: 1; } }
+@keyframes intro-pixel { to { opacity: 1; } }
+@keyframes intro-out { 0% { background-color: var(--canvas); } 99% { background-color: transparent; visibility: visible; } 100% { background-color: transparent; visibility: hidden; } }
+@keyframes intro-brand { from { opacity: 0; } to { opacity: 1; } }
+
 /* Hero frame: the lean and the light follow the pointer and the loop; the Sat steps in and bobs. */
 .hero-app, [data-tilt] { transition: transform 600ms var(--ease-reveal), box-shadow 700ms ease, border-color 700ms ease; }
 .hero-sat:not([hidden]) { animation: sat-enter 700ms var(--ease-reveal) 300ms both; }
@@ -56,6 +79,7 @@ html.reveal [data-reveal] { transition: opacity var(--dur-reveal) var(--ease-rev
 /* Global pause (footer control) and the OS preference both stop every animation. */
 html[data-motion="paused"] *, html[data-motion="paused"] *::before, html[data-motion="paused"] *::after { animation: none !important; transition: none !important; }
 html[data-motion="paused"] [data-reveal] { opacity: 1 !important; transform: none !important; }
+html[data-motion="paused"] .intro { display: none; }
 html[data-motion="paused"] .button:hover, html[data-motion="paused"] .cap:hover, html[data-motion="paused"] .stage:hover, html[data-motion="paused"] .sat-card:hover, html[data-motion="paused"] .sat-usage > div:hover { transform: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }

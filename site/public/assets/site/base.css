@@ -71,6 +71,7 @@ code { font-size: .875em; }
 .site-header { position: sticky; top: 0; z-index: 30; border-bottom: 1px solid transparent; background: color-mix(in srgb, var(--canvas) 78%, transparent); backdrop-filter: blur(18px); }
 html[data-scrolled] .site-header { border-bottom-color: var(--surface-strong); background: color-mix(in srgb, var(--canvas) 92%, transparent); }
 .nav-shell { display: flex; align-items: center; justify-content: space-between; min-height: 76px; gap: 18px; }
+.intro { display: none; }
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
 .brand-name { font-size: 1.375rem; font-weight: 600; letter-spacing: -.05em; }
 .brand-logo { width: 24px; height: 30px; }
@@ -86,8 +87,8 @@ html[data-scrolled] .site-header { border-bottom-color: var(--surface-strong); b
 .language-switch a[aria-current] { color: var(--ink); text-decoration: underline; text-decoration-color: var(--orange); text-decoration-thickness: 2px; text-underline-offset: 6px; }
 
 /* Hero: the promise and the install action on the left, the team on the right. */
-.hero { position: relative; padding-block: 48px 56px; overflow-x: clip; }
-.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: 24px; min-height: min(calc(100svh - 76px), 800px); }
+.hero { position: relative; padding-block: 24px 48px; overflow-x: clip; }
+.hero-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); align-items: center; gap: 24px; padding-top: 24px; min-height: 0; }
 .hero-copy { position: relative; z-index: 1; padding-block: 24px; }
 .release { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 28px; font: .75rem/1.5 var(--mono); color: var(--body); text-decoration: none; }
 .release-tag { border: 1px solid var(--hairline); background: var(--surface); padding: 3px 8px; border-radius: 4px; color: var(--ink); }
