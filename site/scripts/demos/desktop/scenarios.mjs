@@ -1,9 +1,21 @@
 // Storyboards for the desktop recordings. Each step acts on the real app; captions
 // describe what is on screen and become the WebVTT tracks of the site player.
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 
 export const MODEL = 'ollama/qwen3.6:35b-a3b';
 const ollama = { model: MODEL, providers: { ollama: { maxOutputTokens: 8192 } } };
+
+// RGB needs the local nodes from integrations/kaleido: the sender is the one kaleido-mcp
+// points at in ~/.bitcode/config.json, the receiver answers at RECEIVER_NODE_URL.
+const kaleido = () => JSON.parse(readFileSync(path.join(os.homedir(), '.bitcode/config.json'), 'utf8')).mcp.kaleido;
+const rgbEnv = () => ({
+  PATH: `${path.join(os.homedir(), '.local/local/bin')}:${process.env.PATH}`,
+  RECEIVER_NODE_URL: process.env.RECEIVER_NODE_URL || 'http://localhost:3002',
+  RGB_ASSET_ID: process.env.RGB_ASSET_ID,
+});
 
 const running = s => s.win.locator('.send.stop').count().then(n => n > 0);
 const approval = s => s.win.locator('.approval').first();
@@ -17,11 +29,14 @@ async function approveAll(s, { poster = false } = {}) {
     if (!(await hasApproval(s))) return;
     const card = approval(s);
     await card.scrollIntoViewIfNeeded();
-    const kind = (await card.getAttribute('aria-label')).includes('file') ? 'file' : 'command';
+    const label = await card.getAttribute('aria-label');
+    const kind = label.includes('file') ? 'file' : label.includes('RGB') ? 'payment' : 'command';
     s.approved = { ...s.approved, [kind]: (s.approved?.[kind] || 0) + 1 };
     if (kind === 'file') {
       s.caption('A proposed edit: read the diff, then approve it once.', 'Una modifica proposta: leggi il diff, poi approvala una volta.');
       if (poster) s.posterAt = s.now() + 1.5;
+    } else if (kind === 'payment') {
+      s.caption('Another change to the RGB node: it waits for its own yes.', 'Un’altra modifica al nodo RGB: aspetta il suo sì.');
     } else {
       s.caption('A command: it runs in the sandbox with no network, only after your yes.', 'Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.');
     }
@@ -151,6 +166,63 @@ export const scenarios = {
       await s.wait(3500);
     },
   },
+  rgb: {
+    title: 'Send an RGB asset. Confirm it yourself.',
+    model: MODEL,
+    get launch() { return { settings: { model: MODEL }, config: { ...ollama, mcp: { kaleido: kaleido() } }, project: 'rgb-shop', env: rgbEnv() }; },
+    provenance: 'Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through Ollama; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.',
+    async run(s) {
+      const { win } = s;
+      if (!process.env.RGB_ASSET_ID) throw new Error('Set RGB_ASSET_ID to the asset the sender holds');
+      await s.wait(600);
+      await s.click(win.getByText('Open folder…').first(), { pause: 900 });
+      s.caption('An RGB session: bitcode first checks that the node runs on a test network.', 'Una sessione RGB: bitcode controlla prima che il nodo sia su una rete di test.');
+      await s.click(win.locator('.starter', { hasText: 'RGB session' }), { pause: 500 });
+      await s.click(win.getByRole('button', { name: /^Send$/i }), { pause: 2600 });
+      s.caption('Ask in plain words. Reading balances needs no approval.', 'Chiedi a parole. Leggere i saldi non chiede approvazione.');
+      await s.type(win.locator('#prompt'), 'Which RGB assets does my node hold, and how much of each?', { delay: 26 });
+      await s.click(win.getByRole('button', { name: /^Send$/i }));
+      await s.until(() => running(s), { timeout: 30_000, label: 'run start' });
+      await s.until(async () => !(await running(s)) || (await hasApproval(s)), { speed: 8, label: 'balances' });
+      if (await hasApproval(s)) throw new Error('Reading balances unexpectedly asked for approval');
+      await s.wait(2500);
+      s.mark('request');
+      s.caption('The receiving test node issues an invoice, here in the app’s terminal.', 'Il nodo di test che riceve emette una fattura, qui nel terminale dell’app.');
+      await s.click(win.getByRole('button', { name: 'Terminal', exact: true }), { pause: 900 });
+      await win.locator('.xterm-helper-textarea').first().pressSequentially(`./receive.sh ${process.env.RGB_AMOUNT || '5'}\n`, { delay: 45 });
+      await s.wait(3500);
+      s.caption('Ask bitcode to pay it.', 'Chiedi a bitcode di pagarla.');
+      await s.click(win.locator('#prompt'));
+      await s.type(win.locator('#prompt'), 'Pay the RGB invoice saved in invoice.json.', { delay: 26 });
+      await s.click(win.getByRole('button', { name: /^Send$/i }));
+      await s.until(() => running(s), { timeout: 30_000, label: 'run start' });
+      await work(s, 8);
+      if (!(await hasApproval(s))) throw new Error('The payment run ended without a payment card');
+      const card = approval(s);
+      await card.scrollIntoViewIfNeeded();
+      if (!(await card.getAttribute('aria-label')).includes('RGB')) throw new Error('First card is not an RGB payment');
+      s.mark('card');
+      s.caption('Nothing is signed yet: the card spells out amount, asset, recipient and network.', 'Niente è ancora firmato: la card dice importo, asset, destinatario e rete.');
+      await s.moveTo(card.locator('.readback').first());
+      s.posterAt = s.now() + 1;
+      await s.wait(4200);
+      await s.click(card.getByRole('button', { name: /Approve once/i }), { pause: 600 });
+      s.caption('Approved once. The node sends on the test network.', 'Approvato una volta. Il nodo invia sulla rete di test.');
+      s.mark('approved');
+      await approveAll(s);
+      await s.wait(2500);
+      s.caption('The receiver settles the transfer.', 'Chi riceve assesta il trasferimento.');
+      await win.locator('.xterm-helper-textarea').first().pressSequentially('./receive.sh refresh\n', { delay: 45 });
+      await s.wait(4000);
+      s.caption('The RGB tab, read through Tether WDK, lists the transfer.', 'La scheda RGB, letta tramite Tether WDK, mostra il trasferimento.');
+      await s.click(win.getByText('Bitcoin', { exact: true }).first(), { pause: 900 });
+      await s.click(win.getByRole('tab', { name: /RGB/ }), { pause: 600 });
+      await s.until(() => win.locator('text=/settled|Settled/').count().then(n => n > 0), { speed: 4, timeout: 180_000, label: 'settled transfer' });
+      s.mark('settled');
+      await s.wait(4000);
+    },
+  },
+
   // A short silent loop for the desktop section: the workbench around the chat.
   workspace: {
     title: 'The workbench around the chat.',

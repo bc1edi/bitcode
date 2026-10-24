@@ -71,7 +71,7 @@ export async function launch({ name, settings = {}, config = {}, project, env = 
 class Session {
   constructor({ app, win, home, root, work }) {
     Object.assign(this, { app, win, home, root, work });
-    this.frames = []; this.marks = []; this.cues = []; this.notes = [];
+    this.frames = []; this.marks = []; this.cues = []; this.notes = []; this.named = {};
     this.pointer = { x: 640, y: 420 };
   }
 
@@ -100,6 +100,8 @@ class Session {
   }
 
   caption(en, it) { this.cues.push({ t: this.now(), en, it }); }
+  // Named instants let one capture yield shorter cuts (a loop, an excerpt) at render time.
+  mark(name) { this.named[name] = this.now(); }
   note(text) { this.notes.push(text); }
   wait(ms) { return sleep(ms); }
 
@@ -145,7 +147,7 @@ class Session {
     await sleep(400);
     await this.cdp.send('Page.stopScreencast');
     const end = this.now();
-    writeFileSync(path.join(this.dir, 'capture.json'), JSON.stringify({ ...meta, start: this.start, end, viewport: VIEWPORT, marks: this.marks, cues: this.cues, notes: this.notes, frames: this.frames }, null, 1));
+    writeFileSync(path.join(this.dir, 'capture.json'), JSON.stringify({ ...meta, start: this.start, end, viewport: VIEWPORT, marks: this.marks, named: this.named, cues: this.cues, notes: this.notes, frames: this.frames }, null, 1));
     await this.app.close();
   }
 }

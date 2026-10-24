@@ -10,7 +10,8 @@ import path from 'node:path';
 
 const [captureDir, outDir, id, ...flags] = process.argv.slice(2);
 if (!captureDir || !outDir || !id) throw new Error('Usage: render.mjs <capture-dir> <out-dir> <id> [--loop] [--from S] [--to S]');
-const flag = name => { const i = flags.indexOf(name); return i < 0 ? null : Number(flags[i + 1]); };
+// --from/--to take output seconds or the name of an instant the storyboard marked.
+const flag = name => { const i = flags.indexOf(name); if (i < 0) return null; const v = flags[i + 1]; return v in (capture.named || {}) ? outputTime(capture.named[v]) : Number(v); };
 const loop = flags.includes('--loop');
 const capture = JSON.parse(readFileSync(path.join(captureDir, 'capture.json'), 'utf8'));
 const FPS = 30;
@@ -51,11 +52,15 @@ ffmpeg([...input, '-vf', `${scale},format=yuv420p`, '-c:v', 'libx264', '-preset'
 if (loop) ffmpeg([...input, '-vf', scale, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', '38', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '2', '-an', path.join(outDir, `${id}.webm`)]);
 const posterAt = Math.max(0, (capture.posterAt != null ? outputTime(capture.posterAt) : (loop ? from : to - .2)) - from);
 ffmpeg(['-ss', posterAt.toFixed(3), '-i', mp4, '-frames:v', '1', '-vf', loop ? 'scale=1440:-2' : 'scale=1600:-2', '-c:v', 'libwebp', '-quality', '82', path.join(outDir, loop ? `${id}.webp` : `${id}-poster.webp`)]);
+// Loops are posters on first paint; phones get a lighter one through srcset.
+if (loop) ffmpeg(['-ss', posterAt.toFixed(3), '-i', mp4, '-frames:v', '1', '-vf', 'scale=720:-2', '-c:v', 'libwebp', '-quality', '78', path.join(outDir, `${id}-720.webp`)]);
 
 const duration = Number(execFileSync('ffprobe', ['-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', mp4]).toString().trim());
 if (!loop) {
   const stamp = s => { const ms = Math.round(s * 1000); return new Date(ms).toISOString().slice(11, 23); };
-  const cues = capture.cues.map(c => ({ ...c, at: Math.max(0, outputTime(c.t) - from) })).filter(c => c.at < duration);
+  // In an excerpt, the caption already on screen at the cut starts at 0; earlier ones are dropped.
+  const timed = capture.cues.map(c => ({ ...c, at: outputTime(c.t) - from }));
+  const cues = timed.filter((c, i) => c.at >= 0 ? c.at < duration : !(timed[i + 1]?.at <= 0)).map(c => ({ ...c, at: Math.max(0, c.at) }));
   for (const lang of ['en', 'it']) {
     const body = cues.map((c, i) => `${i + 1}\n${stamp(c.at)} --> ${stamp(Math.min(duration, i + 1 < cues.length ? cues[i + 1].at : duration))}\n${c[lang]}`).join('\n\n');
     writeFileSync(path.join(outDir, `${id}.${lang}.vtt`), `WEBVTT\n\n${body}\n`);
