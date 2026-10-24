@@ -26,7 +26,7 @@ Desktop recordings come from `site/scripts/demos/desktop/` (see its README): the
 
 Sections follow the brief: hero, demonstration, capabilities, Sats, how it works and desktop, installation. Scrolling is native. A single passive scroll listener and a single passive resize listener schedule one RAF; geometry is read before anything is written.
 
-The hero shows the title, the "Install bitcode" CTA and the poster immediately; there is no intro sequence. After the `load` event the runtime creates a muted, looping, `aria-hidden` video (WebM, then MP4) for each `[data-loop-video]` figure and fades it in once it is actually playing. It is never created with reduced motion, `Save-Data`, the global pause or a hidden tab, and each loop pauses when it leaves the viewport or the tab is hidden. Without JavaScript, or if the video fails, the poster stays; phones get a 720 px poster through `srcset`. The loops are not demo players: the recorded walkthroughs keep their own players and the selector for them is `.recording-player video`.
+Every load opens with a short intro (about 1.5 s, pure SVG and CSS, decorative and `aria-hidden`): the pixel b assembles from falling, turning pieces coloured through the transaction states, the outlined wordmark drops in behind a pixel mask, and the runtime flies the lockup onto the header logo while the canvas clears. It never runs with reduced motion or the global pause, and without JavaScript it simply fades out. Underneath, the hero shows the title, the "Install bitcode" CTA and the poster immediately. After the `load` event the runtime creates a muted, looping, `aria-hidden` video (WebM, then MP4) for each `[data-loop-video]` figure and fades it in once it is actually playing. It is never created with reduced motion, `Save-Data`, the global pause or a hidden tab, and each loop pauses when it leaves the viewport or the tab is hidden. Without JavaScript, or if the video fails, the poster stays; phones get a 720 px poster through `srcset`. The loops are not demo players: the recorded walkthroughs keep their own players and the selector for them is `.recording-player video`.
 
 Entrances run once per element (`[data-reveal]`): 640 ms, 24 px, nothing hidden without JavaScript, and elements already scrolled past are shown at once. Hovers last 180 ms.
 
@@ -56,10 +56,10 @@ Checks ran on localhost using Chromium and Lighthouse 13.4.1. Scores describe th
 
 | Page | Device | Performance | Accessibility | Best Practices | SEO | CLS | LCP |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| EN `/` | Mobile | 95 | 100 | 100 | 100 | 0 | 2.85 s |
-| EN `/` | Desktop | 100 | 100 | 100 | 100 | 0 | 0.70 s |
-| IT `/it/` | Mobile | 91 | 100 | 100 | 100 | 0 | 3.30 s |
-| IT `/it/` | Desktop | 100 | 100 | 100 | 100 | 0 | 0.70 s |
+| EN `/` | Mobile | 94 | 100 | 100 | 100 | 0 | 2.93 s |
+| EN `/` | Desktop | 99 | 100 | 100 | 100 | 0 | 0.79 s |
+| IT `/it/` | Mobile | 93 | 100 | 100 | 100 | 0 | 3.08 s |
+| IT `/it/` | Desktop | 99 | 100 | 100 | 100 | 0 | 0.79 s |
 
 Mobile performance varied between 91 and 96 over repeated runs of the same build (simulated LCP 2.55–3.1 s, the hero poster), so the runner's 95 threshold is not met on every run. Both fonts are preloaded: without the JetBrains Mono preload the hero could shift by 0.13 when the font arrived.
 
