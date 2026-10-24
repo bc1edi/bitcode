@@ -91,6 +91,11 @@ try {
  const motion=await motionContext.newPage();watch(motion);
  await motion.addInitScript(()=>{window.layoutShifts=[];new PerformanceObserver(list=>list.getEntries().filter(e=>!e.hadRecentInput).forEach(e=>window.layoutShifts.push(e.value))).observe({type:'layout-shift',buffered:true});});
  await motion.goto(base+'/');
+ // The intro builds the logo, flies it to the header and removes itself; reduced motion never shows it.
+ assert.equal(await motion.locator('.intro').isVisible(),true);
+ await motion.waitForFunction(()=>!document.querySelector('.intro'),null,{timeout:4000});
+ assert.equal(await motion.locator('.site-header .brand').evaluate(el=>getComputedStyle(el).opacity),'1');
+ assert.equal(await page.locator('.intro').count()===0||!(await page.locator('.intro').isVisible()),true,'Reduced motion skips the intro');
  assert.equal(await motion.locator('.hero-app .loop-poster').isVisible(),true);
  await heroPlaying(motion);
  let hero=await heroState(motion);assert.match(hero.src,/desktop\/hero\.webm\?v=[0-9a-f]{10}$/);
@@ -111,7 +116,7 @@ try {
  await motion.evaluate(()=>document.getElementById('motion-toggle').click());assert.equal(await motion.locator('html').getAttribute('data-motion'),'paused');
  assert.equal((await heroState(motion)).paused,true,'Global pause stops the hero loop');
  await motion.evaluate(()=>document.getElementById('motion-toggle').click());await motion.waitForFunction(()=>!document.querySelector('.hero-app .loop-video').paused);
- check(`hero loop: poster first, plays after load, pauses off screen, hidden and on global pause; entrances on scroll; CLS ${cls.toFixed(4)}`);
+ check(`intro builds the logo and clears itself; hero loop: poster first, plays after load, pauses off screen, hidden and on global pause; entrances on scroll; CLS ${cls.toFixed(4)}`);
  await motion.setViewportSize({width:2560,height:1200});await motion.goto(base+'/');await heroPlaying(motion);
  await motion.waitForTimeout(800);await motion.screenshot({path:output+'en-hero-ultrawide.png'});
  await motion.setViewportSize({width:1440,height:900});await motion.goto(base+'/it/');await heroPlaying(motion);
