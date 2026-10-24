@@ -22,7 +22,7 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 /* The pixel b assembles once on load, with the transaction lifecycle colours. */
 
 /* Hero frame: the lean and the light follow the pointer and the loop; the Sat steps in and bobs. */
-.hero-app { transition: transform 600ms var(--ease-reveal), box-shadow 700ms ease, border-color 700ms ease; }
+.hero-app, [data-tilt] { transition: transform 600ms var(--ease-reveal), box-shadow 700ms ease, border-color 700ms ease; }
 .hero-sat:not([hidden]) { animation: sat-enter 700ms var(--ease-reveal) 300ms both; }
 .hero-sat:not([hidden]) img { animation: sat-bob 3.2s ease-in-out 1s infinite; }
 .hero-sat:not([hidden]) .hero-sat-line { animation: sat-say 420ms var(--ease-reveal) 900ms both; }

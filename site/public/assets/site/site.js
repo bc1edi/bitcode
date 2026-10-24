@@ -198,13 +198,14 @@
   }
   if(heroLoop)heroLoop.figure.addEventListener('timeupdate',event=>{stage.dataset.phase=event.target.currentTime>=APPROVED_AT?'approved':'card';},true);
 
+  let onMotionChange=()=>{};
   function setMotion(value) {
     paused = value || reduced.matches;
     root.dataset.motion = paused ? 'paused' : 'playing';
     if(paused){players.forEach(p=>p.finish());revealAll();}
     motionToggle.textContent = paused ? t.motionResume : t.motionPause;
     motionToggle.setAttribute('aria-pressed',String(paused));
-    refreshPlayers();updateLoops();queueFrame();
+    refreshPlayers();updateLoops();onMotionChange();queueFrame();
   }
   const motionToggle=document.getElementById('motion-toggle');motionToggle.hidden=false;
   motionToggle.addEventListener('click',()=>{setMotion(!paused);savePreference('localStorage','bitcode-motion',paused?'paused':'playing');});
@@ -283,8 +284,23 @@
     });
   });
 
-  // Native playback is retained. Video bytes are requested only on user action.
+  // Walkthroughs play muted on their own once half of one is in view (one at a time), and stop when it
+  // leaves, when the tab is hidden or on the global pause; never with reduced motion or data saving.
+  // A pause by the viewer is respected until they press play again. Native controls stay available.
   const videos=[...document.querySelectorAll('.recording-player video')];
+  const autoplayAllowed=()=>!paused&&!saveData&&!document.hidden;
+  const visibility=new Map();
+  const userPaused=new WeakSet();
+  let autoPausing=false;
+  const autoPause=video=>{autoPausing=true;video.pause();autoPausing=false;};
+  function updateAutoplay(){
+    const candidate=videos.filter(video=>(visibility.get(video)||0)>=.5&&!userPaused.has(video)&&!video.ended&&video.getClientRects().length).sort((a,b)=>visibility.get(b)-visibility.get(a))[0];
+    videos.forEach(video=>{if(video!==candidate&&!video.paused&&video.muted)autoPause(video);});
+    if(!candidate||!autoplayAllowed()||!candidate.paused&&!candidate.muted)return;
+    if(videos.some(video=>!video.paused&&!video.muted))return;
+    candidate.muted=true;candidate.controls=true;candidate.preload='auto';
+    candidate.play().catch(()=>{});
+  }
   videos.forEach(video=>{
     const message=video.parentElement.querySelector('.video-message');
     const start=document.createElement('button');start.type='button';start.className='video-start';
@@ -292,13 +308,30 @@
     const label=document.createElement('span');label.textContent='▶  '+t.play;start.appendChild(label);video.parentElement.appendChild(start);
     video.controls=false;
     const failed=()=>{message.textContent=t.videoFail;start.hidden=false;video.controls=true;};
-    start.addEventListener('click',async()=>{video.controls=true;try{await video.play();video.focus();}catch{failed();}});
-    video.addEventListener('playing',()=>{start.hidden=true;message.textContent='';});
-    video.addEventListener('play',()=>videos.forEach(other=>{if(other!==video)other.pause();}));
+    start.addEventListener('click',async()=>{userPaused.delete(video);video.muted=false;video.controls=true;try{await video.play();video.focus();}catch{failed();}});
+    video.addEventListener('playing',()=>{start.hidden=true;message.textContent='';video.closest('[data-tilt]')?.setAttribute('data-playing','');});
+    video.addEventListener('play',()=>{userPaused.delete(video);videos.forEach(other=>{if(other!==video&&!other.paused)autoPause(other);});});
+    video.addEventListener('pause',()=>{if(!autoPausing&&!video.ended)userPaused.add(video);video.closest('[data-tilt]')?.removeAttribute('data-playing');});
     video.addEventListener('waiting',()=>{message.textContent=t.loading;});
     ['canplay','pause'].forEach(name=>video.addEventListener(name,()=>{message.textContent='';}));
-    video.addEventListener('ended',()=>{start.hidden=false;label.textContent='↻  '+t.replay;message.textContent='';});
+    video.addEventListener('ended',()=>{start.hidden=false;label.textContent='↻  '+t.replay;message.textContent='';video.closest('[data-tilt]')?.removeAttribute('data-playing');});
     video.addEventListener('error',failed);video.querySelectorAll('source').forEach(source=>source.addEventListener('error',failed));
+  });
+  onMotionChange=()=>{if(paused)videos.forEach(video=>{if(!video.paused&&video.muted)autoPause(video);});else updateAutoplay();};
+  if('IntersectionObserver' in window){
+    // Metadata only as a clip approaches; the full file once it actually plays.
+    const near=new IntersectionObserver(entries=>entries.forEach(entry=>{if(entry.isIntersecting&&entry.target.preload==='none'){entry.target.preload='metadata';near.unobserve(entry.target);}}),{rootMargin:'300px 0px'});
+    const half=new IntersectionObserver(entries=>{entries.forEach(entry=>visibility.set(entry.target,entry.intersectionRatio));updateAutoplay();},{threshold:[0,.25,.5,.75,1]});
+    videos.forEach(video=>{near.observe(video);half.observe(video);});
+  }
+
+  // Video frames share the hero's lean: a few degrees toward a fine pointer, flat on touch screens.
+  if(matchMedia('(pointer: fine)').matches)document.querySelectorAll('[data-tilt]').forEach(frame=>{
+    frame.addEventListener('pointermove',event=>{
+      if(paused)return;const r=frame.getBoundingClientRect();
+      frame.style.setProperty('--lean-x',((event.clientX-r.left)/r.width-.5).toFixed(3));frame.style.setProperty('--lean-y',((event.clientY-r.top)/r.height-.5).toFixed(3));
+    },{passive:true});
+    frame.addEventListener('pointerleave',()=>{frame.style.setProperty('--lean-x','0');frame.style.setProperty('--lean-y','0');});
   });
 
   // Desktop/CLI recordings: one choice for the whole page, remembered in this browser.
@@ -309,7 +342,7 @@
     views.forEach(view => { view.hidden = view.dataset.view !== name && !!view.closest('[data-views]')?.querySelector('[data-view-tab]'); });
     viewButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.viewTab === name)));
     views.filter(view => view.hidden).forEach(view => view.querySelectorAll('video').forEach(video => video.pause()));
-    queueFrame();
+    queueFrame();updateAutoplay();
   }
   document.querySelectorAll('.view-switch').forEach(group => { group.hidden = false; });
   viewButtons.forEach(button => button.addEventListener('click', () => { showView(button.dataset.viewTab); savePreference('localStorage', 'bitcode-view', button.dataset.viewTab); }));
@@ -338,6 +371,6 @@
   genesis.addEventListener('click',event=>{if(event.target===genesis){const r=genesis.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeGenesis();}});
   let typed='';
   document.addEventListener('keydown',event=>{if(event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,[contenteditable],dialog'))return;if(event.key.length===1){typed=(typed+event.key).slice(-8);if(typed==='/genesis'){openGenesis();typed='';}}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)videos.forEach(v=>v.pause());refreshPlayers();updateLoops();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)videos.forEach(v=>autoPause(v));else updateAutoplay();refreshPlayers();updateLoops();});
   queueFrame();
 })();
