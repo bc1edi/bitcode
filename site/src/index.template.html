@@ -25,6 +25,7 @@
   <link rel="canonical" href="https://bitcode-agent.vercel.app/{{path}}">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23F7931A' d='M0 0h1v4H0zM1 0h2v1H1zM2 1h1v1H2zM1 2h1v1H1zM3 2h1v2H3z'/%3E%3Cpath fill='%230F0F0F' d='M0 4h2v1H0z'/%3E%3C/svg%3E">
   <link rel="preload" as="font" type="font/woff2" href="/assets/site/inter-latin.woff2" crossorigin>
+  <link rel="preload" as="font" type="font/woff2" href="/assets/site/jetbrains-mono-latin.woff2" crossorigin>
   <link rel="stylesheet" href="/assets/site/base.css">
   <link rel="stylesheet" href="/assets/site/motion.css">
   <script type="application/ld+json">{{jsonld}}</script>
@@ -100,8 +101,8 @@
           </div>
           <p class="hero-note"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>{{text.024}} <span aria-hidden="true">·</span> {{text.025}}</p>
         </div>
-        <figure class="hero-team" data-hero-video data-src-desktop="/assets/site/hero/sats-team-desktop" data-src-mobile="/assets/site/hero/sats-team-mobile">
-          <picture><source media="(max-width: 800px)" srcset="/assets/site/hero/sats-team-mobile.webp" width="960" height="1040"><img class="hero-poster" src="/assets/site/hero/sats-team-desktop.webp" width="1440" height="900" alt="{{hero.teamAlt}}" fetchpriority="high" decoding="async"></picture>
+        <figure class="hero-app" data-loop-video data-src="/assets/demos/desktop/hero">
+          <img class="loop-poster" src="/assets/demos/desktop/hero.webp" srcset="/assets/demos/desktop/hero-720.webp 720w, /assets/demos/desktop/hero.webp 1440w" sizes="(max-width: 800px) calc(100vw - 48px), 56vw" width="1440" height="810" alt="{{hero.appAlt}}" fetchpriority="high" decoding="async">
         </figure>
       </div>
     </section>
@@ -118,23 +119,45 @@
 
     <section class="section demo" id="demo" aria-labelledby="demo-title">
       <div class="container">
-        <div class="section-heading" data-reveal><div><p class="eyebrow">{{demo.eyebrow}}</p><h2 class="section-title" id="demo-title">{{text.029}}</h2></div><p class="section-description">{{text.030}}</p></div>
-        <div class="demo-grid">
-          <div class="terminal-wrap" data-reveal>
-            <div class="terminal terminal--hero">
-              <div class="terminal-bar"><span class="terminal-title"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>{{text.026}}</span><span class="demo-label">{{text.027}}</span></div>
-              {{heroSession}}
-              <div class="terminal-bottom"><span class="recording-kicker"><span class="status-dot" aria-hidden="true"></span>{{text.028}}</span><span class="recording-model">{{text.031}} <span>{{text.032}}</span></span></div>
+        <div class="section-heading" data-reveal><div><p class="eyebrow">{{demo.eyebrow}}</p><h2 class="section-title" id="demo-title">{{demo.title}}</h2></div><p class="section-description">{{demo.lead}}</p></div>
+        <div class="views" data-views>
+          {{viewSwitch}}
+          <div class="view demo-grid" data-view="desktop">
+            <div class="demo-media" data-reveal>
+              <p class="view-tag">{{ui.viewDesktop}}</p>
+              {{player.demo}}
+              <p class="demo-caption">{{demo.desktop.caption}}</p>
             </div>
-            <p class="demo-caption">{{text.034}}</p>
+            <div class="demo-explain" data-reveal style="--reveal-delay:120ms">
+              <h3 class="demo-explain-title">{{demo.desktop.title}}</h3>
+              <ol class="demo-steps">
+                <li><span class="step-index" aria-hidden="true">01</span><div><h4>{{demo.desktop.step1.title}}</h4><p>{{demo.desktop.step1.body}}</p></div></li>
+                <li><span class="step-index" aria-hidden="true">02</span><div><h4>{{demo.desktop.step2.title}}</h4><p>{{demo.desktop.step2.body}}</p></div></li>
+                <li><span class="step-index" aria-hidden="true">03</span><div><h4>{{demo.desktop.step3.title}}</h4><p>{{demo.desktop.step3.body}}</p></div></li>
+              </ol>
+              <a class="text-link" href="#demos">{{text.033}} <span aria-hidden="true">↓</span></a>
+            </div>
           </div>
-          <div class="demo-explain" data-reveal style="--reveal-delay:120ms">
-            <ol class="demo-steps">
-              <li><span class="step-index" aria-hidden="true">01</span><div><h3>{{demo.step1.title}}</h3><p>{{demo.step1.body}}</p></div></li>
-              <li><span class="step-index" aria-hidden="true">02</span><div><h3>{{demo.step2.title}}</h3><p>{{demo.step2.body}}</p></div></li>
-              <li><span class="step-index" aria-hidden="true">03</span><div><h3>{{demo.step3.title}}</h3><p>{{demo.step3.body}}</p></div></li>
-            </ol>
-            <a class="text-link" href="#demos">{{text.033}} <span aria-hidden="true">↓</span></a>
+          <div class="view demo-grid" data-view="cli">
+            <div class="terminal-wrap" data-reveal>
+              <p class="view-tag">{{ui.viewCli}}</p>
+              <div class="terminal terminal--hero">
+                <div class="terminal-bar"><span class="terminal-title"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span>{{text.026}}</span><span class="demo-label">{{text.027}}</span></div>
+                {{heroSession}}
+                <div class="terminal-bottom"><span class="recording-kicker"><span class="status-dot" aria-hidden="true"></span>{{text.028}}</span><span class="recording-model">{{text.031}} <span>{{text.032}}</span></span></div>
+              </div>
+              <p class="demo-caption">{{text.034}}</p>
+            </div>
+            <div class="demo-explain" data-reveal style="--reveal-delay:120ms">
+              <h3 class="demo-explain-title">{{text.029}}</h3>
+              <p class="demo-explain-lead">{{text.030}}</p>
+              <ol class="demo-steps">
+                <li><span class="step-index" aria-hidden="true">01</span><div><h4>{{demo.step1.title}}</h4><p>{{demo.step1.body}}</p></div></li>
+                <li><span class="step-index" aria-hidden="true">02</span><div><h4>{{demo.step2.title}}</h4><p>{{demo.step2.body}}</p></div></li>
+                <li><span class="step-index" aria-hidden="true">03</span><div><h4>{{demo.step3.title}}</h4><p>{{demo.step3.body}}</p></div></li>
+              </ol>
+              <a class="text-link" href="#demos">{{text.033}} <span aria-hidden="true">↓</span></a>
+            </div>
           </div>
         </div>
       </div>
@@ -144,9 +167,10 @@
     <section class="section recorded-demos" id="demos" aria-labelledby="demos-title">
       <div class="container">
         <div class="section-heading" data-reveal><div><p class="eyebrow">{{text.144}}</p><h2 class="section-title" id="demos-title">{{text.145}}<br>{{text.146}}</h2></div><p class="section-description">{{text.147}}</p></div>
-        <article class="demo-story" data-reveal aria-labelledby="heading-installation"><div class="demo-story-media"><div class="recording-player"><video id="recording-installation" controls playsinline preload="none" loading="lazy" poster="/assets/demos/installation-poster.webp" width="1920" height="1080" aria-label="{{text.148}}"><source src="/assets/demos/installation-16x9.mp4" type="video/mp4"><track kind="captions" src="/assets/demos/installation.en.vtt" srclang="en" label="English" {{enDefault}}><track kind="captions" src="/assets/demos/installation.it.vtt" srclang="it" label="Italiano" {{itDefault}}><p><a href="/assets/demos/installation-16x9.mp4">{{text.149}}</a>.</p></video><p class="video-message" role="status" aria-live="polite"></p></div><div class="recording-meta"><span>{{text.150}}</span><span>2026-09-11</span></div></div><div class="demo-story-copy"><p class="eyebrow">{{text.151}}</p><h3 id="heading-installation">{{text.152}}</h3><p>{{text.153}}</p><div class="recording-model">{{text.154}}</div><a class="text-link" href="/assets/demos/installation-transcript.txt">{{text.155}}</a></div></article>
-<article class="demo-story" data-reveal aria-labelledby="heading-configuration"><div class="demo-story-media"><div class="recording-player"><video id="recording-configuration" controls playsinline preload="none" loading="lazy" poster="/assets/demos/configuration-poster.webp" width="1920" height="1080" aria-label="{{text.156}}"><source src="/assets/demos/configuration-16x9.mp4" type="video/mp4"><track kind="captions" src="/assets/demos/configuration.en.vtt" srclang="en" label="English" {{enDefault}}><track kind="captions" src="/assets/demos/configuration.it.vtt" srclang="it" label="Italiano" {{itDefault}}><p><a href="/assets/demos/configuration-16x9.mp4">{{text.149}}</a>.</p></video><p class="video-message" role="status" aria-live="polite"></p></div><div class="recording-meta"><span>{{text.157}}</span><span>2026-09-11</span></div></div><div class="demo-story-copy"><p class="eyebrow">{{text.158}}</p><h3 id="heading-configuration">{{text.159}}</h3><p>{{text.160}}</p><div class="recording-model">{{text.161}}</div><a class="text-link" href="/assets/demos/configuration-transcript.txt">{{text.155}}</a></div></article>
-<article class="demo-story" data-reveal aria-labelledby="heading-features"><div class="demo-story-media"><div class="recording-player"><video id="recording-features" controls playsinline preload="none" loading="lazy" poster="/assets/demos/features-poster.webp" width="1920" height="1080" aria-label="{{text.162}}"><source src="/assets/demos/features-16x9.mp4" type="video/mp4"><track kind="captions" src="/assets/demos/features.en.vtt" srclang="en" label="English" {{enDefault}}><track kind="captions" src="/assets/demos/features.it.vtt" srclang="it" label="Italiano" {{itDefault}}><p><a href="/assets/demos/features-16x9.mp4">{{text.149}}</a>.</p></video><p class="video-message" role="status" aria-live="polite"></p></div><div class="recording-meta"><span>{{text.163}}</span><span>2026-09-11</span></div></div><div class="demo-story-copy"><p class="eyebrow">{{text.164}}</p><h3 id="heading-features">{{text.165}}</h3><p>{{text.166}}</p><div class="recording-model">{{text.167}}</div><a class="text-link" href="/assets/demos/features-transcript.txt">{{text.155}}</a></div></article>
+        <article class="demo-story" data-reveal data-views aria-labelledby="heading-first-run-desktop"><div class="demo-story-media">{{viewSwitch}}<div class="view" data-view="desktop">{{player.first-run}}</div><div class="view" data-view="cli"><p class="view-tag">{{ui.viewCli}}</p><div class="recording-player"><video id="recording-installation" controls playsinline preload="none" loading="lazy" poster="/assets/demos/installation-poster.webp" width="1920" height="1080" aria-label="{{text.148}}"><source src="/assets/demos/installation-16x9.mp4" type="video/mp4"><track kind="captions" src="/assets/demos/installation.en.vtt" srclang="en" label="English" {{enDefault}}><track kind="captions" src="/assets/demos/installation.it.vtt" srclang="it" label="Italiano" {{itDefault}}><p><a href="/assets/demos/installation-16x9.mp4">{{text.149}}</a>.</p></video><p class="video-message" role="status" aria-live="polite"></p></div><div class="recording-meta"><span>{{text.150}}</span><span>2026-09-11</span></div></div></div><div class="demo-story-copy"><div class="view" data-view="desktop"><p class="view-tag">{{ui.viewDesktop}}</p><p class="eyebrow">{{desk.first-run.eyebrow}}</p><h3 id="heading-first-run-desktop">{{desk.first-run.title}}</h3><p>{{desk.first-run.body}}</p><div class="recording-model">{{desk.first-run.meta}}</div><a class="text-link" href="/assets/demos/desktop/first-run-transcript.txt">{{text.155}}</a></div><div class="view" data-view="cli"><p class="eyebrow">{{text.151}}</p><h3 id="heading-installation">{{text.152}}</h3><p>{{text.153}}</p><div class="recording-model">{{text.154}}</div><a class="text-link" href="/assets/demos/installation-transcript.txt">{{text.155}}</a></div></div></article>
+<article class="demo-story" data-reveal data-views aria-labelledby="heading-configuration-desktop"><div class="demo-story-media">{{viewSwitch}}<div class="view" data-view="desktop">{{player.configuration}}</div><div class="view" data-view="cli"><p class="view-tag">{{ui.viewCli}}</p><div class="recording-player"><video id="recording-configuration" controls playsinline preload="none" loading="lazy" poster="/assets/demos/configuration-poster.webp" width="1920" height="1080" aria-label="{{text.156}}"><source src="/assets/demos/configuration-16x9.mp4" type="video/mp4"><track kind="captions" src="/assets/demos/configuration.en.vtt" srclang="en" label="English" {{enDefault}}><track kind="captions" src="/assets/demos/configuration.it.vtt" srclang="it" label="Italiano" {{itDefault}}><p><a href="/assets/demos/configuration-16x9.mp4">{{text.149}}</a>.</p></video><p class="video-message" role="status" aria-live="polite"></p></div><div class="recording-meta"><span>{{text.157}}</span><span>2026-09-11</span></div></div></div><div class="demo-story-copy"><div class="view" data-view="desktop"><p class="view-tag">{{ui.viewDesktop}}</p><p class="eyebrow">{{desk.configuration.eyebrow}}</p><h3 id="heading-configuration-desktop">{{desk.configuration.title}}</h3><p>{{desk.configuration.body}}</p><div class="recording-model">{{desk.configuration.meta}}</div><a class="text-link" href="/assets/demos/desktop/configuration-transcript.txt">{{text.155}}</a></div><div class="view" data-view="cli"><p class="eyebrow">{{text.158}}</p><h3 id="heading-configuration">{{text.159}}</h3><p>{{text.160}}</p><div class="recording-model">{{text.161}}</div><a class="text-link" href="/assets/demos/configuration-transcript.txt">{{text.155}}</a></div></div></article>
+<article class="demo-story" data-reveal data-views aria-labelledby="heading-features-desktop"><div class="demo-story-media">{{viewSwitch}}<div class="view" data-view="desktop">{{player.features}}</div><div class="view" data-view="cli"><p class="view-tag">{{ui.viewCli}}</p><div class="recording-player"><video id="recording-features" controls playsinline preload="none" loading="lazy" poster="/assets/demos/features-poster.webp" width="1920" height="1080" aria-label="{{text.162}}"><source src="/assets/demos/features-16x9.mp4" type="video/mp4"><track kind="captions" src="/assets/demos/features.en.vtt" srclang="en" label="English" {{enDefault}}><track kind="captions" src="/assets/demos/features.it.vtt" srclang="it" label="Italiano" {{itDefault}}><p><a href="/assets/demos/features-16x9.mp4">{{text.149}}</a>.</p></video><p class="video-message" role="status" aria-live="polite"></p></div><div class="recording-meta"><span>{{text.163}}</span><span>2026-09-11</span></div></div></div><div class="demo-story-copy"><div class="view" data-view="desktop"><p class="view-tag">{{ui.viewDesktop}}</p><p class="eyebrow">{{desk.features.eyebrow}}</p><h3 id="heading-features-desktop">{{desk.features.title}}</h3><p>{{desk.features.body}}</p><div class="recording-model">{{desk.features.meta}}</div><a class="text-link" href="/assets/demos/desktop/features-transcript.txt">{{text.155}}</a></div><div class="view" data-view="cli"><p class="eyebrow">{{text.164}}</p><h3 id="heading-features">{{text.165}}</h3><p>{{text.166}}</p><div class="recording-model">{{text.167}}</div><a class="text-link" href="/assets/demos/features-transcript.txt">{{text.155}}</a></div></div></article>
+<!--if:player.rgb--><article class="demo-story demo-story--rgb" data-reveal aria-labelledby="heading-rgb"><div class="demo-story-media">{{player.rgb}}</div><div class="demo-story-copy"><p class="eyebrow">{{desk.rgb.eyebrow}}</p><h3 id="heading-rgb">{{desk.rgb.title}}</h3><p>{{desk.rgb.body}}</p><div class="recording-model">{{desk.rgb.meta}}</div><a class="text-link" href="/assets/demos/desktop/rgb-transcript.txt">{{text.155}}</a></div></article><!--endif-->
         <p class="recording-disclosure">{{text.168}}</p>
       </div>
     </section>
@@ -219,42 +243,35 @@
           <div><p class="eyebrow">{{text.098}}</p><h2 class="section-title" id="sats-title">{{text.099}}<br>{{text.100}}</h2></div>
           <div><p class="section-description">{{text.101}}</p><p class="badge-row"><span class="preview-badge">{{text.102}}</span></p></div>
         </div>
-        <div class="sats-scene" data-sats-scene>
-          <div class="sats-stage" aria-hidden="true"><div class="sats-stage-light"></div><img class="sats-stage-figure" data-stage-sat="node" src="/assets/site/hero/node-stage.webp" width="435" height="640" alt="" loading="lazy" decoding="async"><img class="sats-stage-figure" data-stage-sat="script" src="/assets/site/hero/script-stage.webp" width="516" height="640" alt="" loading="lazy" decoding="async"><img class="sats-stage-figure" data-stage-sat="hash" src="/assets/site/hero/hash-stage.webp" width="610" height="640" alt="" loading="lazy" decoding="async"><img class="sats-stage-figure" data-stage-sat="merkle" src="/assets/site/hero/merkle-stage.webp" width="440" height="640" alt="" loading="lazy" decoding="async"><p class="sats-stage-count"><span data-stage-count>01</span> / 04</p></div>
-          <div class="sats-chapters">
-            <article class="sat-chapter" id="sat-node" data-sat="node" style="--sat:var(--sat-node)">
-              <div class="sat-chapter-figure"><img src="/assets/site/hero/node-stage.webp" width="435" height="640" alt="{{text.103}}" loading="lazy" decoding="async"></div>
-              <p class="sat-index">{{text.105}}</p>
-              <h3>{{text.104}}</h3>
-              <p class="sat-role">{{text.106}}</p>
-              <p class="sat-description">{{text.107}}</p>
-              <ul class="sat-limits" aria-label="{{text.108}}"><li class="allow">{{text.109}}</li><li class="allow">{{text.110}}</li><li>{{text.111}}</li><li>{{text.112}}</li></ul>
-            </article>
-            <article class="sat-chapter" id="sat-script" data-sat="script" style="--sat:var(--sat-script)">
-              <div class="sat-chapter-figure"><img src="/assets/site/hero/script-stage.webp" width="516" height="640" alt="{{text.113}}" loading="lazy" decoding="async"></div>
-              <p class="sat-index">{{text.115}}</p>
-              <h3>{{text.114}}</h3>
-              <p class="sat-role">{{text.116}}</p>
-              <p class="sat-description">{{text.117}}</p>
-              <ul class="sat-limits" aria-label="{{text.118}}"><li class="allow">{{text.119}}</li><li class="allow">{{text.120}}</li><li>{{text.121}}</li><li>{{text.112}}</li></ul>
-            </article>
-            <article class="sat-chapter" id="sat-hash" data-sat="hash" style="--sat:var(--sat-hash)">
-              <div class="sat-chapter-figure"><img src="/assets/site/hero/hash-stage.webp" width="610" height="640" alt="{{text.122}}" loading="lazy" decoding="async"></div>
-              <p class="sat-index">{{text.124}}</p>
-              <h3>{{text.123}}</h3>
-              <p class="sat-role">{{text.125}}</p>
-              <p class="sat-description">{{text.126}}</p>
-              <ul class="sat-limits" aria-label="{{text.127}}"><li class="allow">{{text.109}}</li><li>{{text.111}}</li><li>{{text.121}}</li><li>{{text.112}}</li></ul>
-            </article>
-            <article class="sat-chapter" id="sat-merkle" data-sat="merkle" style="--sat:var(--sat-merkle)">
-              <div class="sat-chapter-figure"><img src="/assets/site/hero/merkle-stage.webp" width="440" height="640" alt="{{text.128}}" loading="lazy" decoding="async"></div>
-              <p class="sat-index">{{text.130}}</p>
-              <h3>{{text.129}}</h3>
-              <p class="sat-role">{{text.131}}</p>
-              <p class="sat-description">{{text.132}}</p>
-              <ul class="sat-limits" aria-label="{{text.133}}"><li class="allow">{{text.109}}</li><li class="allow">{{text.134}}</li><li>{{text.111}}</li><li>{{text.112}}</li></ul>
-            </article>
-          </div>
+        <div class="sats-grid">
+          <article class="sat-card" id="sat-node" data-reveal style="--sat:var(--sat-node);--reveal-delay:0ms">
+            <div class="sat-card-head"><img src="/assets/sats/node/idle-256.webp" width="256" height="256" alt="{{text.103}}" loading="lazy" decoding="async"><p class="sat-index">{{text.105}}</p></div>
+            <h3>{{text.104}}</h3>
+            <p class="sat-role">{{text.106}}</p>
+            <p class="sat-description">{{text.107}}</p>
+            <ul class="sat-limits" aria-label="{{text.108}}"><li class="allow">{{text.109}}</li><li class="allow">{{text.110}}</li><li>{{text.111}}</li><li>{{text.112}}</li></ul>
+          </article>
+          <article class="sat-card" id="sat-script" data-reveal style="--sat:var(--sat-script);--reveal-delay:80ms">
+            <div class="sat-card-head"><img src="/assets/sats/script/idle-256.webp" width="256" height="256" alt="{{text.113}}" loading="lazy" decoding="async"><p class="sat-index">{{text.115}}</p></div>
+            <h3>{{text.114}}</h3>
+            <p class="sat-role">{{text.116}}</p>
+            <p class="sat-description">{{text.117}}</p>
+            <ul class="sat-limits" aria-label="{{text.118}}"><li class="allow">{{text.119}}</li><li class="allow">{{text.120}}</li><li>{{text.121}}</li><li>{{text.112}}</li></ul>
+          </article>
+          <article class="sat-card" id="sat-hash" data-reveal style="--sat:var(--sat-hash);--reveal-delay:160ms">
+            <div class="sat-card-head"><img src="/assets/sats/hash/idle-256.webp" width="256" height="256" alt="{{text.122}}" loading="lazy" decoding="async"><p class="sat-index">{{text.124}}</p></div>
+            <h3>{{text.123}}</h3>
+            <p class="sat-role">{{text.125}}</p>
+            <p class="sat-description">{{text.126}}</p>
+            <ul class="sat-limits" aria-label="{{text.127}}"><li class="allow">{{text.109}}</li><li>{{text.111}}</li><li>{{text.121}}</li><li>{{text.112}}</li></ul>
+          </article>
+          <article class="sat-card" id="sat-merkle" data-reveal style="--sat:var(--sat-merkle);--reveal-delay:240ms">
+            <div class="sat-card-head"><img src="/assets/sats/merkle/idle-256.webp" width="256" height="256" alt="{{text.128}}" loading="lazy" decoding="async"><p class="sat-index">{{text.130}}</p></div>
+            <h3>{{text.129}}</h3>
+            <p class="sat-role">{{text.131}}</p>
+            <p class="sat-description">{{text.132}}</p>
+            <ul class="sat-limits" aria-label="{{text.133}}"><li class="allow">{{text.109}}</li><li class="allow">{{text.134}}</li><li>{{text.111}}</li><li>{{text.112}}</li></ul>
+          </article>
         </div>
         <div class="sat-usage">
           <div><h3>{{text.135}}</h3><p>{{text.136}} <code>{{text.137}}</code> {{text.138}}</p><pre>{{text.139}}</pre></div>
@@ -307,7 +324,7 @@
         <div><p class="eyebrow">{{text.229}}</p><h2 class="section-title" id="desktop-title">{{text.230}}<br>{{text.231}}</h2></div>
         <div><p class="section-description">{{text.232}}</p><p class="badge-row"><span class="preview-badge">{{text.233}}</span></p></div>
       </div>
-      <figure class="desktop-shot" data-reveal><img src="/assets/desktop/desktop-preview.webp" width="1440" height="900" alt="{{text.234}}" loading="lazy" decoding="async"></figure>
+      <figure class="desktop-shot" data-reveal data-loop-video data-src="/assets/demos/desktop/workspace"><img class="loop-poster" src="/assets/demos/desktop/workspace.webp" srcset="/assets/demos/desktop/workspace-720.webp 720w, /assets/demos/desktop/workspace.webp 1440w" sizes="(max-width: 1300px) calc(100vw - 48px), 1240px" width="1440" height="810" alt="{{text.234}}" loading="lazy" decoding="async"></figure>
       <p class="desktop-caption">{{text.235}}</p>
       <div class="desktop-grid" data-reveal>
           <div class="desktop-item"><h3><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>{{text.236}}</h3><p>{{text.237}}</p></div>

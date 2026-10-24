@@ -14,8 +14,8 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 /* Short, light hovers. */
 .button, .text-link, .nav-link, .copy-button, .site-preferences button, .brand-menu > * { transition: background-color var(--dur-micro), border-color var(--dur-micro), color var(--dur-micro), transform var(--dur-micro) var(--ease-reveal); }
 .button:hover { transform: translateY(-1px); }
-.cap, .sat-usage > div, .stage, .demo-story-media { transition: border-color var(--dur-micro), transform 240ms var(--ease-reveal), box-shadow 320ms var(--ease-reveal); }
-.cap:not(.story-card):hover, .sat-usage > div:hover, .stage:hover { transform: translateY(-3px); border-color: var(--hairline); }
+.cap, .sat-card, .sat-usage > div, .stage, .demo-story-media { transition: border-color var(--dur-micro), transform 240ms var(--ease-reveal), box-shadow 320ms var(--ease-reveal); }
+.cap:not(.story-card):hover, .sat-card:hover, .sat-usage > div:hover, .stage:hover { transform: translateY(-3px); border-color: var(--hairline); }
 .story-card { transition: border-color 320ms, box-shadow 420ms var(--ease-reveal); }
 .site-header { transition: background-color 320ms, border-color 320ms; }
 
@@ -23,9 +23,10 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .js .hero-logo-piece { animation: mined-piece 666ms steps(12,end) calc(var(--piece) * 120ms) both; }
 @keyframes mined-piece { 0% { transform: translateY(-6px); opacity: 0; fill: var(--pending); } 20% { opacity: 1; fill: var(--pending); } 40% { fill: var(--mempool); } 65% { fill: var(--confirming); } 85% { fill: var(--confirmed); } 100% { transform: translateY(0); opacity: 1; } }
 
-/* Hero: the poster is visible immediately; the loop fades in only once it is playing. */
-.hero-video { opacity: 0; transition: opacity 700ms var(--ease-reveal); }
-.hero-team[data-video="playing"] .hero-video { opacity: 1; }
+/* Loops: the poster is visible immediately; the video fades in only once it is playing. */
+.loop-video { opacity: 0; transition: opacity 700ms var(--ease-reveal); }
+[data-loop-video][data-video="playing"] .loop-video { opacity: 1; }
+.view-switch button { transition: background-color var(--dur-micro), color var(--dur-micro); }
 
 /* Sections enter once: 500-700 ms, 20-32 px. Without JavaScript nothing is hidden. */
 html.reveal [data-reveal]:not(.is-revealed) { opacity: 0; transform: translateY(var(--reveal-shift)); }
@@ -36,16 +37,6 @@ html.reveal [data-reveal] { transition: opacity var(--dur-reveal) var(--ease-rev
   .js .session-panel--sticky { transition: opacity 180ms ease, visibility 180ms; }
   .js .session-panel--sticky figcaption { transform: translateY(6px); transition: transform 220ms var(--ease-reveal); }
   .js .session-panel--sticky[data-active] figcaption { transform: none; }
-
-  /* Sats scene: the active Sat rises into the light, the others step back. */
-  .js .sats-stage-figure { opacity: 0; transform: translateY(28px) scale(.96); transform-origin: 50% 100%; transition: opacity var(--dur-scene) var(--ease-reveal), transform var(--dur-scene) var(--ease-reveal); }
-  .js .sats-stage-figure[data-active] { opacity: 1; transform: none; }
-  .js .sats-stage-light { transition: background-color var(--dur-scene) var(--ease-swap), opacity var(--dur-scene); }
-  /* Inactive chapters step back through colour, not opacity, so every line keeps AA contrast. */
-  .js .sat-chapter h3 { color: var(--muted); transition: color var(--dur-scene) var(--ease-reveal); }
-  .js .sat-chapter.is-active h3 { color: var(--ink); }
-  .js .sat-chapter .sat-role::before { transition: transform var(--dur-scene) var(--ease-reveal); }
-  .js .sat-chapter.is-active .sat-role::before { transform: rotate(45deg); }
 }
 .install-indicator { transition: transform 220ms var(--ease-reveal), width 220ms var(--ease-reveal); }
 .copy-button[data-copied="true"] .icon { animation: copy-tick 220ms var(--ease-reveal); }
@@ -58,10 +49,10 @@ html.reveal [data-reveal] { transition: opacity var(--dur-reveal) var(--ease-rev
 /* Global pause (footer control) and the OS preference both stop every animation. */
 html[data-motion="paused"] *, html[data-motion="paused"] *::before, html[data-motion="paused"] *::after { animation: none !important; transition: none !important; }
 html[data-motion="paused"] [data-reveal] { opacity: 1 !important; transform: none !important; }
-html[data-motion="paused"] .button:hover, html[data-motion="paused"] .cap:hover, html[data-motion="paused"] .stage:hover, html[data-motion="paused"] .sat-usage > div:hover { transform: none; }
+html[data-motion="paused"] .button:hover, html[data-motion="paused"] .cap:hover, html[data-motion="paused"] .stage:hover, html[data-motion="paused"] .sat-card:hover, html[data-motion="paused"] .sat-usage > div:hover { transform: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   [data-reveal] { opacity: 1 !important; transform: none !important; }
-  .hero-video { display: none; }
+  .loop-video { display: none; }
 }

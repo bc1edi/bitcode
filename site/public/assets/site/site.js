@@ -70,11 +70,6 @@
 
   const cards = [...document.querySelectorAll('[data-story]')];
   const headings = cards.map(card => card.querySelector('h3'));
-  const chapters = [...document.querySelectorAll('[data-sat]')];
-  const scene = document.querySelector('[data-sats-scene]');
-  const stageFigures = [...document.querySelectorAll('[data-stage-sat]')];
-  const stageCount = document.querySelector('[data-stage-count]');
-  let activeSat = '';
   const rail = document.querySelector('.story-sticky');
   const navLinks = [...document.querySelectorAll('.nav-link[href^="#"]')];
   const navSections = navLinks.map(link => document.querySelector(link.hash));
@@ -89,14 +84,11 @@
     frame = 0;
     const vh = innerHeight;
     const headingTops = headings.map(el => el.getBoundingClientRect().top);
-    const chapterTops = chapters.map(el => el.getBoundingClientRect().top);
     const navTops = navSections.map(el => el.getBoundingClientRect().top);
     const tabRect = selectedTab.getBoundingClientRect();
     const listRect = tabList.getBoundingClientRect();
     let nextStory = 0;
     headingTops.forEach((top,i) => { if (top <= vh * .5) nextStory = i; });
-    let nextSat = 0;
-    chapterTops.forEach((top,i) => { if (top <= vh * .45) nextSat = i; });
     root.toggleAttribute('data-scrolled', scrollY > 8);
     rail.style.setProperty('--rail-release',Math.min(0,headingTops[headingTops.length-1] - vh*.2)+'px');
     tabList.style.setProperty('--tab-x',Math.round(tabRect.left-listRect.left)+'px');
@@ -109,15 +101,6 @@
         const active=panel.dataset.panel===activeStory; panel.toggleAttribute('data-active',active); panel.inert=!active;
       });
       refreshPlayers();
-    }
-    // The sticky Sats stage follows the chapter crossing the upper half of the viewport.
-    const satId = chapters[nextSat].dataset.sat;
-    if (satId !== activeSat) {
-      activeSat = satId;
-      scene.dataset.activeSat = satId;
-      chapters.forEach(chapter => chapter.classList.toggle('is-active', chapter.dataset.sat === satId));
-      stageFigures.forEach(figure => figure.toggleAttribute('data-active', figure.dataset.stageSat === satId));
-      stageCount.textContent = String(nextSat + 1).padStart(2, '0');
     }
     let activeNav = -1;
     navTops.forEach((top,i) => { if (top < vh * .45 && (activeNav < 0 || top > navTops[activeNav])) activeNav = i; });
@@ -148,18 +131,16 @@
     reveals.forEach(el => revealObserver.observe(el));
   } else revealAll();
 
-  // Decorative hero loop, separate from the recorded demo players. It is created only
-  // after the page has loaded, never with reduced motion, data saving or the global pause,
-  // and it stops when the hero leaves the viewport or the tab is hidden.
-  const heroFigure = document.querySelector('[data-hero-video]');
-  let heroVideo = null;
-  let heroVisible = true;
+  // Decorative loops (hero, desktop workspace), separate from the recorded demo players.
+  // Each video is created only after the page has loaded, never with reduced motion,
+  // data saving or the global pause, and it stops when it leaves the viewport or the tab is hidden.
   let pageLoaded = document.readyState === 'complete';
-  const heroVideoAllowed = () => pageLoaded && !paused && !saveData && !document.hidden && heroVisible;
-  function createHeroVideo() {
-    const base = compact.matches ? heroFigure.dataset.srcMobile : heroFigure.dataset.srcDesktop;
+  const loops = [...document.querySelectorAll('[data-loop-video]')].map(figure => ({ figure, video: null, visible: false }));
+  const loopAllowed = loop => pageLoaded && !paused && !saveData && !document.hidden && loop.visible;
+  function createLoopVideo(loop) {
+    const base = compact.matches && loop.figure.dataset.srcMobile ? loop.figure.dataset.srcMobile : loop.figure.dataset.src;
     const video = document.createElement('video');
-    video.className = 'hero-video';
+    video.className = 'loop-video';
     video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'auto';
     video.disablePictureInPicture = true; video.tabIndex = -1;
     video.setAttribute('aria-hidden', 'true'); video.setAttribute('muted', ''); video.setAttribute('playsinline', '');
@@ -167,26 +148,30 @@
     [['webm', 'video/webm'], ['mp4', 'video/mp4']].forEach(([extension, type]) => {
       const source = document.createElement('source'); source.src = base + '.' + extension; source.type = type; video.appendChild(source);
     });
-    video.addEventListener('playing', () => { heroFigure.dataset.video = 'playing'; });
-    video.addEventListener('pause', () => { if (heroFigure.dataset.video === 'playing') heroFigure.dataset.video = 'paused'; });
-    video.querySelector('source:last-child').addEventListener('error', () => removeHeroVideo());
-    heroFigure.appendChild(video);
+    video.addEventListener('playing', () => { loop.figure.dataset.video = 'playing'; });
+    video.addEventListener('pause', () => { if (loop.figure.dataset.video === 'playing') loop.figure.dataset.video = 'paused'; });
+    video.querySelector('source:last-child').addEventListener('error', () => removeLoopVideo(loop));
+    loop.figure.appendChild(video);
     return video;
   }
-  function removeHeroVideo() {
-    if (!heroVideo) return;
-    heroVideo.pause(); heroVideo.remove(); heroVideo = null; delete heroFigure.dataset.video;
+  function removeLoopVideo(loop) {
+    if (!loop.video) return;
+    loop.video.pause(); loop.video.remove(); loop.video = null; delete loop.figure.dataset.video;
   }
-  function updateHeroVideo() {
-    if (!heroVideoAllowed()) { heroVideo?.pause(); return; }
-    heroVideo ??= createHeroVideo();
-    heroVideo.play().catch(() => { /* Autoplay refused: the poster stays. */ });
+  function updateLoop(loop) {
+    if (!loopAllowed(loop)) { loop.video?.pause(); return; }
+    loop.video ??= createLoopVideo(loop);
+    loop.video.play().catch(() => { /* Autoplay refused: the poster stays. */ });
   }
+  const updateLoops = () => loops.forEach(updateLoop);
   if ('IntersectionObserver' in window) {
-    new IntersectionObserver(entries => { heroVisible = entries[0].isIntersecting; updateHeroVideo(); }).observe(heroFigure);
+    const loopObserver = new IntersectionObserver(entries => entries.forEach(entry => {
+      const loop = loops.find(item => item.figure === entry.target); loop.visible = entry.isIntersecting; updateLoop(loop);
+    }));
+    loops.forEach(loop => loopObserver.observe(loop.figure));
   }
-  if (!pageLoaded) addEventListener('load', () => { pageLoaded = true; updateHeroVideo(); }, { once: true });
-  compact.addEventListener('change', () => { removeHeroVideo(); updateHeroVideo(); });
+  if (!pageLoaded) addEventListener('load', () => { pageLoaded = true; updateLoops(); }, { once: true });
+  compact.addEventListener('change', () => loops.forEach(loop => { removeLoopVideo(loop); updateLoop(loop); }));
 
   function setMotion(value) {
     paused = value || reduced.matches;
@@ -194,7 +179,7 @@
     if(paused){players.forEach(p=>p.finish());revealAll();}
     motionToggle.textContent = paused ? t.motionResume : t.motionPause;
     motionToggle.setAttribute('aria-pressed',String(paused));
-    refreshPlayers();updateHeroVideo();queueFrame();
+    refreshPlayers();updateLoops();queueFrame();
   }
   const motionToggle=document.getElementById('motion-toggle');motionToggle.hidden=false;
   motionToggle.addEventListener('click',()=>{setMotion(!paused);savePreference('localStorage','bitcode-motion',paused?'paused':'playing');});
@@ -291,6 +276,20 @@
     video.addEventListener('error',failed);video.querySelectorAll('source').forEach(source=>source.addEventListener('error',failed));
   });
 
+  // Desktop/CLI recordings: one choice for the whole page, remembered in this browser.
+  // Without JavaScript both views stay visible, each labelled.
+  const views = [...document.querySelectorAll('[data-view]')];
+  const viewButtons = [...document.querySelectorAll('[data-view-tab]')];
+  function showView(name) {
+    views.forEach(view => { view.hidden = view.dataset.view !== name && !!view.closest('[data-views]')?.querySelector('[data-view-tab]'); });
+    viewButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.viewTab === name)));
+    views.filter(view => view.hidden).forEach(view => view.querySelectorAll('video').forEach(video => video.pause()));
+    queueFrame();
+  }
+  document.querySelectorAll('.view-switch').forEach(group => { group.hidden = false; });
+  viewButtons.forEach(button => button.addEventListener('click', () => { showView(button.dataset.viewTab); savePreference('localStorage', 'bitcode-view', button.dataset.viewTab); }));
+  showView(readPreference('localStorage', 'bitcode-view') === 'cli' ? 'cli' : 'desktop');
+
   // A fine-pointer-only logo menu; Shift keeps the browser's native menu.
   const brandMenu=document.querySelector('.brand-menu');let menuOrigin=null;
   function hideBrand(){brandMenu.hidden=true;}
@@ -316,6 +315,6 @@
   genesis.addEventListener('click',event=>{if(event.target===genesis){const r=genesis.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeGenesis();}});
   let typed='';
   document.addEventListener('keydown',event=>{if(event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,[contenteditable],dialog'))return;if(event.key.length===1){typed=(typed+event.key).slice(-8);if(typed==='/genesis'){openGenesis();typed='';}}});
-  document.addEventListener('visibilitychange',()=>{if(document.hidden)videos.forEach(v=>v.pause());refreshPlayers();updateHeroVideo();});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)videos.forEach(v=>v.pause());refreshPlayers();updateLoops();});
   queueFrame();
 })();
