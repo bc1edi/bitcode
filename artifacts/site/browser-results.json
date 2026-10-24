@@ -9,7 +9,7 @@
     "hero loop: poster first, plays after load, pauses off screen, hidden and on global pause; entrances on scroll; CLS 0.0000",
     "desktop loops: hero and workspace, mobile and ultrawide layouts",
     "data saving keeps the poster and loads no video",
-    "genesis by logo and /genesis, dismissible with Escape",
+    "genesis by /genesis, dismissible with Escape; a different hero Sat on every reload",
     "hidden-tab typing pauses and resumes; explicit pause renders complete excerpts",
     "fine-pointer logo menu; Shift preserves native context menu",
     "recorded demos keep their own players: play on request with native controls, pause when hidden",
