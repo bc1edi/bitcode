@@ -1,0 +1,61 @@
+WEBVTT
+
+1
+00:00:00.901 --> 00:00:02.683
+Open a project folder.
+
+2
+00:00:02.683 --> 00:00:04.403
+Manual mode: every change and command asks first.
+
+3
+00:00:04.403 --> 00:00:09.741
+Describe the problem in plain words.
+
+4
+00:00:09.741 --> 00:00:12.639
+The agent reads the project inside an isolated sandbox.
+
+5
+00:00:12.639 --> 00:00:17.465
+A command: it runs in the sandbox with no network, only after your yes.
+
+6
+00:00:17.465 --> 00:00:22.813
+Approved once. The agent continues.
+
+7
+00:00:22.813 --> 00:00:27.399
+A proposed edit: read the diff, then approve it once.
+
+8
+00:00:27.399 --> 00:00:28.727
+Approved once. The agent continues.
+
+9
+00:00:28.727 --> 00:00:33.208
+A command: it runs in the sandbox with no network, only after your yes.
+
+10
+00:00:33.208 --> 00:00:35.872
+Approved once. The agent continues.
+
+11
+00:00:35.872 --> 00:00:44.794
+Ask for the proof.
+
+12
+00:00:44.794 --> 00:00:49.638
+A command: it runs in the sandbox with no network, only after your yes.
+
+13
+00:00:49.638 --> 00:00:50.467
+Approved once. The agent continues.
+
+14
+00:00:50.467 --> 00:00:53.467
+Tests pass. The edit and the test run each waited for a yes.
+
+15
+00:00:53.467 --> 00:01:07.067
+The Changes panel shows exactly what changed on disk.

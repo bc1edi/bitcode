@@ -1,0 +1,13 @@
+bitcode Desktop — Open it. Pick a local model.
+Recorded 2026-10-24T12:16:31.865Z · ollama/qwen3.6:35b-a3b · source commit 0c559c6aaec172a891656860f1eaab22e400d2dc
+
+Real bitcode Desktop build on its first launch with an empty, disposable configuration. The model list comes from the Ollama server running on the recording machine; the answer comes from that local model. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.
+Segments marked on screen play back faster (8×).
+
+[00:00] First launch on Linux.
+[00:02] Pick a model: bitcode lists what this computer already serves.
+[00:05] Memory needs are shown before you choose.
+[00:09] Open a project folder.
+[00:11] Start from a suggestion, or type your own request.
+[00:14] Reading the project needs no approval. Changes and commands do.
+[00:25] The answer stays in this chat, on this computer.

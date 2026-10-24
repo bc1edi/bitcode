@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "demos": {
+    "configuration": {
+      "scenario": "configuration",
+      "title": "Your models, your limits.",
+      "model": null,
+      "loop": false,
+      "recordedAt": "2026-10-24T12:15:24.308Z",
+      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "workingTreeModified": false,
+      "duration": 34,
+      "speeds": [],
+      "provenance": "Real bitcode Desktop build with a disposable configuration. No model runs in this walkthrough; the model list comes from the Ollama server running on the recording machine. Input is scripted with Playwright; the pointer is an overlay.",
+      "files": {
+        "video": "configuration-16x9.mp4",
+        "poster": "configuration-poster.webp",
+        "captions": [
+          "configuration.en.vtt",
+          "configuration.it.vtt"
+        ],
+        "transcript": "configuration-transcript.txt"
+      }
+    },
+    "features": {
+      "scenario": "features",
+      "title": "Every change waits for you.",
+      "model": "ollama/qwen3.6:35b-a3b",
+      "loop": false,
+      "recordedAt": "2026-10-24T12:18:14.052Z",
+      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "workingTreeModified": false,
+      "duration": 67.1,
+      "speeds": [
+        8
+      ],
+      "provenance": "Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.",
+      "files": {
+        "video": "features-16x9.mp4",
+        "poster": "features-poster.webp",
+        "captions": [
+          "features.en.vtt",
+          "features.it.vtt"
+        ],
+        "transcript": "features-transcript.txt"
+      }
+    },
+    "first-run": {
+      "scenario": "first-run",
+      "title": "Open it. Pick a local model.",
+      "model": "ollama/qwen3.6:35b-a3b",
+      "loop": false,
+      "recordedAt": "2026-10-24T12:16:31.865Z",
+      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "workingTreeModified": false,
+      "duration": 32.4,
+      "speeds": [
+        8
+      ],
+      "provenance": "Real bitcode Desktop build on its first launch with an empty, disposable configuration. The model list comes from the Ollama server running on the recording machine; the answer comes from that local model. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.",
+      "files": {
+        "video": "first-run-16x9.mp4",
+        "poster": "first-run-poster.webp",
+        "captions": [
+          "first-run.en.vtt",
+          "first-run.it.vtt"
+        ],
+        "transcript": "first-run-transcript.txt"
+      }
+    },
+    "hero": {
+      "scenario": "features",
+      "title": "Every change waits for you.",
+      "model": "ollama/qwen3.6:35b-a3b",
+      "loop": true,
+      "recordedAt": "2026-10-24T12:18:14.052Z",
+      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "workingTreeModified": false,
+      "duration": 10,
+      "speeds": [
+        8
+      ],
+      "provenance": "Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.",
+      "files": {
+        "video": "hero.mp4",
+        "webm": "hero.webm",
+        "poster": "hero.webp"
+      }
+    },
+    "workspace": {
+      "scenario": "workspace",
+      "title": "The workbench around the chat.",
+      "model": null,
+      "loop": true,
+      "recordedAt": "2026-10-24T12:23:20.994Z",
+      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "workingTreeModified": false,
+      "duration": 15.1,
+      "speeds": [],
+      "provenance": "Real bitcode Desktop build with a disposable configuration and project copy; the terminal is the app\u2019s own PTY. Input is scripted with Playwright; the pointer is an overlay.",
+      "files": {
+        "video": "workspace.mp4",
+        "webm": "workspace.webm",
+        "poster": "workspace.webp"
+      }
+    }
+  }
+}

@@ -1,0 +1,13 @@
+bitcode Desktop — Your models, your limits.
+Recorded 2026-10-24T12:15:24.308Z · no model · source commit 0c559c6aaec172a891656860f1eaab22e400d2dc
+
+Real bitcode Desktop build with a disposable configuration. No model runs in this walkthrough; the model list comes from the Ollama server running on the recording machine. Input is scripted with Playwright; the pointer is an overlay.
+Played back in real time.
+
+[00:02] Settings, on this computer only.
+[00:04] Each Sat can run its own model.
+[00:08] Local only: cloud models are refused, prompts stay here.
+[00:10] Cloud keys, if you add any, go to the system keyring.
+[00:14] Remote access is off unless you turn it on.
+[00:16] With LAN access a phone can chat; approvals and payments stay on this computer.
+[00:22] Back in a chat: choose how much it may do on its own.

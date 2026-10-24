@@ -1,0 +1,61 @@
+WEBVTT
+
+1
+00:00:00.901 --> 00:00:02.683
+Apri la cartella di un progetto.
+
+2
+00:00:02.683 --> 00:00:04.403
+Modalità manuale: ogni modifica e ogni comando chiedono prima.
+
+3
+00:00:04.403 --> 00:00:09.741
+Descrivi il problema a parole.
+
+4
+00:00:09.741 --> 00:00:12.639
+L’agente legge il progetto in una sandbox isolata.
+
+5
+00:00:12.639 --> 00:00:17.465
+Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.
+
+6
+00:00:17.465 --> 00:00:22.813
+Approvato una volta. L’agente continua.
+
+7
+00:00:22.813 --> 00:00:27.399
+Una modifica proposta: leggi il diff, poi approvala una volta.
+
+8
+00:00:27.399 --> 00:00:28.727
+Approvato una volta. L’agente continua.
+
+9
+00:00:28.727 --> 00:00:33.208
+Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.
+
+10
+00:00:33.208 --> 00:00:35.872
+Approvato una volta. L’agente continua.
+
+11
+00:00:35.872 --> 00:00:44.794
+Chiedi la prova.
+
+12
+00:00:44.794 --> 00:00:49.638
+Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.
+
+13
+00:00:49.638 --> 00:00:50.467
+Approvato una volta. L’agente continua.
+
+14
+00:00:50.467 --> 00:00:53.467
+I test passano. La modifica e i test hanno aspettato ciascuno un sì.
+
+15
+00:00:53.467 --> 00:01:07.067
+Il pannello Modifiche mostra cosa è cambiato su disco.

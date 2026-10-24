@@ -1,0 +1,23 @@
+bitcode Desktop — Every change waits for you.
+Recorded 2026-10-24T12:18:14.052Z · ollama/qwen3.6:35b-a3b · source commit 0c559c6aaec172a891656860f1eaab22e400d2dc
+
+Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.
+Segments marked on screen play back faster (8×).
+
+[00:00] Open a project folder.
+[00:02] Manual mode: every change and command asks first.
+[00:04] Describe the problem in plain words.
+[00:09] The agent reads the project inside an isolated sandbox.
+[00:12] A command: it runs in the sandbox with no network, only after your yes.
+[00:17] Approved once. The agent continues.
+[00:22] A proposed edit: read the diff, then approve it once.
+[00:27] Approved once. The agent continues.
+[00:28] A command: it runs in the sandbox with no network, only after your yes.
+[00:33] Approved once. The agent continues.
+[00:35] Ask for the proof.
+[00:44] A command: it runs in the sandbox with no network, only after your yes.
+[00:49] Approved once. The agent continues.
+[00:50] Tests pass. The edit and the test run each waited for a yes.
+[00:53] The Changes panel shows exactly what changed on disk.
+
+Checked after recording: node --test in the recorded project copy reports 0 failures.
