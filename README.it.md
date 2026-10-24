@@ -5,7 +5,7 @@
   </picture>
 </h1>
 
-**Il tuo codice. I tuoi Bitcoin. I tuoi agenti.**
+**Not your code, not your Sats.**
 
 [![CI](https://github.com/faktotum-project/bitcode/actions/workflows/ci.yml/badge.svg)](https://github.com/faktotum-project/bitcode/actions/workflows/ci.yml)
 [![Licenza: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

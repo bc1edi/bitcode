@@ -34,7 +34,7 @@ Names differ per surface for historical reasons; values come from one place. Sec
 
 ## Identity
 - Name: **bitcode**, always lowercase, one word. The org is FAKTOTUM.
-- Tagline: *Your code. Your Bitcoin. Your agents.* (IT: *Il tuo codice. I tuoi Bitcoin. I tuoi agenti.*)
+- Tagline: *Not your code, not your Sats.* The same words in every language, after *not your keys, not your coins*: an agent you cannot run, read and stop yourself is not working for you.
 - The mark is a 4x5 pixel "b": orange body, dark base. Never smooth it, rotate it, add effects or change its proportions.
 - Clear space: one mark pixel on every side. Minimum size: 16 px (mark), 80 px wide (wordmark).
 - Wordmark is the primary lockup. The terminal lockup is secondary: terminals, READMEs, badges, never as avatar or header.

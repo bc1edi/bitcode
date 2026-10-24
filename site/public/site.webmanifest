@@ -1,7 +1,7 @@
 {
   "name": "bitcode",
   "short_name": "bitcode",
-  "description": "Your code. Your Bitcoin. Your agents.",
+  "description": "Not your code, not your Sats.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0b0e11",
