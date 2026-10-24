@@ -1,57 +1,25 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:01.703
-Modalità manuale: ogni modifica e ogni comando chiedono prima.
+00:00:00.000 --> 00:00:09.308
+Il nodo di test che riceve emette una fattura, qui nel terminale dell’app.
 
 2
-00:00:01.703 --> 00:00:07.041
-Descrivi il problema a parole.
+00:00:09.308 --> 00:00:22.345
+Incollala nella chat e di’ quanto inviare.
 
 3
-00:00:07.041 --> 00:00:09.939
-L’agente legge il progetto in una sandbox isolata.
+00:00:22.345 --> 00:00:30.970
+Niente è ancora firmato: la card dice importo, asset, destinatario e rete.
 
 4
-00:00:09.939 --> 00:00:14.765
-Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.
+00:00:30.970 --> 00:00:36.605
+Approvato una volta. Il nodo invia sulla rete di test.
 
 5
-00:00:14.765 --> 00:00:20.113
-Approvato una volta. L’agente continua.
+00:00:36.605 --> 00:00:41.638
+Chi riceve assesta il trasferimento.
 
 6
-00:00:20.113 --> 00:00:24.699
-Una modifica proposta: leggi il diff, poi approvala una volta.
-
-7
-00:00:24.699 --> 00:00:26.027
-Approvato una volta. L’agente continua.
-
-8
-00:00:26.027 --> 00:00:30.508
-Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.
-
-9
-00:00:30.508 --> 00:00:33.172
-Approvato una volta. L’agente continua.
-
-10
-00:00:33.172 --> 00:00:42.094
-Chiedi la prova.
-
-11
-00:00:42.094 --> 00:00:46.938
-Un comando: gira nella sandbox senza rete, solo dopo il tuo sì.
-
-12
-00:00:46.938 --> 00:00:47.767
-Approvato una volta. L’agente continua.
-
-13
-00:00:47.767 --> 00:00:50.767
-I test passano. La modifica e i test hanno aspettato ciascuno un sì.
-
-14
-00:00:50.767 --> 00:00:53.767
-Il pannello Modifiche mostra cosa è cambiato su disco.
+00:00:41.638 --> 00:01:01.633
+La scheda RGB, letta tramite Tether WDK: l’invio è in corso, 78 USDT di resto ancora in arrivo.

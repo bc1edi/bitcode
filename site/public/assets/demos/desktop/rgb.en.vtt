@@ -1,0 +1,33 @@
+WEBVTT
+
+1
+00:00:02.476 --> 00:00:07.368
+An RGB session: bitcode first checks that the node runs on a test network.
+
+2
+00:00:07.368 --> 00:00:19.609
+Ask in plain words. Reading balances needs no approval.
+
+3
+00:00:19.609 --> 00:00:28.917
+The receiving test node issues an invoice, here in the app’s terminal.
+
+4
+00:00:28.917 --> 00:00:41.954
+Paste it into the chat and say how much to send.
+
+5
+00:00:41.954 --> 00:00:50.579
+Nothing is signed yet: the card spells out amount, asset, recipient and network.
+
+6
+00:00:50.579 --> 00:00:56.214
+Approved once. The node sends on the test network.
+
+7
+00:00:56.214 --> 00:01:01.247
+The receiver settles the transfer.
+
+8
+00:01:01.247 --> 00:01:21.267
+The RGB tab, read through Tether WDK: the send is in flight, 78 USDT of change still incoming.

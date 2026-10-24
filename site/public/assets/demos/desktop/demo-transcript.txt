@@ -1,22 +1,14 @@
-bitcode Desktop — Every change waits for you.
-Recorded 2026-10-24T12:18:14.052Z · ollama/qwen3.6:35b-a3b · source commit 0c559c6aaec172a891656860f1eaab22e400d2dc
+bitcode Desktop — Send an RGB asset. Confirm it yourself.
+Recorded 2026-10-24T13:22:07.316Z · qvac/bitcode-rgb-4b · source commit fcb91e877efa7e5b22e4f9579aeabc011c6bf6a3
 
-Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.
-Segments marked on screen play back faster (8×).
+Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through QVAC; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.
+Segments marked on screen play back faster (8×, 4×).
 
-[00:00] Manual mode: every change and command asks first.
-[00:01] Describe the problem in plain words.
-[00:07] The agent reads the project inside an isolated sandbox.
-[00:09] A command: it runs in the sandbox with no network, only after your yes.
-[00:14] Approved once. The agent continues.
-[00:20] A proposed edit: read the diff, then approve it once.
-[00:24] Approved once. The agent continues.
-[00:26] A command: it runs in the sandbox with no network, only after your yes.
-[00:30] Approved once. The agent continues.
-[00:33] Ask for the proof.
-[00:42] A command: it runs in the sandbox with no network, only after your yes.
-[00:46] Approved once. The agent continues.
-[00:47] Tests pass. The edit and the test run each waited for a yes.
-[00:50] The Changes panel shows exactly what changed on disk.
+[00:00] The receiving test node issues an invoice, here in the app’s terminal.
+[00:09] Paste it into the chat and say how much to send.
+[00:22] Nothing is signed yet: the card spells out amount, asset, recipient and network.
+[00:30] Approved once. The node sends on the test network.
+[00:36] The receiver settles the transfer.
+[00:41] The RGB tab, read through Tether WDK: the send is in flight, 78 USDT of change still incoming.
 
-Checked after recording: node --test in the recorded project copy reports 0 failures.
+The last caption was rewritten after review to describe what the RGB tab shows at the end of the take (send in flight, change incoming); the recording itself is unchanged.

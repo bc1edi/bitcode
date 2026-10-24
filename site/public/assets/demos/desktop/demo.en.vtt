@@ -1,57 +1,25 @@
 WEBVTT
 
 1
-00:00:00.000 --> 00:00:01.703
-Manual mode: every change and command asks first.
+00:00:00.000 --> 00:00:09.308
+The receiving test node issues an invoice, here in the app’s terminal.
 
 2
-00:00:01.703 --> 00:00:07.041
-Describe the problem in plain words.
+00:00:09.308 --> 00:00:22.345
+Paste it into the chat and say how much to send.
 
 3
-00:00:07.041 --> 00:00:09.939
-The agent reads the project inside an isolated sandbox.
+00:00:22.345 --> 00:00:30.970
+Nothing is signed yet: the card spells out amount, asset, recipient and network.
 
 4
-00:00:09.939 --> 00:00:14.765
-A command: it runs in the sandbox with no network, only after your yes.
+00:00:30.970 --> 00:00:36.605
+Approved once. The node sends on the test network.
 
 5
-00:00:14.765 --> 00:00:20.113
-Approved once. The agent continues.
+00:00:36.605 --> 00:00:41.638
+The receiver settles the transfer.
 
 6
-00:00:20.113 --> 00:00:24.699
-A proposed edit: read the diff, then approve it once.
-
-7
-00:00:24.699 --> 00:00:26.027
-Approved once. The agent continues.
-
-8
-00:00:26.027 --> 00:00:30.508
-A command: it runs in the sandbox with no network, only after your yes.
-
-9
-00:00:30.508 --> 00:00:33.172
-Approved once. The agent continues.
-
-10
-00:00:33.172 --> 00:00:42.094
-Ask for the proof.
-
-11
-00:00:42.094 --> 00:00:46.938
-A command: it runs in the sandbox with no network, only after your yes.
-
-12
-00:00:46.938 --> 00:00:47.767
-Approved once. The agent continues.
-
-13
-00:00:47.767 --> 00:00:50.767
-Tests pass. The edit and the test run each waited for a yes.
-
-14
-00:00:50.767 --> 00:00:53.767
-The Changes panel shows exactly what changed on disk.
+00:00:41.638 --> 00:01:01.633
+The RGB tab, read through Tether WDK: the send is in flight, 78 USDT of change still incoming.

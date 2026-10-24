@@ -23,18 +23,19 @@
       }
     },
     "demo": {
-      "scenario": "features",
-      "title": "Every change waits for you.",
-      "model": "ollama/qwen3.6:35b-a3b",
+      "scenario": "rgb",
+      "title": "Send an RGB asset. Confirm it yourself.",
+      "model": "qvac/bitcode-rgb-4b",
       "loop": false,
-      "recordedAt": "2026-10-24T12:18:14.052Z",
-      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "recordedAt": "2026-10-24T13:22:07.316Z",
+      "sourceCommit": "fcb91e877efa7e5b22e4f9579aeabc011c6bf6a3",
       "workingTreeModified": false,
-      "duration": 53.8,
+      "duration": 61.6,
       "speeds": [
-        8
+        8,
+        4
       ],
-      "provenance": "Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.",
+      "provenance": "Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through QVAC; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.",
       "files": {
         "video": "demo-16x9.mp4",
         "poster": "demo-poster.webp",
@@ -92,22 +93,47 @@
       }
     },
     "hero": {
-      "scenario": "features",
-      "title": "Every change waits for you.",
-      "model": "ollama/qwen3.6:35b-a3b",
+      "scenario": "rgb",
+      "title": "Send an RGB asset. Confirm it yourself.",
+      "model": "qvac/bitcode-rgb-4b",
       "loop": true,
-      "recordedAt": "2026-10-24T12:18:14.052Z",
-      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "recordedAt": "2026-10-24T13:22:07.316Z",
+      "sourceCommit": "fcb91e877efa7e5b22e4f9579aeabc011c6bf6a3",
       "workingTreeModified": false,
-      "duration": 10,
+      "duration": 7.7,
       "speeds": [
-        8
+        8,
+        4
       ],
-      "provenance": "Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.",
+      "provenance": "Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through QVAC; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.",
       "files": {
         "video": "hero.mp4",
         "webm": "hero.webm",
         "poster": "hero.webp"
+      }
+    },
+    "rgb": {
+      "scenario": "rgb",
+      "title": "Send an RGB asset. Confirm it yourself.",
+      "model": "qvac/bitcode-rgb-4b",
+      "loop": false,
+      "recordedAt": "2026-10-24T13:22:07.316Z",
+      "sourceCommit": "fcb91e877efa7e5b22e4f9579aeabc011c6bf6a3",
+      "workingTreeModified": false,
+      "duration": 81.3,
+      "speeds": [
+        8,
+        4
+      ],
+      "provenance": "Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through QVAC; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.",
+      "files": {
+        "video": "rgb-16x9.mp4",
+        "poster": "rgb-poster.webp",
+        "captions": [
+          "rgb.en.vtt",
+          "rgb.it.vtt"
+        ],
+        "transcript": "rgb-transcript.txt"
       }
     },
     "workspace": {
