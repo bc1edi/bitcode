@@ -155,6 +155,16 @@ try {
  const firstVideo=page.locator('.recording-player video').first();await page.locator('.video-start').first().click();await page.waitForFunction(()=>!document.querySelector('.recording-player video').paused);assert.equal(await firstVideo.evaluate(el=>el.controls),true);
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});assert.equal(await firstVideo.evaluate(el=>el.paused),true);await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
  check('recorded demos keep their own players: play on request with native controls, pause when hidden');
+ // With motion allowed, the walkthrough in view plays muted on its own, alone, and stops when it leaves.
+ await motion.setViewportSize({width:1440,height:900});await motion.goto(base+'/#demos');
+ const autoplaying=()=>motion.evaluate(()=>[...document.querySelectorAll('.recording-player video')].filter(v=>!v.paused).map(v=>({id:v.id,muted:v.muted})));
+ await scrollToElement(motion,'#recording-desktop-first-run',.25);await motion.waitForFunction(()=>!document.getElementById('recording-desktop-first-run').paused);
+ assert.deepEqual(await autoplaying(),[{id:'recording-desktop-first-run',muted:true}]);
+ await scrollToElement(motion,'#recording-desktop-configuration',.25);await motion.waitForFunction(()=>!document.getElementById('recording-desktop-configuration').paused);
+ assert.deepEqual((await autoplaying()).map(v=>v.id),['recording-desktop-configuration'],'Only the clip in view plays');
+ await motion.locator('#recording-desktop-configuration').evaluate(v=>v.pause());await scrollToElement(motion,'#get-started',.2);await scrollToElement(motion,'#recording-desktop-configuration',.25);await motion.waitForTimeout(500);
+ assert.equal(await motion.locator('#recording-desktop-configuration').evaluate(v=>v.paused),true,'A pause by the viewer is respected');
+ check('walkthroughs autoplay muted in view, one at a time, and respect a manual pause');
  const nojs=await browser.newContext({locale:'en-US',javaScriptEnabled:false,viewport:{width:320,height:844}});
  const staticPage=await nojs.newPage();
  for(const path of ['/','/it/']){
