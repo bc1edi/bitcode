@@ -1,4 +1,5 @@
 /* Dark canvas shared with the desktop app and the Bitcode Instagram design system. */
+/* brand:begin — generated from brand/tokens/tokens.json (web) by brand/build.mjs */
 :root {
   --orange: #f7931a;
   --orange-active: #d97b0f;
@@ -27,6 +28,7 @@
   --radius-lg: 24px;
   --page-width: 1240px;
 }
+/* brand:end */
 *, *::before, *::after { box-sizing: border-box; }
 html { color-scheme: dark; scroll-behavior: smooth; scroll-padding-top: 96px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; background: var(--canvas); }
 body { margin: 0; background: var(--canvas); color: var(--ink); font-family: Inter, system-ui, sans-serif; font-size: 1rem; line-height: 1.6; letter-spacing: -.015em; overflow-x: clip; }

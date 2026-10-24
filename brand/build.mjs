@@ -128,17 +128,18 @@ const inline = (obj, pad) => {  // app style: several declarations per line
   return rows.join('\n');
 };
 
-// site: same variable names the site has always used (checked against site/src/design-contract.json)
+// site: the dark website keeps its own reading contrast (tokens.web) on the shared accent, tx and Sat colors
+const W = tokens.web;
 const site = {
-  '--orange': tokens.color.accent, '--orange-active': tokens.color.accentActive,
-  '--canvas': L.canvas, '--canvas-soft': L.surface, '--surface': L.card, '--surface-strong': L.hairline,
-  '--hairline': L.hairlineStrong, '--ink': L.ink, '--body': L.body, '--muted': L.muted, '--muted-soft': L.mutedSoft,
-  '--success': L.up, '--pending': tx.pending, '--relayed': tx.relayed, '--mempool': tx.mempool,
+  '--orange': tokens.color.accent, '--orange-active': tokens.color.accentActive, '--on-accent': W.color.onAccent,
+  '--canvas': W.color.canvas, '--canvas-soft': W.color.canvasSoft, '--surface': W.color.surface, '--surface-strong': W.color.surfaceStrong,
+  '--hairline': W.color.hairline, '--ink': W.color.ink, '--body': W.color.body, '--muted': W.color.muted, '--muted-soft': W.color.mutedSoft,
+  '--success': W.color.success, '--pending': tx.pending, '--relayed': tx.relayed, '--mempool': tx.mempool,
   '--confirming': tx.confirming, '--confirmed': tx.confirmed,
-  '--mono': tokens.font.mono, '--radius': tokens.shape.radius, '--page-width': tokens.shape.pageWidth,
-  ...Object.fromEntries(Object.entries(sats).map(([k, v]) => [`--sat-${k}`, v]))
+  ...Object.fromEntries(Object.entries(sats).map(([k, v]) => [`--sat-${k}`, v])),
+  '--mono': W.font.mono, '--radius': W.shape.radius, '--radius-lg': W.shape.radiusLg, '--page-width': W.shape.pageWidth
 };
-inject('site/public/assets/site/base.css', `    :root {\n${decl(site, '      ')}\n    }\n`);
+inject('site/public/assets/site/base.css', `:root {\n${decl(site, '  ')}\n}\n`);
 const contractPath = join(repo, 'site/src/design-contract.json');
 const contract = JSON.parse(readFileSync(contractPath, 'utf8'));
 const hexes = Object.values(site).filter(v => /^#[0-9a-f]{3,8}$/i.test(v)).map(v => v.toLowerCase());

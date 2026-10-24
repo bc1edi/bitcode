@@ -7,7 +7,7 @@ Everything derived is generated (`npm run build:brand`, `npm run check:brand`, t
 ## Where tokens land
 | Surface | File (block between `brand:begin` and `brand:end`) | Names |
 |---|---|---|
-| Website | `site/public/assets/site/base.css`, `site/src/design-contract.json` | `--orange`, `--canvas`, `--ink`, `--body` |
+| Website (dark) | `site/public/assets/site/base.css`, `site/src/design-contract.json`, from the `web` block of `tokens.json` | `--orange`, `--canvas`, `--ink`, `--body` |
 | Desktop app | `desktop/ui/styles.css` (dark, light, system) | `--accent`, `--body` (reading text), `--mutedStrong` (secondary), `--sat-*` |
 | /sats web UI | `ui/sats/styles.css` | camelCase, light only |
 | CLI and Node code | `src/design-tokens.mjs` (`TOKEN`, `STAGE`, `SAT`, `BRAND`, `THEME`) | `bitcoinOrange`, `ink`, `body`; `THEME.light/dark` mirror `tokens.json` |
