@@ -22,6 +22,29 @@
         "transcript": "configuration-transcript.txt"
       }
     },
+    "demo": {
+      "scenario": "features",
+      "title": "Every change waits for you.",
+      "model": "ollama/qwen3.6:35b-a3b",
+      "loop": false,
+      "recordedAt": "2026-10-24T12:18:14.052Z",
+      "sourceCommit": "0c559c6aaec172a891656860f1eaab22e400d2dc",
+      "workingTreeModified": false,
+      "duration": 53.8,
+      "speeds": [
+        8
+      ],
+      "provenance": "Real bitcode Desktop build, real local model through Ollama, real bubblewrap worker and a disposable copy of a small demo project. Input is scripted with Playwright; the pointer is an overlay. Model thinking time plays back faster where the badge is shown.",
+      "files": {
+        "video": "demo-16x9.mp4",
+        "poster": "demo-poster.webp",
+        "captions": [
+          "demo.en.vtt",
+          "demo.it.vtt"
+        ],
+        "transcript": "demo-transcript.txt"
+      }
+    },
     "features": {
       "scenario": "features",
       "title": "Every change waits for you.",
@@ -97,7 +120,7 @@
       "workingTreeModified": false,
       "duration": 15.1,
       "speeds": [],
-      "provenance": "Real bitcode Desktop build with a disposable configuration and project copy; the terminal is the app\u2019s own PTY. Input is scripted with Playwright; the pointer is an overlay.",
+      "provenance": "Real bitcode Desktop build with a disposable configuration and project copy; the terminal is the app’s own PTY. Input is scripted with Playwright; the pointer is an overlay.",
       "files": {
         "video": "workspace.mp4",
         "webm": "workspace.webm",
