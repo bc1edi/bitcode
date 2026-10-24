@@ -1,0 +1,8 @@
+{
+  "name": "invoice-kit",
+  "version": "0.3.0",
+  "description": "Tiny helpers for Bitcoin invoices: amounts, fees and memos.",
+  "type": "module",
+  "scripts": { "test": "node --test" },
+  "license": "MIT"
+}
