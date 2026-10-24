@@ -18,7 +18,7 @@ The page is dark: `base.css` holds the tokens (canvas `#0b0e11`, cards `#14171c`
 
 ## Desktop first
 
-The page leads with the desktop app. The hero and the desktop section show silent loops recorded from the real app; `#demo` and the three paired walkthroughs in `#demos` open on the desktop recording, with the original CLI recording behind a Desktop/CLI switch. The switch is one choice for the whole page, kept in `localStorage` as a convenience; without JavaScript both views stay visible, each labelled. The RGB walkthrough appears once its recording exists (`<!--if:player.rgb-->` in the template).
+The page leads with the desktop app. The hero and the desktop section show silent loops recorded from the real app; `#demo` and the three paired walkthroughs in `#demos` open on the desktop recording, with the original CLI recording behind a Desktop/CLI switch. The switch is one choice for the whole page, kept in `localStorage` as a convenience; without JavaScript both views stay visible, each labelled. The RGB walkthrough (two local RGB Lightning Nodes on Mutinynet, QVAC `bitcode-rgb-4b`, a real 5 USDT test transfer) is shown only when its recording exists (`<!--if:player.rgb-->` in the template); its last caption was rewritten after review to match what the RGB tab shows.
 
 Desktop recordings come from `site/scripts/demos/desktop/` (see its README): the real Electron build driven by Playwright, a disposable home and project, a pointer overlay and a `▶▶ N×` badge wherever waits play faster. `site/public/assets/demos/desktop/manifest.json` records model, date, source commit and provenance of each clip; `npm run build:site` turns it into the players. The Sats are four compact cards in one row: same names, roles, descriptions and limits as before, in one screen.
 
@@ -56,12 +56,12 @@ Checks ran on localhost using Chromium and Lighthouse 13.4.1. Scores describe th
 
 | Page | Device | Performance | Accessibility | Best Practices | SEO | CLS | LCP |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| EN `/` | Mobile | 95 | 100 | 100 | 100 | 0 | 2.70 s |
-| EN `/` | Desktop | 100 | 100 | 100 | 100 | 0 | 0.69 s |
-| IT `/it/` | Mobile | 93 | 100 | 100 | 100 | 0 | 3.08 s |
-| IT `/it/` | Desktop | 100 | 100 | 100 | 100 | 0 | 0.63 s |
+| EN `/` | Mobile | 92 | 100 | 100 | 100 | 0 | 3.23 s |
+| EN `/` | Desktop | 100 | 100 | 100 | 100 | 0 | 0.64 s |
+| IT `/it/` | Mobile | 92 | 100 | 100 | 100 | 0 | 3.23 s |
+| IT `/it/` | Desktop | 100 | 100 | 100 | 100 | 0 | 0.64 s |
 
-Mobile performance varied between 93 and 96 over repeated runs of the same build (simulated LCP 2.55–3.1 s, the hero poster), so the runner's 95 threshold is not met on every run. Both fonts are preloaded: without the JetBrains Mono preload the hero could shift by 0.13 when the font arrived.
+Mobile performance varied between 92 and 96 over repeated runs of the same build (simulated LCP 2.55–3.1 s, the hero poster), so the runner's 95 threshold is not met on every run. Both fonts are preloaded: without the JetBrains Mono preload the hero could shift by 0.13 when the font arrived.
 
 [Score summary](../artifacts/site/lighthouse-summary.json). The [browser results](../artifacts/site/browser-results.json) cover both languages at 320/390/800/1023/1024/1440/1920/2560 px; anchors; the capability rail; the four Sats cards in one row and in one screen; the Desktop/CLI switch driving every paired recording and surviving a reload; keyboard tabs and clipboard; mobile focus and scroll locking; language hash preservation; the hero and workspace loops (poster first, playback after load, pause off screen, in a hidden tab and on the global pause, no video with reduced motion, Save-Data or an initially hidden tab); entrances; load CLS 0; separate demo players; blocked storage; no JavaScript (both recording views visible); zero page errors and zero external requests. The axe WCAG A/AA scan of `/` and `/it/#sats` has [zero violations](../artifacts/site/accessibility.json).
 
