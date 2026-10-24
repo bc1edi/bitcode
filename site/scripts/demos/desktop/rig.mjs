@@ -94,7 +94,7 @@ class Session {
 
   // Everything after this plays back `factor` times faster, with a visible badge.
   async speed(factor) {
-    await this.win.evaluate(f => { const b = document.getElementById('demo-speed'); b.textContent = `▶▶ ${f}×`; b.style.opacity = f > 1 ? '1' : '0'; }, factor);
+    await this.win.evaluate(f => { const b = document.getElementById('demo-speed'); if (f > 1) b.textContent = `▶▶ ${f}×`; b.style.opacity = f > 1 ? '1' : '0'; }, factor);
     await sleep(250);
     this.marks.push({ t: this.now(), speed: factor });
   }
@@ -116,13 +116,14 @@ class Session {
     await sleep(ms + 60);
   }
 
-  async click(target, { pause = 220 } = {}) {
+  // `force` skips the stability wait for controls the app keeps re-rendering while it loads.
+  async click(target, { pause = 220, force = false } = {}) {
     await target.waitFor({ state: 'visible' });
-    await target.scrollIntoViewIfNeeded();
+    if (!force) await target.scrollIntoViewIfNeeded();
     await this.moveTo(target);
     await this.win.evaluate(([x, y]) => { const r = document.getElementById('demo-ring'); r.style.transition = 'none'; r.style.left = x + 'px'; r.style.top = y + 'px'; r.style.opacity = '1'; r.style.transform = 'scale(.4)';
       requestAnimationFrame(() => { r.style.transition = 'opacity 420ms ease, transform 420ms ease'; r.style.opacity = '0'; r.style.transform = 'scale(1.3)'; }); }, [this.pointer.x, this.pointer.y]);
-    await target.click();
+    await target.click({ force });
     await sleep(pause);
   }
 

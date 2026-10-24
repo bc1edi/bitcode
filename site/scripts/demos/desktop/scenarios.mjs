@@ -17,6 +17,10 @@ const rgbEnv = () => ({
   RGB_ASSET_ID: process.env.RGB_ASSET_ID,
 });
 
+// The RGB walkthrough runs on QVAC (integrations/qvac, `npm --prefix integrations/qvac start`).
+export const RGB_MODEL = 'qvac/bitcode-rgb-4b';
+const qvac = { model: RGB_MODEL, providers: { qvac: { maxOutputTokens: 1536, idleTimeoutMs: 120_000, stream: false } } };
+
 const running = s => s.win.locator('.send.stop').count().then(n => n > 0);
 const approval = s => s.win.locator('.approval').first();
 const hasApproval = s => approval(s).count().then(n => n > 0);
@@ -168,9 +172,9 @@ export const scenarios = {
   },
   rgb: {
     title: 'Send an RGB asset. Confirm it yourself.',
-    model: MODEL,
-    get launch() { return { settings: { model: MODEL }, config: { ...ollama, mcp: { kaleido: kaleido() } }, project: 'rgb-shop', env: rgbEnv() }; },
-    provenance: 'Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through Ollama; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.',
+    model: RGB_MODEL,
+    get launch() { return { settings: { model: RGB_MODEL }, config: { ...qvac, mcp: { kaleido: kaleido() } }, project: 'rgb-shop', env: rgbEnv() }; },
+    provenance: 'Real bitcode Desktop build in an RGB session against two local RGB Lightning Nodes on a test network (the sender through kaleido-mcp, the receiver through the kaleido CLI in the app’s terminal). Real local model through QVAC; the payment is a real test-network transfer. Input is scripted with Playwright; the pointer is an overlay. Model thinking time and chain waits play back faster where the badge is shown.',
     async run(s) {
       const { win } = s;
       if (!process.env.RGB_ASSET_ID) throw new Error('Set RGB_ASSET_ID to the asset the sender holds');
@@ -189,11 +193,14 @@ export const scenarios = {
       s.mark('request');
       s.caption('The receiving test node issues an invoice, here in the app’s terminal.', 'Il nodo di test che riceve emette una fattura, qui nel terminale dell’app.');
       await s.click(win.getByRole('button', { name: 'Terminal', exact: true }), { pause: 900 });
-      await win.locator('.xterm-helper-textarea').first().pressSequentially(`./receive.sh ${process.env.RGB_AMOUNT || '5'}\n`, { delay: 45 });
+      await win.locator('.xterm-helper-textarea').first().pressSequentially(`./receive.sh ${process.env.RGB_AMOUNT || '5000000'}\n`, { delay: 45 });
       await s.wait(3500);
-      s.caption('Ask bitcode to pay it.', 'Chiedi a bitcode di pagarla.');
-      await s.click(win.locator('#prompt'));
-      await s.type(win.locator('#prompt'), 'Pay the RGB invoice saved in invoice.json.', { delay: 26 });
+      // The RGB profile exposes only node tools, so the invoice goes into the message, as a person would paste it.
+      const { invoice } = JSON.parse(readFileSync(path.join(s.root, 'invoice.json'), 'utf8'));
+      s.caption('Paste it into the chat and say how much to send.', 'Incollala nella chat e di’ quanto inviare.');
+      await s.type(win.locator('#prompt'), `Send ${Number(process.env.RGB_AMOUNT || 5_000_000) / 1e6} USDT to this RGB invoice: `, { delay: 26, pause: 100 });
+      await win.locator('#prompt').pressSequentially(invoice, { delay: 4 });
+      await s.wait(500);
       await s.click(win.getByRole('button', { name: /^Send$/i }));
       await s.until(() => running(s), { timeout: 30_000, label: 'run start' });
       await work(s, 8);
@@ -214,10 +221,11 @@ export const scenarios = {
       s.caption('The receiver settles the transfer.', 'Chi riceve assesta il trasferimento.');
       await win.locator('.xterm-helper-textarea').first().pressSequentially('./receive.sh refresh\n', { delay: 45 });
       await s.wait(4000);
-      s.caption('The RGB tab, read through Tether WDK, lists the transfer.', 'La scheda RGB, letta tramite Tether WDK, mostra il trasferimento.');
+      s.caption('The RGB tab, read through Tether WDK, shows the send and its change.', 'La scheda RGB, letta tramite Tether WDK, mostra l’invio e il suo resto.');
+      await s.click(win.getByText('×', { exact: true }).last(), { pause: 500 });
       await s.click(win.getByText('Bitcoin', { exact: true }).first(), { pause: 900 });
-      await s.click(win.getByRole('tab', { name: /RGB/ }), { pause: 600 });
-      await s.until(() => win.locator('text=/settled|Settled/').count().then(n => n > 0), { speed: 4, timeout: 180_000, label: 'settled transfer' });
+      await s.wait(2500);
+      await s.click(win.getByRole('tab', { name: /RGB/ }), { pause: 600, force: true });
       s.mark('settled');
       await s.wait(4000);
     },
