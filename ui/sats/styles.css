@@ -95,9 +95,12 @@ textarea,
   gap: 10px;
 }
 .brand svg {
-  width: 24px;
-  height: 28px;
+  width: 20px;
+  height: 25px;
   fill: var(--bitcoinOrange);
+}
+.brand svg .base {
+  fill: var(--ink);
 }
 .brand strong {
   font-weight: 600;

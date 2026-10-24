@@ -41,9 +41,9 @@ const clip = (text, max) => { const s = String(text || '').replace(/\s+/g, ' ').
 export function trayModel({ runs = [], pending = [] }) {
   const parts = [`${runs.length} attività`, `${pending.length} richieste`];
   return {
-    tooltip: `Bitcode · ${parts.join(' · ')}`,
+    tooltip: `bitcode · ${parts.join(' · ')}`,
     state: pending.length ? 'attention' : runs.length ? 'busy' : 'idle',
-    approvals: pending.slice(0, 8).map(a => ({ id: a.id, label: `${clip(a.subject?.project || 'Bitcode', 24)} · ${clip(a.kind, 30)}` })),
+    approvals: pending.slice(0, 8).map(a => ({ id: a.id, label: `${clip(a.subject?.project || 'bitcode', 24)} · ${clip(a.kind, 30)}` })),
     moreApprovals: Math.max(0, pending.length - 8),
     runs: runs.slice(0, 5).map(r => ({ runId: r.runId, label: clip(r.prompt, 40) }))
   };
@@ -60,6 +60,6 @@ const execArg = value => /^[A-Za-z0-9_@%+=:,./-]+$/.test(value) ? value.replace(
   : `"${value.replace(/(["`$\\])/g, '\\$1').replace(/%/g, '%%')}"`.replace(/\\/g, '\\\\');
 export function autostartEntry({ executable }) {
   if (!path.isAbsolute(executable) || /[\r\n]/.test(executable)) throw new Error('autostart needs an absolute executable path');
-  return ['[Desktop Entry]', 'Type=Application', 'Name=Bitcode', 'Comment=Bitcode desktop workspace for coding and Bitcoin',
+  return ['[Desktop Entry]', 'Type=Application', 'Name=bitcode', 'Comment=bitcode desktop workspace for coding and Bitcoin',
     `Exec=${execArg(executable)} ${HIDDEN_ARG}`, 'Icon=bitcode-desktop', 'Terminal=false', 'StartupWMClass=bitcode-desktop', 'X-GNOME-Autostart-enabled=true', ''].join('\n');
 }

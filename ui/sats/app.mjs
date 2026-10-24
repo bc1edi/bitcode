@@ -67,7 +67,7 @@ function selectAgent(id) {
   for (const [key, card] of cards)
     card.button.setAttribute("aria-pressed", String(id === key));
   $("activity-title").textContent =
-    (registry.find((a) => a.id === id)?.name || "Bitcode") + " · attività";
+    (registry.find((a) => a.id === id)?.name || "bitcode") + " · attività";
   $("all-activity").hidden = false;
   renderActivity();
 }

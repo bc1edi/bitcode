@@ -204,7 +204,7 @@ In `auto-edit`, file writes inside the initial project root are approved, while
 shell commands need confirmation unless they are in a narrow read-only grammar
 or exactly match `permissions.allow`. `full-auto` runs shell tools in a
 Bubblewrap sandbox (project root and `/tmp` writable, network disabled); if it
-is unavailable Bitcode falls back to `auto-edit`. `--read-only` always wins and
+is unavailable bitcode falls back to `auto-edit`. `--read-only` always wins and
 `--yolo` remains an alias for `--permission full-auto`. Built-in financial
 tools still require confirmation. One-shot mode
 rejects those financial tools unless `--allow-payments` was explicitly passed.
@@ -217,7 +217,7 @@ total tool-call budget. They cannot recursively delegate. `/plan` and
 `--read-only` expose only tools classified as read-only; plugin/server trust
 still matters.
 
-Bitcode creates a checkpoint at the first mutation in an interactive turn.
+bitcode creates a checkpoint at the first mutation in an interactive turn.
 `/diff` compares the current tree to it; `/undo` restores the complete last
 turn when no affected file (or Git index) has changed since. Git checkpoints
 cover tracked, staged and non-ignored untracked changes. Outside Git, file-tool

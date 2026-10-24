@@ -1,4 +1,4 @@
-# Sats per Bitcode — Piano di implementazione
+# Sats per bitcode — Piano di implementazione
 
 **Versione proposta:** 1.0 · **Data:** 1 ottobre 2026 · **Stato:** specifica di progetto, codice applicativo da implementare.
 
@@ -6,7 +6,7 @@
 
 ## 1. Risultato da costruire
 
-I **Sats** sono i quattro volti dei subagenti di Bitcode: **Node, Script, Hash e Merkle**. Ogni personaggio identifica una competenza e rende leggibile lo stato reale di una delega. La mascotte accompagna l'attività; il registro delle operazioni e le conferme restano espliciti.
+I **Sats** sono i quattro volti dei subagenti di bitcode: **Node, Script, Hash e Merkle**. Ogni personaggio identifica una competenza e rende leggibile lo stato reale di una delega. La mascotte accompagna l'attività; il registro delle operazioni e le conferme restano espliciti.
 
 Prima release: quattro personaggi integrati nei subagenti CLI, eventi di esecuzione condivisi e **pannello locale di osservazione** avviato con `bitcode --sats`. Si continuano a scrivere richieste e ad approvare azioni nel terminale. Il browser mostra mascotte, stati, operazioni essenziali e risultati di stato. Il pannello non avvia task e non approva tool.
 
@@ -15,11 +15,11 @@ Release successiva, separata: composer e conferme nel browser, riutilizzando lo 
 ### Decisioni vincolanti
 
 1. Conservare la famiglia attuale: piccoli bot morbidi, antropomorfi, visiera scura, occhi espressivi, braccia e piedini. I dettagli Bitcoin sono accessori discreti.
-2. Inserire i personaggi nel design esistente di Bitcode: crema, Ink caldo, hairline, arancione per azioni e marchio. I colori delle mascotte identificano i personaggi, senza diventare quattro nuovi colori dei pulsanti.
+2. Inserire i personaggi nel design esistente di bitcode: crema, Ink caldo, hairline, arancione per azioni e marchio. I colori delle mascotte identificano i personaggi, senza diventare quattro nuovi colori dei pulsanti.
 3. Un solo runtime Node ESM; nessun framework o servizio esterno necessario per il pannello.
 4. Le animazioni dipendono dagli eventi del runtime. Nessuna finta percentuale di avanzamento e nessuna animazione che annunci successo prima dell'esito.
 5. Nessun avvio automatico dei quattro agenti insieme. Deleghe mirate, una alla volta nella prima release.
-6. I quattro Sats non ricevono tool di firma, pagamento o broadcast. Il Bitcode principale mantiene il proprio flusso Bitcoin.
+6. I quattro Sats non ricevono tool di firma, pagamento o broadcast. Il bitcode principale mantiene il proprio flusso Bitcoin.
 7. I permessi sono applicati dal codice. Il testo della persona e la grafica non costituiscono una sandbox.
 
 ## 2. Cosa esiste e cosa manca
@@ -108,7 +108,7 @@ I pastelli della timeline vengono usati solo nel registro dell'attività. Gli st
 
 Conservare silhouette, visiera, occhi e accessori dei quattro master attuali. Uniformare scala apparente, linea dei piedi, luce morbida e contrasto sui fondi crema/Ink. A 48 px visiera e occhi devono restare riconoscibili; i ricami piccoli possono sparire. Non aggiungere glow, texture rumorose, fondali personali, scritte incorporate o icone Bitcoin al posto del corpo.
 
-Le card di brand esistenti usano un nero quasi puro e un lettering pesante. Le nuove card di prodotto usano il layout Bitcode, titoli 400/500 e label mono. È un adattamento della presentazione, non una sostituzione dei personaggi.
+Le card di brand esistenti usano un nero quasi puro e un lettering pesante. Le nuove card di prodotto usano il layout bitcode, titoli 400/500 e label mono. È un adattamento della presentazione, non una sostituzione dei personaggi.
 
 ### Specifica di produzione
 
@@ -304,7 +304,7 @@ Il flag è opt-in e valido in modalità interattiva. `--sats` insieme a `-p`/pro
 
 ### Layout
 
-1. Header: marchio Bitcode, etichetta Sats, network e stato del collegamento. Il network proviene dal runtime; nessun block height o nodo “synced” fittizio.
+1. Header: marchio bitcode, etichetta Sats, network e stato del collegamento. Il network proviene dal runtime; nessun block height o nodo “synced” fittizio.
 2. Quattro card: PNG trasparente, nome, ruolo, stato testuale e ultima operazione sicura. La selezione di una card filtra il dettaglio, non avvia una delega.
 3. Timeline: eventi del Sat selezionato, timestamp/durata e pill dei tool coerenti con `stageForTool()`. Indicare chiaramente anche parent e persona custom quando coinvolti.
 4. Attesa di approvazione: area che dice “Conferma nel terminale” con nome del tool. Il browser non contiene pulsanti di approvazione nell'MVP.
@@ -413,7 +413,7 @@ Test visuali: effettuare screenshot nei tre viewport con pose statiche, controll
 
 ## 11. Materiali allegati e limiti dell'anteprima
 
-- `Sats_Bitcode_Anteprima.png`: composizione dei personaggi attuali nel design Bitcode. Gli stati visualizzati sono dimostrativi, non letti da un agente.
+- `Sats_Bitcode_Anteprima.png`: composizione dei personaggi attuali nel design bitcode. Gli stati visualizzati sono dimostrativi, non letti da un agente.
 - `Sats_Bitcode_Anteprima.html`: anteprima autonoma, senza richieste di rete, con scelta del Sat e dello stato. Riutilizza gli idle e muove solo il corpo: non contiene ancora le nuove espressioni.
 - `Sats_Bitcode_Contratti.json`: proposta v1 del registro, delle policy, delle pose, degli stati e dei budget; i percorsi degli asset futuri sono specifiche, non file già esistenti nel repository.
 
@@ -431,7 +431,7 @@ Questo pacchetto pianifica l'implementazione e consente di rivedere l'aspetto. N
 - [Loader Markdown](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/src/markdown-config.mjs)
 - [Token e mappatura delle attività](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/src/theme.mjs)
 - [Design system](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/bitcode%20design%20system/Bitcoin%20Design%20System.dc.html)
-- [Proposta visiva Bitcode](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/bitcode%20design%20system/Bitcode.dc.html)
+- [Proposta visiva bitcode](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/bitcode%20design%20system/bitcode.dc.html)
 - [Invoice Lightning e mutating flag](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/src/lightning/tools.mjs)
 - [Provider e streaming attuale](https://github.com/bc1edi/bitcode/blob/e79a7073d8fb7533928ecb7ebb6d2ef2c0b6f5da/src/providers.mjs)
 

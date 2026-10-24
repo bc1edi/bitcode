@@ -1,5 +1,24 @@
 # Changelog
 
+## Unreleased
+
+### Brand
+
+- One brand source in `brand/`: tokens generate the site, desktop, `/sats` and
+  CLI colors; official logo files, design system page, Sats profiles and the
+  social kit. The pixel "b" replaces the lightning bolt in `/sats` and in the
+  demo videos.
+- The name is always lowercase: **bitcode**. The desktop product name follows,
+  so new `.deb` installs go to `/opt/bitcode` instead of `/opt/Bitcode`;
+  `bitcode desktop` still finds an existing 0.2 install.
+- Site: `favicon.ico`, touch icon, 192/512 px icons and a web manifest.
+
+### Repository
+
+- Runtime Markdown moved to `content/` (agents, commands, Sats); the website
+  lives in `site/` and Vercel serves `site/public/`; completed plans are in
+  `docs/archive/`.
+
 ## CLI 0.3.0 · Desktop 0.2.0 — 2026-10-19
 
 ### Desktop (Linux)

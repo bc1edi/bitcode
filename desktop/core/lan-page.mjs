@@ -1,22 +1,25 @@
 // The phone page served by LAN access: login, chat list, one chat, send box.
 // Plain DOM APIs only; text always goes through textContent, never innerHTML.
+import { BRAND, THEME } from '../../src/design-tokens.mjs';
+const D = THEME.dark;
+
 export const LAN_PAGE = `<!doctype html>
 <html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Bitcode</title>
+<title>bitcode</title>
 <style>
-:root { color-scheme: dark; --bg:#0b0e11; --card:#1e2329; --ink:#fff; --muted:#929aa5; --line:#2b3139; --accent:#f7931a; }
+:root { color-scheme: dark; --bg:${D.canvas}; --card:${D.card}; --ink:${D.ink}; --muted:${D.body}; --line:${D.hairline}; --accent:${BRAND.accent}; }
 * { box-sizing: border-box; } body { margin:0; font:15px/1.45 system-ui, sans-serif; background:var(--bg); color:var(--ink); }
 header { position:sticky; top:0; display:flex; gap:8px; align-items:center; padding:12px 16px; background:var(--bg); border-bottom:1px solid var(--line); }
 header b { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } main { padding:12px 16px 120px; }
 button, input, textarea { font:inherit; } button { background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:8px 12px; }
-button.primary { background:var(--accent); color:#181a20; border:0; font-weight:600; }
+button.primary { background:var(--accent); color:${BRAND.onAccent}; border:0; font-weight:600; }
 input, textarea { width:100%; background:var(--card); color:var(--ink); border:1px solid var(--line); border-radius:8px; padding:10px; }
 .row { display:block; width:100%; text-align:left; margin-bottom:8px; } .muted { color:var(--muted); font-size:13px; }
-.msg { margin:10px 0; padding:10px 12px; border-radius:10px; white-space:pre-wrap; word-break:break-word; } .user { background:#2b3139; margin-left:20%; } .assistant { background:var(--card); }
+.msg { margin:10px 0; padding:10px 12px; border-radius:10px; white-space:pre-wrap; word-break:break-word; } .user { background:${D.elevated}; margin-left:20%; } .assistant { background:var(--card); }
 form.send { position:fixed; left:0; right:0; bottom:0; display:flex; gap:8px; padding:12px 16px; background:var(--bg); border-top:1px solid var(--line); }
-.err { color:#f6465d; margin:8px 0; } .note { border:1px solid var(--line); border-radius:10px; padding:10px; margin:10px 0; color:var(--muted); }
+.err { color:${D.down}; margin:8px 0; } .note { border:1px solid var(--line); border-radius:10px; padding:10px; margin:10px 0; color:var(--muted); }
 </style></head>
-<body><header><button id="back" hidden>‹</button><b id="title">Bitcode</b><button id="logout" hidden>Esci</button></header><main id="main"></main>
+<body><header><button id="back" hidden>‹</button><b id="title">bitcode</b><button id="logout" hidden>Esci</button></header><main id="main"></main>
 <script src="/app.js"></script></body></html>`;
 
 export const LAN_SCRIPT = `'use strict';
@@ -31,7 +34,7 @@ async function call(path, body) {
   return data;
 }
 function login(message) {
-  clearInterval(timer); current = null; back.hidden = true; logoutBtn.hidden = true; title.textContent = 'Bitcode';
+  clearInterval(timer); current = null; back.hidden = true; logoutBtn.hidden = true; title.textContent = 'bitcode';
   const pass = el('input', { type: 'password', placeholder: 'Password', autocomplete: 'current-password' });
   const form = el('form', {}, pass, el('p'), el('button', { className: 'primary', type: 'submit', textContent: 'Entra' }), message ? el('p', { className: 'err', textContent: message }) : '');
   form.onsubmit = async e => { e.preventDefault(); try { await call('/api/login', { password: pass.value }); list(); } catch (err) { login(err.message); } };
@@ -47,8 +50,8 @@ async function render() {
   title.textContent = s.name;
   const items = s.messages.filter(m => m.content).map(m => el('div', { className: 'msg ' + m.role, textContent: m.content }));
   if (s.pending) items.push(el('div', { className: 'note', textContent: s.pending + ' richiesta/e in attesa: approva o rifiuta sul desktop.' }));
-  if (s.active) items.push(el('div', { className: 'muted', textContent: 'Bitcode sta lavorando…' }));
-  const text = el('textarea', { rows: 2, placeholder: 'Scrivi a Bitcode…' }), form = el('form', { className: 'send' }, text, el('button', { className: 'primary', type: 'submit', textContent: '↑' }));
+  if (s.active) items.push(el('div', { className: 'muted', textContent: 'bitcode sta lavorando…' }));
+  const text = el('textarea', { rows: 2, placeholder: 'Scrivi a bitcode…' }), form = el('form', { className: 'send' }, text, el('button', { className: 'primary', type: 'submit', textContent: '↑' }));
   form.onsubmit = async e => { e.preventDefault(); if (!text.value.trim()) return; try { await call('/api/send', { sessionId: current, text: text.value }); text.value = ''; render(); } catch (err) { alert(err.message); } };
   main.replaceChildren(...items, form); window.scrollTo(0, document.body.scrollHeight);
 }

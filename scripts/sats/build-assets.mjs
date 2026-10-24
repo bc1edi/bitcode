@@ -1,5 +1,6 @@
 // Development-only asset build. Install sharp locally or set SATS_SHARP_MODULE.
 // Runtime consumes committed outputs and never runs this script.
+import { SAT, THEME } from "../../src/design-tokens.mjs";
 import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import fs from "node:fs/promises";
@@ -11,10 +12,10 @@ const root = fileURLToPath(new URL("../../", import.meta.url));
 const base = path.join(root, "assets/sats");
 const poses = ["idle", "focus", "working", "ask", "happy", "concerned"];
 const agents = [
-  { id: "node", name: "Node", role: "Infrastruttura Bitcoin", color: "#3297ff" },
-  { id: "script", name: "Script", role: "Implementazione", color: "#f7931a" },
-  { id: "hash", name: "Hash", role: "Analisi di sicurezza", color: "#b6f500" },
-  { id: "merkle", name: "Merkle", role: "Orchestrazione", color: "#c96bff" },
+  { id: "node", name: "Node", role: "Infrastruttura Bitcoin", color: SAT.node },
+  { id: "script", name: "Script", role: "Implementazione", color: SAT.script },
+  { id: "hash", name: "Hash", role: "Analisi di sicurezza", color: SAT.hash },
+  { id: "merkle", name: "Merkle", role: "Orchestrazione", color: SAT.merkle },
 ];
 const blank = (width, height) =>
   sharp({
@@ -156,14 +157,14 @@ for (const agent of agents) {
   if ((await fs.stat(gif)).size > 2 * 1024 * 1024)
     throw new Error(`GIF budget exceeded: ${agent.id}`);
   await fs.copyFile(gif, path.join(dir, "working.gif"));
-  // Product brand cards use actual Bitcode tokens. Lettering remains separate from the mascot.
+  // Product brand cards use actual bitcode tokens. Lettering remains separate from the mascot.
   const pose = await sharp(path.join(dir, "masters/idle-1024.png"))
     .resize(820, 820)
     .png()
     .toBuffer();
   for (const [theme, bg, ink, body] of [
-    ["light", "#f7f7f4", "#26251e", "#5a5852"],
-    ["ink", "#26251e", "#f7f7f4", "#cfcdc4"],
+    ["light", THEME.light.canvas, THEME.light.ink, THEME.light.body],
+    ["ink", THEME.light.ink, THEME.light.canvas, THEME.light.hairlineStrong],
   ]) {
     const svg = Buffer.from(
       `<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="1280"><rect width="1280" height="1280" fill="${bg}"/><text x="72" y="108" fill="${ink}" font-family="Inter,Arial,sans-serif" font-size="54" font-weight="400">sats</text><text x="206" y="104" fill="${body}" font-family="monospace" font-size="24">by bitcode</text><text x="640" y="1100" text-anchor="middle" fill="${ink}" font-family="Inter,Arial,sans-serif" font-size="76" font-weight="400">${agent.name}</text><text x="640" y="1160" text-anchor="middle" fill="${body}" font-family="monospace" font-size="26">${agent.role}</text></svg>`,

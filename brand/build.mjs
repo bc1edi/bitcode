@@ -135,7 +135,8 @@ const site = {
   '--hairline': L.hairlineStrong, '--ink': L.ink, '--body': L.body, '--muted': L.muted, '--muted-soft': L.mutedSoft,
   '--success': L.up, '--pending': tx.pending, '--relayed': tx.relayed, '--mempool': tx.mempool,
   '--confirming': tx.confirming, '--confirmed': tx.confirmed,
-  '--mono': tokens.font.mono, '--radius': tokens.shape.radius, '--page-width': tokens.shape.pageWidth
+  '--mono': tokens.font.mono, '--radius': tokens.shape.radius, '--page-width': tokens.shape.pageWidth,
+  ...Object.fromEntries(Object.entries(sats).map(([k, v]) => [`--sat-${k}`, v]))
 };
 inject('site/public/assets/site/base.css', `    :root {\n${decl(site, '      ')}\n    }\n`);
 const contractPath = join(repo, 'site/src/design-contract.json');
@@ -201,7 +202,33 @@ ${js(tx)}
 export const SAT = Object.freeze({
 ${js(sats)}
 });
+// Full light and dark themes plus the mark colors, for code that cannot read CSS variables
+// (Electron window background, xterm, the LAN phone page, icon and asset generators).
+export const BRAND = Object.freeze({
+${js({ accent: tokens.color.accent, accentActive: tokens.color.accentActive, onAccent: tokens.color.onAccent, markBase: tokens.color.markBase })}
+});
+export const THEME = Object.freeze({
+  light: Object.freeze({
+${js(L).replace(/^/gm, '  ')}
+  }),
+  dark: Object.freeze({
+${js(D).replace(/^/gm, '  ')}
+  }),
+});
 `);
+
+// web app manifest for the site (Vercel serves only site/public)
+const manifest = {
+  name: tokens.brand.name, short_name: tokens.brand.name, description: tokens.brand.taglines.en,
+  start_url: '/', display: 'standalone', background_color: D.canvas, theme_color: L.canvas,
+  icons: [
+    { src: '/icon-192.png', sizes: '192x192', type: 'image/png' },
+    { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+    { src: '/assets/site/bitcode.svg', sizes: 'any', type: 'image/svg+xml' }
+  ]
+};
+const manifestPath = join(repo, 'site/public/site.webmanifest'), manifestText = JSON.stringify(manifest, null, 2) + '\n';
+if (check) { if (!existsSync(manifestPath) || readFileSync(manifestPath, 'utf8') !== manifestText) stale.push('site/public/site.webmanifest'); } else writeFileSync(manifestPath, manifestText);
 
 // design system page: tokens and Sat profiles inlined so the page also works from file://
 const profiles = ['node', 'script', 'hash', 'merkle'].map(id => JSON.parse(readFileSync(join(root, `mascots/profiles/${id}.json`), 'utf8')));

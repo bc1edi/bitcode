@@ -1,8 +1,8 @@
-# Bitcode Desktop: workbench
+# bitcode Desktop: workbench
 
-Stato delle funzioni del workbench di Bitcode Desktop: chat, pannelli di
+Stato delle funzioni del workbench di bitcode Desktop: chat, pannelli di
 progetto, pagine e integrazione con il sistema. Tutto è scritto per i vincoli
-di Bitcode: worker isolato in bubblewrap, approvazioni sempre nella finestra,
+di bitcode: worker isolato in bubblewrap, approvazioni sempre nella finestra,
 pagamenti solo su rete di test, modelli locali come prima scelta. Solo Linux.
 
 ## Stato
@@ -11,7 +11,7 @@ Legenda: ✅ fatto · 🔜 prossima ondata · 🧭 più avanti · ⛔ escluso o 
 
 ### Shell desktop (Linux)
 
-| Funzione | In Bitcode | Stato |
+| Funzione | In bitcode | Stato |
 |---|---|---|
 | Avvio all'accesso, chiusura nel tray | Impostazioni → Sistema, `--hidden` | ✅ |
 | Tray con sessioni e richieste | Tray con attività e richieste (approvazione solo in finestra) | ✅ |
@@ -24,7 +24,7 @@ Legenda: ✅ fatto · 🔜 prossima ondata · 🧭 più avanti · ⛔ escluso o 
 
 ### Chat e sessioni
 
-| Funzione | In Bitcode | Stato |
+| Funzione | In bitcode | Stato |
 |---|---|---|
 | Draft starters | Suggerimenti di coding + Bitcoin (wallet di test, sessione RGB) | ✅ |
 | Command palette (Ctrl+P) | Azioni, pannelli, progetti, chat, archivio, comandi `/` | ✅ |
@@ -40,11 +40,11 @@ Legenda: ✅ fatto · 🔜 prossima ondata · 🧭 più avanti · ⛔ escluso o 
 | Skill `$`, snippet `#` | `$skill` aggiunge le istruzioni della skill al messaggio; `#nome` inserisce uno snippet | ✅ |
 | Goal di sessione | ◎ nel composer; aggiunto alle istruzioni di ogni esecuzione | ✅ |
 | Multirun (stesso prompt a più modelli) | ⚖ Confronta modelli: chat parallele in modalità manuale, risposte affiancate | ✅ |
-| Dettatura vocale | 🎙 nel composer: microfono → modello di trascrizione scelto in Impostazioni (compatibile OpenAI, anche locale); permesso solo audio per le finestre di Bitcode | ✅ (adattato) |
+| Dettatura vocale | 🎙 nel composer: microfono → modello di trascrizione scelto in Impostazioni (compatibile OpenAI, anche locale); permesso solo audio per le finestre di bitcode | ✅ (adattato) |
 
 ### Pannelli di progetto
 
-| Funzione | In Bitcode | Stato |
+| Funzione | In bitcode | Stato |
 |---|---|---|
 | Files, Git, Terminale | Già presenti | ✅ |
 | Changes (diff per file espandibile) | Pannello Modifiche | ✅ |
@@ -56,7 +56,7 @@ Legenda: ✅ fatto · 🔜 prossima ondata · 🧭 più avanti · ⛔ escluso o 
 
 ### Pagine e impostazioni
 
-| Funzione | In Bitcode | Stato |
+| Funzione | In bitcode | Stato |
 |---|---|---|
 | Stats (periodo, progetto, modello) | Statistiche da un registro locale delle esecuzioni | ✅ |
 | Impostazioni con barra laterale e ricerca | Indice delle sezioni + filtro | ✅ |

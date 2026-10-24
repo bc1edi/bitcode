@@ -6,6 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { bitcodeHome } from '../src/paths.mjs';
+import { THEME } from '../src/design-tokens.mjs';
 import { loadAgents } from '../src/agents.mjs';
 import { createController, fileVersion } from './core/controller.mjs';
 import { probeSandbox, spawnWorker } from './core/sandbox.mjs';
@@ -70,7 +71,7 @@ async function openPty({ projectId }) {
   term.onExit(({ exitCode }) => { ptys.delete(ptyId); send('pty', { ptyId, exit: exitCode }); });
   return { ptyId, shell };
 }
-// Remote access goes over the user's own SSH: a terminal running `ssh -t <host> bitcode`. No server is exposed by Bitcode.
+// Remote access goes over the user's own SSH: a terminal running `ssh -t <host> bitcode`. No server is exposed by bitcode.
 const SSH_HOST = /^(?!-)[A-Za-z0-9._@-]{1,120}$/;
 const sshHostsFile = path.join(home, 'desktop', 'ssh.json');
 function sshConfigHosts() {
@@ -174,7 +175,7 @@ function watchRenderer(w) {
     if (step === 'reload') return setTimeout(() => { if (!w.isDestroyed()) w.webContents.reload(); }, 100);
     if (step !== 'stop') return;
     const { response } = await dialog.showMessageBox({ type: 'error', buttons: ['Ricarica', 'Esci'], defaultId: 0, cancelId: 1,
-      message: 'La finestra di Bitcode continua a chiudersi', detail: `Motivo: ${reason}. Le attività in corso proseguono nel processo principale.` });
+      message: 'La finestra di bitcode continua a chiudersi', detail: `Motivo: ${reason}. Le attività in corso proseguono nel processo principale.` });
     if (response === 0 && !w.isDestroyed()) { policy.reset(); w.webContents.reload(); } else quit();
   });
 }
@@ -182,7 +183,7 @@ function watchRenderer(w) {
 function createWindow({ visible = true } = {}) {
   let saved = null; try { saved = restoreBounds(loadJSON(windowFile, null), screen.getAllDisplays().map(d => d.workArea)); } catch {}
   win = new BrowserWindow({ width: saved?.width || 1440, height: saved?.height || 900, ...(saved ? { x: saved.x, y: saved.y } : {}), minWidth: MIN_WINDOW.width, minHeight: MIN_WINDOW.height, show: visible,
-    title: 'Bitcode', backgroundColor: '#f7f7f4', icon: path.join(appDir, 'ui', 'icon.png'),
+    title: 'bitcode', backgroundColor: THEME.light.canvas, icon: path.join(appDir, 'ui', 'icon.png'),
     webPreferences: { preload: path.join(appDir, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, spellcheck: false } });
   if (saved?.maximized) win.maximize();
   win.setMenuBarVisibility(false);
@@ -214,7 +215,7 @@ function updateTray() {
   const activity = () => { show(); send('navigate', { view: 'activity' }); };
   tray.setToolTip(model.tooltip);
   tray.setContextMenu(Menu.buildFromTemplate([
-    { label: win?.isVisible() ? 'Nascondi Bitcode' : 'Apri Bitcode', click: toggle },
+    { label: win?.isVisible() ? 'Nascondi bitcode' : 'Apri bitcode', click: toggle },
     { label: 'Nuova mini chat', click: () => openMiniChat() },
     { type: 'separator' },
     ...(model.approvals.length ? [{ label: 'Richieste in attesa', enabled: false }, ...model.approvals.map(a => ({ label: a.label, click: activity })),
@@ -341,7 +342,7 @@ const mainMethods = {
 // ---- mini chats: small windows on the same trusted UI, optionally kept on top ----
 function openMiniChat({ projectId, sessionId } = {}) {
   const area = screen.getDisplayNearestPoint(screen.getCursorScreenPoint()).workArea;
-  const w = new BrowserWindow({ width: 460, height: 660, x: area.x + area.width - 480, y: area.y + 40, minWidth: 360, minHeight: 420, title: 'Bitcode · mini chat', backgroundColor: '#0b0e11', icon: path.join(appDir, 'ui', 'icon.png'),
+  const w = new BrowserWindow({ width: 460, height: 660, x: area.x + area.width - 480, y: area.y + 40, minWidth: 360, minHeight: 420, title: 'bitcode · mini chat', backgroundColor: THEME.dark.canvas, icon: path.join(appDir, 'ui', 'icon.png'),
     webPreferences: { preload: path.join(appDir, 'preload.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false, webSecurity: true, spellcheck: false } });
   w.setMenuBarVisibility(false);
   w.webContents.on('will-navigate', e => e.preventDefault());
@@ -394,7 +395,7 @@ ipcMain.handle('bitcode:invoke', async (event, message) => {
 });
 
 app.whenReady().then(() => {
-  // Only the microphone, only for Bitcode's own windows (dictation); everything else stays denied.
+  // Only the microphone, only for bitcode's own windows (dictation); everything else stays denied.
   const micOnly = (wc, permission, details) => permission === 'media' && trusted().some(w => w.webContents === wc) && (details?.mediaTypes || []).every(t => t === 'audio') && (details?.mediaTypes || []).length > 0;
   electronSession.defaultSession.setPermissionRequestHandler((wc, permission, cb, details) => cb(micOnly(wc, permission, details)));
   electronSession.defaultSession.setPermissionCheckHandler((wc, permission, _origin, details) => permission === 'media' && trusted().some(w => w.webContents === wc) && details?.mediaType === 'audio');
@@ -403,8 +404,8 @@ app.whenReady().then(() => {
     spawnWorker: opts => spawnWorker({ ...opts, runtime: process.execPath }),
     emit: (channel, payload) => {
       send(channel, payload);
-      if (channel === 'approval' && payload.status === 'pending' && controller.settings().notifyApprovals) notify('Bitcode · approvazione richiesta', `${payload.subject?.project || ''} · ${payload.kind}`, { view: 'activity' });
-      if (channel === 'run' && ['success', 'error', 'interrupted'].includes(payload.state) && controller.settings().notifyRuns) notify(`Bitcode · attività ${payload.state === 'success' ? 'completata' : 'terminata con errore'}`, payload.prompt.slice(0, 60), { view: 'chat', sessionId: payload.sessionId });
+      if (channel === 'approval' && payload.status === 'pending' && controller.settings().notifyApprovals) notify('bitcode · approvazione richiesta', `${payload.subject?.project || ''} · ${payload.kind}`, { view: 'activity' });
+      if (channel === 'run' && ['success', 'error', 'interrupted'].includes(payload.state) && controller.settings().notifyRuns) notify(`bitcode · attività ${payload.state === 'success' ? 'completata' : 'terminata con errore'}`, payload.prompt.slice(0, 60), { view: 'chat', sessionId: payload.sessionId });
       if (channel === 'run' || channel === 'approval') updateTray();
     } });
   controller.invoke('project.list').then(list => list.forEach(watchProject));

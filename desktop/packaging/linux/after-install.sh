@@ -1,5 +1,5 @@
 #!/bin/bash
-# Debian postinst for Bitcode. electron-builder fills in the quoted paths and
+# Debian postinst for bitcode. electron-builder fills in the quoted paths and
 # treats every dollar-brace as a macro, so shell variables use plain $NAME.
 
 APP_DIR='/opt/${sanitizedProductName}'
@@ -26,7 +26,7 @@ chmod 0755 "$CLI_BIN" || true
 if { [ ! -e /usr/bin/bitcode ] && [ ! -L /usr/bin/bitcode ]; } || [ "$(readlink /usr/bin/bitcode)" = /etc/alternatives/bitcode ]; then
     link_command bitcode "$CLI_BIN"
 else
-    echo "Bitcode: /usr/bin/bitcode belongs to another installation; the bundled CLI stays at $CLI_BIN"
+    echo "bitcode: /usr/bin/bitcode belongs to another installation; the bundled CLI stays at $CLI_BIN"
 fi
 
 # chrome-sandbox needs SUID only where unprivileged user namespaces are unavailable.
@@ -51,7 +51,7 @@ if apparmor_status --enabled >/dev/null 2>&1; then
             apparmor_parser --replace --write-cache --skip-read-cache "$PROFILE_TARGET"
         fi
     else
-        echo "Bitcode: this AppArmor version does not support the bundled profile; skipping it"
+        echo "bitcode: this AppArmor version does not support the bundled profile; skipping it"
     fi
 fi
 exit 0

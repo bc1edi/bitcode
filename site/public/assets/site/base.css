@@ -21,6 +21,10 @@
       --mono: 'JetBrains Mono', ui-monospace, monospace;
       --radius: 12px;
       --page-width: 1200px;
+      --sat-node: #3297ff;
+      --sat-script: #f7931a;
+      --sat-hash: #b6f500;
+      --sat-merkle: #c96bff;
     }
 /* brand:end */
     *, *::before, *::after { box-sizing: border-box; }

@@ -1,4 +1,4 @@
-# Analisi del piano Phase 1 per Bitcode
+# Analisi del piano Phase 1 per bitcode
 
 Questa revisione riguarda il piano `1.0.0`. Le correzioni sono state incorporate il 19 ottobre 2026 in [PHASE1_DESIGN.md](PHASE1_DESIGN.md) versione `1.1.0`, che è il riferimento per l'implementazione successiva. Le osservazioni sul testo originario restano qui come motivazione delle decisioni.
 
@@ -90,7 +90,7 @@ Un override umano non deve trasformare un pagamento sconosciuto in fondi nuovame
 | Socket `0600` del nuovo utente isolato | Il normale processo CLI, con un altro UID, non avrebbe accesso al socket su Linux | Definire ACL/gruppo controllato o un broker e verificare le identità dei peer. Rendere il socket utilizzabile non deve dare accesso ai segreti. [unix(7)](https://man7.org/linux/man-pages/man7/unix.7.html) |
 | mTLS + HMAC + fingerprint | Non sono definiti provisioning, distribuzione, rotazione, revoca, framing o protezione dai replay | Precisare quali minacce copra ogni meccanismo. L'autenticazione del client resta separata dall'approvazione del pagamento |
 | Ledger UTXO per Bitcoin e Lightning | Il lifecycle dei pagamenti Lightning non coincide con il coin selection on-chain | Ledger applicativo di operazioni/prenotazioni con adapter specifici; UTXO solo dove pertinenti |
-| LND come unico backend | Non copre automaticamente il PSBT del wallet Bitcode attuale | Scegliere esplicitamente lo scope dei rail e preservare il percorso Bitcoin con una migrazione documentata |
+| LND come unico backend | Non copre automaticamente il PSBT del wallet bitcode attuale | Scegliere esplicitamente lo scope dei rail e preservare il percorso Bitcoin con una migrazione documentata |
 | Riserva di 800 sats | Non sono specificati account, saldo confermato/spendibile o liquidità in uscita | Policy esplicita per account/asset; sottrarre fee e prenotazioni. Giustificare 800 come valore scelto, senza attribuirlo alla baseline |
 | Budget giornaliero | Manca il valore del limite; «24 ore rolling» cambia la finestra UTC a giorno calendario attuale | Parametro obbligatorio, timestamp di addebito definito, fee incluse e regole per pending/unknown. Testare cambio giorno, 24 ore e variazioni dell'orologio |
 | Fee 5% / 1.000 sats | Denominatore, arrotondamento e precisione non sono esplicitati | Definire, per esempio, `fee_max_sats = min(floor(amount_sats / 20), 1000)` se il riferimento è l'importo inviato; distinguere limite approvato e costo effettivo. Per Lightning disciplinare i millisatoshi |
@@ -106,7 +106,7 @@ Gli scenari sono una base, non ancora una dimostrazione completa degli invariant
 
 | Scenario | Completamento necessario |
 | --- | --- |
-| SC-01 | Stabilire se il rifiuto senza flag valga per il solo executor protetto o per ogni percorso Bitcode; includere CLI, API dirette, desktop e strumenti legacy nel perimetro dichiarato |
+| SC-01 | Stabilire se il rifiuto senza flag valga per il solo executor protetto o per ogni percorso bitcode; includere CLI, API dirette, desktop e strumenti legacy nel perimetro dichiarato |
 | SC-02 | Confine esatto di 800, fee incluse, saldo non spendibile, prenotazioni e due richieste concorrenti |
 | SC-03 | Entrambi i tetti, uguaglianza, arrotondamenti, precisione e variazione della fee dopo la review |
 | SC-04 | UID non autorizzato, credenziale revocata, replay e tentativo di accesso diretto a wallet/LND |

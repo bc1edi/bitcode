@@ -150,7 +150,7 @@ Usage:
   bitcode mcp                         inspect MCP connections
   bitcode config                     print the config file path
   bitcode doctor                     print a diagnostics report
-  bitcode desktop                    open the Bitcode desktop app, if installed
+  bitcode desktop                    open the bitcode desktop app, if installed
   bitcode wallet seed                reveal the wallet's mnemonic (human only)
   bitcode finance status             show protected signet/testnet proposals
   bitcode finance policy <payment> <daily> <fee> <reserve>  set limits in sats
@@ -312,7 +312,7 @@ export async function main(argv) {
     assertFinanceModel(target);
     const ctx = resolveNetwork(config);
     const messages = [{ role: "user", content: opts.prompt }];
-    const system = `You are Bitcode's local financial proposal assistant on Bitcoin ${ctx.name}. You can inspect policy and prepare unsigned proposals only. Never claim a payment has been sent. For execution, tell the human to review and run bitcode finance execute <proposal-id> in an interactive terminal. Do not ask for seeds, keys, macaroons or credentials.`;
+    const system = `You are bitcode's local financial proposal assistant on Bitcoin ${ctx.name}. You can inspect policy and prepare unsigned proposals only. Never claim a payment has been sent. For execution, tell the human to review and run bitcode finance execute <proposal-id> in an interactive terminal. Do not ask for seeds, keys, macaroons or credentials.`;
     const tools = financeAgentTools(config, root);
     const answer = await runWithInterrupt({ target, system, messages, tools, fallbacks: [], hooks: { approve: () => true }, limits: agentLimits(config), readOnly: opts.readOnly });
     if (opts.json) return printData({ status: "completed", answer, payment_status: "not_sent", model: target.spec, profile: "finance", events: messages.filter(m => m.role === "tool").map(m => ({ name: m.name, result: m.content })) }, opts);

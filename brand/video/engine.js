@@ -105,7 +105,7 @@
     const gr = g.createRadialGradient(240, 124, 40, 240, 124, 300); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(.62, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(0,0,0,.55)');
     g.fillStyle = gr; g.fillRect(0, 0, 480, 270); $id('vignette').style.backgroundImage = `url(${c.toDataURL()})`; })();
 
-  // ---- intro logo (the Bitcode pixel "b") ----
+  // ---- intro logo (the bitcode pixel "b") ----
   const NS = 'http://www.w3.org/2000/svg';
   const PIECES = [[0, 0, 1, 4], [1, 0, 2, 1], [2, 1, 1, 1], [1, 2, 1, 1], [3, 2, 1, 2], [0, 4, 2, 1]];
   const logoSvg = $id('intro-logo');

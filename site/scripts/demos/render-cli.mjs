@@ -7,6 +7,12 @@ import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { BRAND, STAGE, THEME } from '../../../src/design-tokens.mjs';
+
+const MARK = await readFile(new URL('../../../brand/logo/mark.svg', import.meta.url), 'utf8');
+
+// xterm runs inside the page, so its theme is computed here and passed to page.evaluate.
+const XTERM_THEME = { background: THEME.light.card, foreground: THEME.light.ink, cursor: BRAND.accent, cursorAccent: THEME.light.card, black: THEME.light.ink, white: THEME.light.body, brightBlack: THEME.light.muted, brightWhite: THEME.light.ink };
 const repo = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../..');
 const input = path.resolve(process.argv[2] || '/tmp/bitcode-cli-recordings');
 const tooling = process.env.BITCODE_VIDEO_TOOLS || '/tmp/bitcode-video-tools';
@@ -65,12 +71,12 @@ function markup(capture, vertical) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>
   @font-face{font-family:JB;src:url(data:font/ttf;base64,${font})} @font-face{font-family:JB;src:url(data:font/ttf;base64,${boldFont});font-weight:600}
   ${xtermCSS}
-  *{box-sizing:border-box}body{margin:0;width:${vertical ? 1080 : 1920}px;height:${vertical ? 1920 : 1080}px;background:#f7f7f4;color:#26251e;font-family:JB,monospace;padding:${vertical ? '220px 60px 310px' : '38px 64px 32px'};display:flex;flex-direction:column}
-  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:30px}.brand{font-size:${vertical ? 34 : 30}px;font-weight:600}.brand span{color:#f7931a}.eyebrow{font-size:18px;color:#5a5852;letter-spacing:2px}h1{font:400 ${vertical ? 42 : 36}px/1.25 JB;letter-spacing:-1.7px;margin:0 0 12px}.subtitle{font-size:20px;color:#5a5852;margin-bottom:22px}
-  .window{background:white;border:1px solid #cfcdc4;border-radius:12px;overflow:hidden;box-shadow:0 18px 50px -30px #26251e35}.bar{height:48px;background:#fafaf7;border-bottom:1px solid #e6e5e0;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:17px;color:#5a5852}.dots{display:flex;gap:8px}.dots i{width:10px;height:10px;border-radius:50%;background:#dfa88f}.dots i:nth-child(2){background:#9fc9a2}.dots i:nth-child(3){background:#9fbbe0}
+  *{box-sizing:border-box}body{margin:0;width:${vertical ? 1080 : 1920}px;height:${vertical ? 1920 : 1080}px;background:${THEME.light.canvas};color:${THEME.light.ink};font-family:JB,monospace;padding:${vertical ? '220px 60px 310px' : '38px 64px 32px'};display:flex;flex-direction:column}
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:30px}.brand{font-size:${vertical ? 34 : 30}px;font-weight:600}.brand{display:flex;align-items:center;gap:.45em}.brand svg{height:.95em;width:auto}.eyebrow{font-size:18px;color:${THEME.light.body};letter-spacing:2px}h1{font:400 ${vertical ? 42 : 36}px/1.25 JB;letter-spacing:-1.7px;margin:0 0 12px}.subtitle{font-size:20px;color:${THEME.light.body};margin-bottom:22px}
+  .window{background:white;border:1px solid ${THEME.light.hairlineStrong};border-radius:12px;overflow:hidden;box-shadow:0 18px 50px -30px #26251e35}.bar{height:48px;background:${THEME.light.surface};border-bottom:1px solid ${THEME.light.hairline};display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:17px;color:${THEME.light.body}}.dots{display:flex;gap:8px}.dots i{width:10px;height:10px;border-radius:50%;background:${STAGE.pending}}.dots i:nth-child(2){background:${STAGE.relayed}}.dots i:nth-child(3){background:${STAGE.mempool}}
   #terminal{padding:${vertical ? '20px 22px' : '16px 24px'};height:${vertical ? 1010 : 730}px}.xterm-viewport::-webkit-scrollbar{width:0}.xterm .xterm-scrollable-element>.scrollbar{display:none!important}.xterm{font-variant-ligatures:none}
-  .caption{font-size:${vertical ? 25 : 23}px;line-height:1.45;min-height:${vertical ? 110 : 54}px;margin-top:23px;color:#5a5852}.footer{display:flex;justify-content:space-between;gap:24px;margin-top:auto;font-size:${vertical ? 16 : 16}px;color:#5a5852}.progress{height:3px;background:#e6e5e0;margin:10px 0 15px}.progress div{height:100%;background:#f7931a;width:0}
-  </style></head><body><header><div class="brand"><span>⚡</span> bitcode</div><div class="eyebrow">${String(ids.indexOf(capture.id)+1).padStart(2,'0')} / ${capture.id.toUpperCase()}</div></header>
+  .caption{font-size:${vertical ? 25 : 23}px;line-height:1.45;min-height:${vertical ? 110 : 54}px;margin-top:23px;color:${THEME.light.body}}.footer{display:flex;justify-content:space-between;gap:24px;margin-top:auto;font-size:${vertical ? 16 : 16}px;color:${THEME.light.body}}.progress{height:3px;background:${THEME.light.hairline};margin:10px 0 15px}.progress div{height:100%;background:${BRAND.accent};width:0}
+  </style></head><body><header><div class="brand">${MARK}bitcode</div><div class="eyebrow">${String(ids.indexOf(capture.id)+1).padStart(2,'0')} / ${capture.id.toUpperCase()}</div></header>
   ${vertical ? `<h1>${esc(capture.title)}</h1><div class="subtitle">${esc(capture.subtitle)}</div>` : ''}
   <div class="window"><div class="bar"><span class="dots"><i></i><i></i><i></i></span><span>bitcode · terminal walkthrough</span><span>v${esc(capture.version)}</span></div><div id="terminal"></div></div>
   <div class="caption" id="caption"></div><div class="progress"><div id="progress"></div></div><div class="footer"><span>${esc(capture.note)}</span><span>${capture.recordedAt.slice(0,10)}</span></div>
@@ -147,11 +153,11 @@ try {
       await page.setViewportSize({ width, height });
       await page.setContent(markup(capture, vertical));
       await page.addScriptTag({ content: xtermScript });
-      const size = await page.evaluate(async vertical => {
+      const size = await page.evaluate(async ({ vertical, theme }) => {
         const fontSize = vertical ? 34 : 40;
         await document.fonts.load(`${fontSize}px JB`); await document.fonts.load(`600 ${fontSize}px JB`);
         const terminal = new Terminal({ cols: vertical ? 44 : 68, rows: vertical ? 23 : 14, fontFamily: 'JB, monospace', fontSize, fontWeightBold: '600', lineHeight: 1.16, cursorBlink: false, cursorStyle: 'block', scrollback: 10000, allowProposedApi: true,
-          theme: { background: '#ffffff', foreground: '#26251e', cursor: '#f7931a', cursorAccent: '#ffffff', black:'#26251e', white:'#5a5852', brightBlack:'#807d72', brightWhite:'#26251e' } });
+          theme });
         terminal.open(document.getElementById('terminal')); terminal.focus();
         window.terminal = terminal;
         await new Promise(requestAnimationFrame);
@@ -164,7 +170,7 @@ try {
         const rows=Math.floor(height/(screen.height/terminal.rows));
         terminal.resize(cols,rows);
         return {cols,rows};
-      }, vertical);
+      }, { vertical, theme: XTERM_THEME });
       const source = new Headless({cols:92,rows:32,scrollback:10000,allowProposedApi:true});
       const video = `${id}-${aspect}.mp4`;
       const encoder = spawn('ffmpeg', ['-y','-v','error','-f','image2pipe','-framerate','15','-i','pipe:0','-an','-c:v','libx264','-preset','fast','-crf','19','-pix_fmt','yuv420p','-r','30','-movflags','+faststart',path.join(out,video)], { stdio:['pipe','ignore','pipe'] });

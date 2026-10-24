@@ -11,7 +11,7 @@
 
 ## 1. Obiettivo, scope e limiti
 
-Phase 1 estende il percorso finanziario esistente di Bitcode con autorizzazione deterministica, ledger durevole, signer isolato dal processo agente e recovery senza duplicare pagamenti. L'approvazione riguarda sempre una proposta concreta; l'apertura di una sessione non autorizza da sola alcun trasferimento.
+Phase 1 estende il percorso finanziario esistente di bitcode con autorizzazione deterministica, ledger durevole, signer isolato dal processo agente e recovery senza duplicare pagamenti. L'approvazione riguarda sempre una proposta concreta; l'apertura di una sessione non autorizza da sola alcun trasferimento.
 
 Lo scope comprende Bitcoin on-chain tramite PSBT e Lightning tramite LND, con adapter distinti e test end-to-end su regtest locale. Sono esclusi fondi reali, chiavi di produzione, nuovi rail, cambio automatico di asset/rail, RGB, integrazione QVAC e WDK. Il provider locale esistente resta utilizzabile per il percorso di proposta.
 
@@ -30,7 +30,7 @@ Il lavoro del 19 ottobre è limitato alla documentazione. Checklist e prompt seg
 7. Stato autorevole e credenziali restano fuori da workspace, checkpoint e `/undo`.
 8. Nessuna dipendenza non verificata: inventario anche di binari, runtime, download e comportamento di rete.
 
-## 2. Baseline e integrazione con Bitcode
+## 2. Baseline e integrazione con bitcode
 
 | Componente attuale | Decisione per Phase 1 |
 | --- | --- |

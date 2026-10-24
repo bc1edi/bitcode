@@ -4,20 +4,20 @@
 Può essere raggiunto un limite di output o di contesto; il solo evento non
 permette di distinguere le due cause.
 
-Bitcode conserva ora il testo parziale nella sessione, marca il turno come
+bitcode conserva ora il testo parziale nella sessione, marca il turno come
 incompleto e scarta tutte le chiamate a tool di quel turno, anche se il loro
 JSON sembra completo. Non ripete automaticamente la richiesta. In modalità
 `--json` lo stato è `incomplete` e il codice di uscita è 2.
 
 Il budget di output e il controllo del ragionamento sono configurabili anche
-per i provider Chat Completions. Esempi, da eseguire dentro la CLI Bitcode:
+per i provider Chat Completions. Esempi, da eseguire dentro la CLI bitcode:
 
 ```text
 /config set providers.ollama.maxOutputTokens 4096
 /config set providers.ollama.reasoningEffort none
 ```
 
-Riavviare Bitcode per ricaricare il provider. `none` è opzionale e disattiva
+Riavviare bitcode per ricaricare il provider. `none` è opzionale e disattiva
 il ragionamento solo sui modelli che lo supportano; non è impostato
 automaticamente. Un budget di output maggiore **non aumenta il contesto**.
 
@@ -37,7 +37,7 @@ bitcode -m ollama/gemma4-bitcode:26b
 ```
 
 Un contesto più grande può richiedere più RAM/VRAM e rallentare l'inferenza.
-Questa modifica non viene applicata da Bitcode senza una scelta dell'utente.
+Questa modifica non viene applicata da bitcode senza una scelta dell'utente.
 Alternative: `/compact`, `/reset`, richieste più brevi e selezione di un Sat
 con meno tool. Non basta il contesto massimo teorico dichiarato dal modello:
 conta il valore caricato da Ollama.

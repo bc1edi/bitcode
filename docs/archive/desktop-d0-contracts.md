@@ -1,4 +1,4 @@
-# Bitcode Desktop — D0: contratti tecnici
+# bitcode Desktop — D0: contratti tecnici
 
 Stato: **bozza di specifica D0, da revisionare**. Data: 2026-10-03. Baseline: `a98fb95`.
 Riferimento di prodotto: [`desktop-plan.md`](desktop-plan.md). Mockup: [`brand/mockups/desktop.html`](../brand/mockups/desktop.html).

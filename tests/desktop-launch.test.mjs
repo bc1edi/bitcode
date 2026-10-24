@@ -18,6 +18,6 @@ test("bitcode desktop starts the app without the CLI's Electron-as-Node mode", a
 });
 
 test("bitcode desktop explains a missing installation", () => {
-  if (existsSync("/opt/Bitcode/bitcode-desktop")) return;
+  if (["/opt/bitcode", "/opt/Bitcode"].some(dir => existsSync(`${dir}/bitcode-desktop`))) return; // installed here, current or 0.2 path
   assert.throws(() => launchDesktop({ env: { PATH: mkdtempSync(path.join(os.tmpdir(), "bc-empty-path-")) } }), /not installed/);
 });

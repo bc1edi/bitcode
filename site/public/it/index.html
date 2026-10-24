@@ -24,7 +24,10 @@
   <link rel="alternate" hreflang="it" href="https://bitcode-agent.vercel.app/it/">
   <link rel="alternate" hreflang="x-default" href="https://bitcode-agent.vercel.app/">
   <link rel="canonical" href="https://bitcode-agent.vercel.app/it/">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23F7931A' d='M0 0h1v4H0zM1 0h2v1H1zM2 1h1v1H2zM1 2h1v1H1zM3 2h1v2H3z'/%3E%3Cpath fill='%230F0F0F' d='M0 4h2v1H0z'/%3E%3C/svg%3E">
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/svg+xml" href="/assets/site/bitcode.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" as="font" type="font/woff2" href="/assets/site/inter-latin.woff2" crossorigin>
   <link rel="stylesheet" href="/assets/site/base.css">
   <link rel="stylesheet" href="/assets/site/motion.css">
@@ -232,7 +235,7 @@ Fees are rock bottom: fastest 2 sat/vB, 30min/1h/economy/min all 1 sat/vB.</div>
         <div><p class="section-description">Scegli un Sat per il lavoro. Ognuno ha un ruolo, strumenti e limiti applicati dal codice, nella CLI e nell’app desktop.</p><p style="margin-top:18px"><span class="preview-badge">Anteprima</span></p></div>
       </div>
       <div class="sat-grid">
-        <article class="sat-card" style="--sat:#3297ff">
+        <article class="sat-card" style="--sat:var(--sat-node)">
           <div class="sat-figure"><img src="/assets/sats/node/idle-256.webp" width="256" height="256" alt="Node, il Sat per l’infrastruttura Bitcoin" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>Node</h3><span class="sat-index">SAT / 01</span></div>
@@ -241,7 +244,7 @@ Fees are rock bottom: fastest 2 sat/vB, 30min/1h/economy/min all 1 sat/vB.</div>
             <ul class="sat-limits" aria-label="Limiti di Node"><li class="allow">legge file</li><li class="allow">rete</li><li>nessuna shell</li><li>nessun wallet</li></ul>
           </div>
         </article>
-        <article class="sat-card" style="--sat:#f7931a">
+        <article class="sat-card" style="--sat:var(--sat-script)">
           <div class="sat-figure"><img src="/assets/sats/script/idle-256.webp" width="256" height="256" alt="Script, il Sat per codice e implementazione" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>Script</h3><span class="sat-index">SAT / 02</span></div>
@@ -250,7 +253,7 @@ Fees are rock bottom: fastest 2 sat/vB, 30min/1h/economy/min all 1 sat/vB.</div>
             <ul class="sat-limits" aria-label="Limiti di Script"><li class="allow">scrive file</li><li class="allow">shell su approvazione</li><li>nessuna rete</li><li>nessun wallet</li></ul>
           </div>
         </article>
-        <article class="sat-card" style="--sat:#b6f500">
+        <article class="sat-card" style="--sat:var(--sat-hash)">
           <div class="sat-figure"><img src="/assets/sats/hash/idle-256.webp" width="256" height="256" alt="Hash, il Sat per verifica e sicurezza" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>Hash</h3><span class="sat-index">SAT / 03</span></div>
@@ -259,7 +262,7 @@ Fees are rock bottom: fastest 2 sat/vB, 30min/1h/economy/min all 1 sat/vB.</div>
             <ul class="sat-limits" aria-label="Limiti di Hash"><li class="allow">legge file</li><li>nessuna shell</li><li>nessuna rete</li><li>nessun wallet</li></ul>
           </div>
         </article>
-        <article class="sat-card" style="--sat:#c96bff">
+        <article class="sat-card" style="--sat:var(--sat-merkle)">
           <div class="sat-figure"><img src="/assets/sats/merkle/idle-256.webp" width="256" height="256" alt="Merkle, il Sat per l’orchestrazione" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>Merkle</h3><span class="sat-index">SAT / 04</span></div>
@@ -333,10 +336,10 @@ node bitcode.mjs -m qvac/bitcode-local</pre><button class="copy-button" type="bu
 
     <section class="section container desktop" id="desktop" data-fade aria-labelledby="desktop-title">
       <div class="section-heading">
-        <div><p class="eyebrow">Bitcode Desktop</p><h2 class="section-title" id="desktop-title">bitcode sul tuo desktop.<br>A partire da Linux.</h2></div>
+        <div><p class="eyebrow">bitcode Desktop</p><h2 class="section-title" id="desktop-title">bitcode sul tuo desktop.<br>A partire da Linux.</h2></div>
         <div><p class="section-description">Lo stesso agente e gli stessi Sats, in uno spazio con progetti, editor, Git e terminale. È ancora in sviluppo: non è disponibile una release installabile.</p><p style="margin-top:18px"><span class="preview-badge">In sviluppo</span></p></div>
       </div>
-      <figure class="desktop-shot"><img src="/assets/desktop/desktop-preview.webp" width="1440" height="900" alt="Bitcode Desktop nel tema scuro: area Bitcoin nella scheda RGB, con un node di test signet verificato, asset RGB e trasferimenti completati." loading="lazy" decoding="async"></figure>
+      <figure class="desktop-shot"><img src="/assets/desktop/desktop-preview.webp" width="1440" height="900" alt="bitcode Desktop nel tema scuro: area Bitcoin nella scheda RGB, con un node di test signet verificato, asset RGB e trasferimenti completati." loading="lazy" decoding="async"></figure>
       <p class="desktop-caption">Anteprima di sviluppo su Linux. Interfaccia e funzionalità possono cambiare.</p>
       <div class="desktop-grid">
           <div class="desktop-item"><h3><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>Progetti e sessioni.</h3><p>Apri una cartella e mantieni più chat per progetto. Le sessioni sono condivise con la CLI.</p></div>

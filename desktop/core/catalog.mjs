@@ -1,6 +1,6 @@
 // Curated MCP servers that can be added to the shared ~/.bitcode/config.json.
 // Each entry is written verbatim under config.mcp.<id>; the CLI and the RGB
-// profile start it, and tool access still goes through Bitcode's gates.
+// profile start it, and tool access still goes through bitcode's gates.
 export const MCP_CATALOG = [
   { id: 'kaleido', name: 'KaleidoSwap RGB', category: 'bitcoin', description: 'RGB Lightning Node: balances, RGB invoices and transfers (Signet). Payments always need approval.',
     config: { command: 'kaleido-mcp', env: { KALEIDO_NETWORK: 'signet', RLN_NODE_URL: 'http://localhost:3001' }, timeoutMs: 60000,

@@ -1,5 +1,5 @@
 // The 59-second storyboard. Times are in seconds; everything on screen is the real
-// Bitcode Desktop UI driven through the same DOM events a user would produce.
+// bitcode Desktop UI driven through the same DOM events a user would produce.
 (() => {
   const E = window.engine;
   const { $, at, cam, cur, tap, ease } = E;
@@ -49,7 +49,7 @@
   const ptyOut = (t, s) => at(t, () => demo().ptyWrite(s), 0);
 
   // =========================================================================
-  // 0-4 s  Hook: logo glow, window rises on "Benvenuto in Bitcode Desktop"
+  // 0-4 s  Hook: logo glow, window rises on "Benvenuto in bitcode Desktop"
   // =========================================================================
   cam(0, 4.0, { view: { z: .96 } }, 'sine');
   cur(3.0, 3.9, el('.btn.primary.pill'));

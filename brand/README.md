@@ -10,7 +10,10 @@ Everything derived is generated (`npm run build:brand`, `npm run check:brand`, t
 | Website | `site/public/assets/site/base.css`, `site/src/design-contract.json` | `--orange`, `--canvas`, `--ink`, `--body` |
 | Desktop app | `desktop/ui/styles.css` (dark, light, system) | `--accent`, `--body` (reading text), `--mutedStrong` (secondary), `--sat-*` |
 | /sats web UI | `ui/sats/styles.css` | camelCase, light only |
-| CLI | `src/design-tokens.mjs` (`TOKEN`, `STAGE`, `SAT`) | `bitcoinOrange`, `ink`, `body` |
+| CLI and Node code | `src/design-tokens.mjs` (`TOKEN`, `STAGE`, `SAT`, `BRAND`, `THEME`) | `bitcoinOrange`, `ink`, `body`; `THEME.light/dark` mirror `tokens.json` |
+| Desktop (no CSS) | via `THEME`/`BRAND`: window background, xterm theme, LAN phone page, app icon (`desktop/build.mjs`) | |
+| Site icons | `site/public/`: `favicon.ico`, `apple-touch-icon.png`, `icon-192/512.png` (`social/build.mjs icons`), `site.webmanifest` (`build.mjs`) | |
+| Images and video | site OG (`site/scripts/render-og.mjs`), demo videos and release video (`site/scripts/demos/`) read `logo/` and the tokens | |
 
 Names differ per surface for historical reasons; values come from one place. Secondary text on dark is `#929aa5`.
 
@@ -22,7 +25,6 @@ Names differ per surface for historical reasons; values come from one place. Sec
 | `tokens/tokens.css` | Generated CSS variables, both themes. |
 | `logo/` | Mark (pixel "b"), wordmark (pixel b + "bitcode" in Inter 600, the original site lockup), terminal lockup, on-dark and mono variants, ASCII. Type is outlined in `glyphs.json`, so no SVG needs a font. |
 | `tools/` | `outline-glyphs.py` regenerates `logo/glyphs.json`; only needed if typeface or weight changes. |
-| `icons/` | favicon.ico, touch icon, 192 and 512, web manifest. The SVG favicon is `logo/mark.svg`. |
 | `mascots/` | Sats: framework, profiles. See `mascots/framework.md`. |
 | `social/` | `build.mjs` renders every platform asset into `social/export/<platform>/`. |
 | `social/releases/` | Release promo videos (rendered by `site/scripts/demos/render-upgrade.mjs`). |
@@ -57,7 +59,7 @@ Inter for text, JetBrains Mono for code, numbers and labels. Both are bundled (O
 Plain, concrete, short sentences. No hype, no price talk, no emoji in product UI. Italian and English are equal: never machine-translate, rewrite.
 
 ## Platform kit
-`node brand/social/build.mjs` writes the web icons into `icons/` (touch icon, 192, 512) and, into `social/export/`: one avatar (`avatars/`, 400 and 800 for YouTube) used on every profile, LinkedIn (banner 1584x396, post 1200x627), X (header 1500x500, card 1200x675), Instagram (1080 square, 1080x1350, story 1080x1920), GitHub (preview 1280x640), YouTube (banner 2560x1440, thumbnail 1280x720). npm uses `icons/icon-512.png`. Avatars show the mark only and are safe for circular crops. Lockups are EN and IT. The site's OG image is rendered by `site/scripts/render-og.mjs`.
+`node brand/social/build.mjs` writes the site icons into `site/public/` (favicon.ico, touch icon, 192, 512) and, into `social/export/`: one avatar (`avatars/`, 400 and 800 for YouTube) used on every profile, LinkedIn (banner 1584x396, post 1200x627), X (header 1500x500, card 1200x675), Instagram (1080 square, 1080x1350, story 1080x1920), GitHub (preview 1280x640), YouTube (banner 2560x1440, thumbnail 1280x720). npm and other app stores use `site/public/icon-512.png`. Avatars show the mark only and are safe for circular crops. Lockups are EN and IT. The site's OG image is rendered by `site/scripts/render-og.mjs`.
 
 ## Sats
 Secondary to the logo. Follow `mascots/framework.md` (Yuru-chara rules, modules, guardrails).

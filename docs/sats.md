@@ -55,7 +55,7 @@ Approvals, cancellation, fallback targets, limits and the total tool-call counte
 propagate to the child. Every internal mutation follows the parent's approval mode.
 The observer bus allows one root run and one authorized child at a time.
 Manual Sat commands start a root run for that Sat; a model-driven delegation
-creates a child linked to the active Bitcode parent. Token usage callbacks from
+creates a child linked to the active bitcode parent. Token usage callbacks from
 autonomous children still feed the parent's usage accounting.
 
 ## Runtime contract
@@ -122,7 +122,7 @@ finished operations or guarantee termination of detached shell descendants.
 
 ## Visual assets
 
-The panel follows Bitcode's cream canvas, warm Ink, white cards, hairline borders,
+The panel follows bitcode's cream canvas, warm Ink, white cards, hairline borders,
 Inter and JetBrains Mono. Tokens and tool stages are shared with the ANSI theme.
 Identity colors do not become action colors. Four columns become two below
 1024px and one below 640px. Selection targets are at least 44px, focus is visible,

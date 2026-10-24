@@ -11,7 +11,7 @@ import { createMemoryProbe } from './local-memory.mjs';
 
 const QUIET_MS = 350;
 const strip = s => s.replace(/\x1b\[[0-9;?]*[A-Za-z]/g, '');
-// A Sat is named in bold; plain Bitcode work carries no name, only the dot.
+// A Sat is named in bold; plain bitcode work carries no name, only the dot.
 const label = id => (id ? `${t.bold(id[0].toUpperCase() + id.slice(1))} ${t.faint('·')} ` : '');
 
 // subject: { satId|null, runId, baseURL?, providerName?, model? }; the caller feeds it bus events and model hooks.

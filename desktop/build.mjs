@@ -7,6 +7,7 @@ import { chmodSync, cpSync, existsSync, mkdirSync, rmSync, readFileSync, writeFi
 import { deflateSync } from 'node:zlib';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BRAND, THEME } from '../src/design-tokens.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '..');
@@ -69,7 +70,7 @@ function copyCli(out) {
   // Electron's binary runs the CLI as plain Node; the main process never loads it.
   mkdirSync(path.join(dist, 'bin'));
   const launcher = path.join(dist, 'bin', 'bitcode');
-  writeFileSync(launcher, '#!/bin/sh\n# Bitcode CLI on the Node.js runtime bundled with the desktop app.\nELECTRON_RUN_AS_NODE=1 exec /opt/Bitcode/bitcode-desktop /opt/Bitcode/resources/app/dist/cli/bitcode.mjs "$@"\n');
+  writeFileSync(launcher, '#!/bin/sh\n# bitcode CLI on the Node.js runtime bundled with the desktop app.\nELECTRON_RUN_AS_NODE=1 exec /opt/bitcode/bitcode-desktop /opt/bitcode/resources/app/dist/cli/bitcode.mjs "$@"\n');
   chmodSync(launcher, 0o755);
 }
 
@@ -77,7 +78,8 @@ function copyCli(out) {
 // cream rounded tile. Encoded as PNG with zlib so no raster asset is shipped.
 function iconPng(size) {
   const px = Buffer.alloc(size * size * 4), cell = Math.floor(size / 8), ox = (size - 4 * cell) / 2, oy = (size - 5 * cell) / 2, r = size * 0.22;
-  const orange = [247, 147, 26], ink = [15, 15, 15], cream = [247, 247, 244];
+  const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
+  const orange = rgb(BRAND.accent), ink = rgb(BRAND.markBase), cream = rgb(THEME.light.canvas);
   const b = [[0, 0, 1, 4], [1, 0, 2, 1], [2, 1, 1, 1], [1, 2, 1, 1], [3, 2, 1, 2]], base = [0, 4, 2, 1];
   const inRect = (x, y, [cx, cy, w, h]) => x >= ox + cx * cell && x < ox + (cx + w) * cell && y >= oy + cy * cell && y < oy + (cy + h) * cell;
   for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {

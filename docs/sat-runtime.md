@@ -1,6 +1,6 @@
 # Sat Runtime
 
-I Sats sono un livello del motore Bitcode esistente, non un framework separato.
+I Sats sono un livello del motore bitcode esistente, non un framework separato.
 CLI e desktop usano gli stessi quattro `content/sats/<id>/SAT.md`, la stessa selezione
 dei tool e lo stesso `runAgent`. Non sono richiesti servizi o dipendenze nuovi.
 
@@ -19,8 +19,8 @@ Avviare la CLI con `node bitcode.mjs`, oppure il desktop con `npm run desktop`.
 ```
 
 La selezione si applica ai messaggi successivi e viene conservata nella sessione.
-Nella CLI `/reset` torna a Bitcode e azzera la conversazione. Nel desktop è
-disponibile anche il selettore Bitcode/Sat; i quattro pulsanti nella barra
+Nella CLI `/reset` torna a bitcode e azzera la conversazione. Nel desktop è
+disponibile anche il selettore bitcode/Sat; i quattro pulsanti nella barra
 superiore aprono manifest, identità, permessi e cronologia del progetto.
 I comandi preesistenti per le personas rimangono compatibili, ma non sono il
 nuovo Sat Runtime: utilizzare `/sat` per identità persistente e orchestrazione.

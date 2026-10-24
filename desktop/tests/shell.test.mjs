@@ -32,7 +32,7 @@ test('autostart entry follows XDG paths and quotes the executable for Desktop En
   assert.equal(autostartFile({ env: {}, home: '/home/u' }), '/home/u/.config/autostart/bitcode-desktop.desktop');
   assert.equal(autostartFile({ env: { XDG_CONFIG_HOME: '/cfg' }, home: '/home/u' }), '/cfg/autostart/bitcode-desktop.desktop');
   assert.equal(autostartFile({ env: { XDG_CONFIG_HOME: 'relative' }, home: '/home/u' }), '/home/u/.config/autostart/bitcode-desktop.desktop');
-  assert.match(autostartEntry({ executable: '/opt/Bitcode/bitcode-desktop' }), new RegExp(`^Exec=/opt/Bitcode/bitcode-desktop ${HIDDEN_ARG}$`, 'm'));
+  assert.match(autostartEntry({ executable: '/opt/bitcode/bitcode-desktop' }), new RegExp(`^Exec=/opt/bitcode/bitcode-desktop ${HIDDEN_ARG}$`, 'm'));
   assert.match(autostartEntry({ executable: '/home/u/My Apps/Bit$code 100%.AppImage' }), /^Exec="\/home\/u\/My Apps\/Bit\\\\\$code 100%%\.AppImage" --hidden$/m);
   assert.throws(() => autostartEntry({ executable: 'relative/bin' }), /absolute/);
   assert.throws(() => autostartEntry({ executable: '/a\nExec=evil' }), /absolute/);

@@ -1,4 +1,4 @@
-# Bitcode Desktop — piano di prodotto e implementazione
+# bitcode Desktop — piano di prodotto e implementazione
 
 Stato: **requisiti di prodotto consolidati; specifica tecnica proposta**.
 Data: 2026-10-03. Baseline: commit `a98fb95`.
@@ -20,12 +20,12 @@ già disponibili. L'attività corrente rimane di pianificazione.
   esplicitamente un modello diverso.
 - Connessione guidata a nodi e servizi esistenti; creazione di wallet di test
   esplicita, senza installazione automatica di nodi completi.
-- Nessun account Bitcode obbligatorio, nessuna telemetria predefinita;
+- Nessun account bitcode obbligatorio, nessuna telemetria predefinita;
   cronologia locale gestibile ed esportabile.
 - Tre livelli di lavoro: manuale, automatico e automatico senza supervisione.
 - Approvazioni sia dei comandi da eseguire, sia tramite comandi di controllo
   inseriti dall'utente; pulsanti nell'interfaccia per le stesse operazioni.
-- Stile Bitcode/Sats crema e Ink, tema scuro, interfaccia italiano/inglese.
+- Stile bitcode/Sats crema e Ink, tema scuro, interfaccia italiano/inglese.
 - Più esecuzioni simultanee, anche fra progetti diversi.
 - Chiusura della finestra: attività continuano nell'area di notifica.
 - Distribuzione ad altri utenti dalla prima release.
@@ -147,11 +147,11 @@ retry cross-protocollo salvo esplicita estensione del perimetro.
 
 ## 5. Modelli, dati e privacy — proposte
 
-- Confermati: scelta locale/cloud, override per Sat, assenza di account Bitcode
+- Confermati: scelta locale/cloud, override per Sat, assenza di account bitcode
   obbligatorio e telemetria predefinita, cronologia locale gestibile/esportabile.
   I dettagli di gestione sotto riportati costituiscono la specifica proposta.
 - Modello/provider visibili per sessione; nessun fallback locale → cloud implicito.
-- Nessun account Bitcode obbligatorio, nessuna telemetria predefinita.
+- Nessun account bitcode obbligatorio, nessuna telemetria predefinita.
 - Modello della sessione come default dei Sats; override opzionale per ciascun
   Sat. Mostrare il modello effettivo prima dell'avvio e nell'attività. Catturare
   la configurazione per run: una modifica nelle impostazioni vale per i nuovi
@@ -186,7 +186,7 @@ connessione e verifica dell'ambiente. Mostrare le capacità effettive del backen
 Nessun download o avvio automatico di nodi completi. La creazione di un wallet
 di test è un'azione esplicita con percorso di archiviazione e recupero dichiarati.
 Per i provider cloud può essere necessaria la credenziale del relativo servizio:
-l'assenza di account Bitcode non elimina i requisiti dei provider scelti.
+l'assenza di account bitcode non elimina i requisiti dei provider scelti.
 
 ## 6. Background — requisito e proposte operative
 

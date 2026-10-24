@@ -135,7 +135,7 @@ export async function startSatsServer({
         req.headers.cookie || "",
       )?.[1];
       if (!secureEqual(credential, cookie))
-        return send(401, { error: "Open the link printed by Bitcode." });
+        return send(401, { error: "Open the link printed by bitcode." });
       if (route === "/api/bootstrap" && req.method === "GET")
         return send(200, {
           version: 1,

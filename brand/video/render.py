@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Render the Bitcode Desktop video frame by frame.
+"""Render the bitcode Desktop video frame by frame.
 
   render.py preview 3,6,12.5        -> PNG stills (1080p) of the given seconds
   render.py chunk <i> <n>           -> render chunk i of n as 4K60 mp4 segment

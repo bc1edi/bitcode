@@ -23,7 +23,10 @@
   <link rel="alternate" hreflang="it" href="https://bitcode-agent.vercel.app/it/">
   <link rel="alternate" hreflang="x-default" href="https://bitcode-agent.vercel.app/">
   <link rel="canonical" href="https://bitcode-agent.vercel.app/{{path}}">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='%23F7931A' d='M0 0h1v4H0zM1 0h2v1H1zM2 1h1v1H2zM1 2h1v1H1zM3 2h1v2H3z'/%3E%3Cpath fill='%230F0F0F' d='M0 4h2v1H0z'/%3E%3C/svg%3E">
+  <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48">
+  <link rel="icon" type="image/svg+xml" href="/assets/site/bitcode.svg">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <link rel="manifest" href="/site.webmanifest">
   <link rel="preload" as="font" type="font/woff2" href="/assets/site/inter-latin.woff2" crossorigin>
   <link rel="stylesheet" href="/assets/site/base.css">
   <link rel="stylesheet" href="/assets/site/motion.css">
@@ -192,7 +195,7 @@
         <div><p class="section-description">{{text.101}}</p><p style="margin-top:18px"><span class="preview-badge">{{text.102}}</span></p></div>
       </div>
       <div class="sat-grid">
-        <article class="sat-card" style="--sat:#3297ff">
+        <article class="sat-card" style="--sat:var(--sat-node)">
           <div class="sat-figure"><img src="/assets/sats/node/idle-256.webp" width="256" height="256" alt="{{text.103}}" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>{{text.104}}</h3><span class="sat-index">{{text.105}}</span></div>
@@ -201,7 +204,7 @@
             <ul class="sat-limits" aria-label="{{text.108}}"><li class="allow">{{text.109}}</li><li class="allow">{{text.110}}</li><li>{{text.111}}</li><li>{{text.112}}</li></ul>
           </div>
         </article>
-        <article class="sat-card" style="--sat:#f7931a">
+        <article class="sat-card" style="--sat:var(--sat-script)">
           <div class="sat-figure"><img src="/assets/sats/script/idle-256.webp" width="256" height="256" alt="{{text.113}}" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>{{text.114}}</h3><span class="sat-index">{{text.115}}</span></div>
@@ -210,7 +213,7 @@
             <ul class="sat-limits" aria-label="{{text.118}}"><li class="allow">{{text.119}}</li><li class="allow">{{text.120}}</li><li>{{text.121}}</li><li>{{text.112}}</li></ul>
           </div>
         </article>
-        <article class="sat-card" style="--sat:#b6f500">
+        <article class="sat-card" style="--sat:var(--sat-hash)">
           <div class="sat-figure"><img src="/assets/sats/hash/idle-256.webp" width="256" height="256" alt="{{text.122}}" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>{{text.123}}</h3><span class="sat-index">{{text.124}}</span></div>
@@ -219,7 +222,7 @@
             <ul class="sat-limits" aria-label="{{text.127}}"><li class="allow">{{text.109}}</li><li>{{text.111}}</li><li>{{text.121}}</li><li>{{text.112}}</li></ul>
           </div>
         </article>
-        <article class="sat-card" style="--sat:#c96bff">
+        <article class="sat-card" style="--sat:var(--sat-merkle)">
           <div class="sat-figure"><img src="/assets/sats/merkle/idle-256.webp" width="256" height="256" alt="{{text.128}}" loading="lazy" decoding="async"></div>
           <div class="sat-body">
             <div class="sat-head"><h3>{{text.129}}</h3><span class="sat-index">{{text.130}}</span></div>

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Debian postrm for Bitcode. On upgrade the new postinst re-registers the links
+# Debian postrm for bitcode. On upgrade the new postinst re-registers the links
 # and the AppArmor profile, so cleanup runs only on a real removal.
 
 case "$1" in

@@ -1,0 +1,26 @@
+{
+  "name": "bitcode",
+  "short_name": "bitcode",
+  "description": "Your code. Your Bitcoin. Your agents.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0e11",
+  "theme_color": "#f7f7f4",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/site/bitcode.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

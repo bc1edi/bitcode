@@ -1,4 +1,4 @@
-// Demo backend for the Bitcode Desktop marketing video.
+// Demo backend for the bitcode Desktop marketing video.
 // The real renderer bundle runs unchanged; only window.bitcode (normally the
 // Electron preload bridge) is replaced with deterministic fixtures. Everything
 // shown on screen is produced by the real UI code from these data.

@@ -45,7 +45,7 @@ export function satCards(sats, caps) {
 
 // ---- approval card ----
 export function approvalCard({ satId, tool, financial, lang }, caps) {
-  const who = satId ? nameOf(satId) : 'Bitcode';
+  const who = satId ? nameOf(satId) : 'bitcode';
   const verb = lang === 'it' ? 'chiede di usare' : 'wants to use';
   const note = financial ? (lang === 'it' ? 'nessuna fretta: firmi tu' : 'no rush: you sign') : (lang === 'it' ? 'aspetta il tuo sì' : 'waiting for your yes');
   if (caps.level === 'text') return `${who} ${verb} ${tool}`;

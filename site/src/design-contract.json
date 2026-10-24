@@ -20,7 +20,11 @@
     "--confirmed": "#c08532",
     "--mono": "'JetBrains Mono', ui-monospace, monospace",
     "--radius": "12px",
-    "--page-width": "1200px"
+    "--page-width": "1200px",
+    "--sat-node": "#3297ff",
+    "--sat-script": "#f7931a",
+    "--sat-hash": "#b6f500",
+    "--sat-merkle": "#c96bff"
   },
   "colors": [
     "#0b0e11",

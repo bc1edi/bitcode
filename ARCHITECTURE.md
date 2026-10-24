@@ -1,4 +1,4 @@
-# Bitcode architecture and financial-agent readiness
+# bitcode architecture and financial-agent readiness
 
 ## 1. Status and baseline
 
@@ -105,7 +105,7 @@ Preserve existing coding behavior where compatible. In the protected financial s
 ## 5. Proposed integration architecture — not implemented
 
 ```text
-Human <-> existing Bitcode CLI/session
+Human <-> existing bitcode CLI/session
               |
               v
        existing agent loop <-> QVAC local provider
@@ -153,21 +153,21 @@ The proposed `WalletProvider` surface (`getBalance`, `getAddress`, `prepareTrans
 - Require a durable audit event before signing/execution. If recording fails afterward, preserve the known/unknown transaction outcome and reconcile it; do not report that funds did not move.
 - Keep secrets, bearer material, signed broadcastable payloads and raw credentials out of model context and general logs. Use minimal structured audit fields, owner-only access and an explicit retention policy.
 
-JSONL is suitable for audit events, but is not by itself an atomic proposal/approval/budget ledger. Session history is not that ledger either. Historical spending analytics must reconcile wallet activity, including payments made outside Bitcode; an audit of agent actions alone is incomplete.
+JSONL is suitable for audit events, but is not by itself an atomic proposal/approval/budget ledger. Session history is not that ledger either. Historical spending analytics must reconcile wallet activity, including payments made outside bitcode; an audit of agent actions alone is incomplete.
 
 ## 6. Integration feasibility and dependency impact
 
 ### QVAC
 
-The official [QVAC overview](https://docs.qvac.tether.io/) documents a Node-compatible JS/TS SDK and an OpenAI-compatible HTTP server. The [HTTP server documentation](https://docs.qvac.tether.io/cli/http-server/) covers model listing, streaming, unloading and function tools, with model configuration requirements. These establish plausible reuse of Bitcode's adapters, not tested interoperability in this repository.
+The official [QVAC overview](https://docs.qvac.tether.io/) documents a Node-compatible JS/TS SDK and an OpenAI-compatible HTTP server. The [HTTP server documentation](https://docs.qvac.tether.io/cli/http-server/) covers model listing, streaming, unloading and function tools, with model configuration requirements. These establish plausible reuse of bitcode's adapters, not tested interoperability in this repository.
 
-Prefer evaluating the local compatible-server path first because it reuses the existing transport. Adopt direct SDK embedding only if lifecycle, deployment or required capabilities justify it. Either approach must keep tool execution in Bitcode, pin tested versions, specify supported hardware/model/context limits, and test cancellation and multi-turn tool results. Keep model downloads separate from verified offline inference. Runtime memory/device/status fields must be measured or reported unavailable.
+Prefer evaluating the local compatible-server path first because it reuses the existing transport. Adopt direct SDK embedding only if lifecycle, deployment or required capabilities justify it. Either approach must keep tool execution in bitcode, pin tested versions, specify supported hardware/model/context limits, and test cancellation and multi-turn tool results. Keep model downloads separate from verified offline inference. Runtime memory/device/status fields must be measured or reported unavailable.
 
-There is a concrete discovery compatibility issue: QVAC documents port `11434`, while Bitcode's `isOllama` also recognizes providers by that port. Choose a distinct endpoint or correct identification before claiming native QVAC discovery.
+There is a concrete discovery compatibility issue: QVAC documents port `11434`, while bitcode's `isOllama` also recognizes providers by that port. Choose a distinct endpoint or correct identification before claiming native QVAC discovery.
 
 ### RGB
 
-Official [developer tooling](https://rgb.info/build/developer-tools/) provides candidate libraries and bindings. The [rgb-lib repository](https://github.com/RGB-Tools/rgb-lib) documents watch-only use with external signing, API instability before 1.0, and exclusive wallet/UTXO ownership requirements. **Do not reuse its wallet concurrently from Bitcode's ordinary coin selection or WDK.** Start with segregated wallet state/funds unless a single coordinated UTXO owner is proven.
+Official [developer tooling](https://rgb.info/build/developer-tools/) provides candidate libraries and bindings. The [rgb-lib repository](https://github.com/RGB-Tools/rgb-lib) documents watch-only use with external signing, API instability before 1.0, and exclusive wallet/UTXO ownership requirements. **Do not reuse its wallet concurrently from bitcode's ordinary coin selection or WDK.** Start with segregated wallet state/funds unless a single coordinated UTXO owner is proven.
 
 Choose and pin a backend, binding/daemon interface and supported test network. Validate unsigned preparation, external signing, proof transport, recovery and receiver compatibility before finalizing the adapter. The [documented transfer flows](https://github.com/RGB-Tools/rgb-lib/blob/master/docs/transfer_flows.md) distinguish default receiver-ACK transfers from donation mode; the adapter must deliberately select and expose the actual lifecycle.
 
@@ -175,7 +175,7 @@ Acceptance must include valid consignment delivery/verification, recipient state
 
 ### WDK
 
-The official [Bitcoin API](https://docs.wdk.tether.io/sdk/wallet-modules/wallet-btc/api-reference/) documents quote, sign-without-broadcast and send operations. Compatibility with a frozen unsigned Bitcode proposal still needs a contract test; a quote followed by a separately rebuilt transaction is not automatically the reviewed transaction. Confirm network support and state ownership explicitly. A generic Bitcoin wallet module does not establish RGB support.
+The official [Bitcoin API](https://docs.wdk.tether.io/sdk/wallet-modules/wallet-btc/api-reference/) documents quote, sign-without-broadcast and send operations. Compatibility with a frozen unsigned bitcode proposal still needs a contract test; a quote followed by a separately rebuilt transaction is not automatically the reviewed transaction. Confirm network support and state ownership explicitly. A generic Bitcoin wallet module does not establish RGB support.
 
 ### Dependency inventory
 
@@ -238,7 +238,7 @@ Recommended later order, preserving the original phase identities:
 5. **Phase 6 — hardening:** restart recovery, failure visibility, offline reasoning and reproducibility of that minimal flow.
 6. **Phase 4 — optional WDK:** add only after the primary flow works; broaden Phase 5 routing/intelligence afterward as time permits.
 
-Document a concrete target user and payment problem for the demo, rather than presenting every existing rail as part of the new product. Preserve Bitcode's existing capabilities without claiming they all satisfy the new self-custodial-dollar workflow.
+Document a concrete target user and payment problem for the demo, rather than presenting every existing rail as part of the new product. Preserve bitcode's existing capabilities without claiming they all satisfy the new self-custodial-dollar workflow.
 
 The intended `pre-agentic-dollars` tag and `hackathon/agentic-dollars` branch are not created in Phase 0. At the appropriate build boundary, capture the actual baseline commit and an inventory of pre-existing functionality; do not backdate provenance.
 

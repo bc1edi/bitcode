@@ -1,4 +1,4 @@
-// Vector brand marks: the Bitcode pixel "b" and the four Sats as geometric
+// Vector brand marks: the bitcode pixel "b" and the four Sats as geometric
 // "dots" with eyes. No raster assets; every state is a CSS class driven by
 // real run events (idle, thinking, reading, running, drafting, waiting, happy, concerned).
 const NS = 'http://www.w3.org/2000/svg';
@@ -9,7 +9,7 @@ const el = (tag, attrs = {}, children = []) => {
   return n;
 };
 
-// The 4×5 pixel "b" from the Bitcode design system; each cell is its own piece
+// The 4×5 pixel "b" from the bitcode design system; each cell is its own piece
 // so the mark can assemble itself like on the website.
 const B_PIECES = [[0, 0, 1, 4], [1, 0, 2, 1], [2, 1, 1, 1], [1, 2, 1, 1], [3, 2, 1, 2]];
 const B_BASE = [0, 4, 2, 1];

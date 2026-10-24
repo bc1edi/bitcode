@@ -1,4 +1,4 @@
-# Bitcode — Sats Implementation Plan
+# bitcode — Sats Implementation Plan
 
 ## Revisione implementativa — 2026-10-04
 
@@ -23,16 +23,16 @@ semantica: queste funzioni non fanno parte dell'aggiornamento.
 
 ## Regola fondamentale
 
-Evolvere Bitcode introducendo un sistema proprietario di agenti persistenti chiamati **Sats**.
+Evolvere bitcode introducendo un sistema proprietario di agenti persistenti chiamati **Sats**.
 
-Tutta l'architettura implementata deve utilizzare esclusivamente la terminologia Bitcode.
+Tutta l'architettura implementata deve utilizzare esclusivamente la terminologia bitcode.
 
 Non utilizzare nell'architettura pubblica, UI, CLI, nomi di file, directory, classi, funzioni, documentazione o commenti riferimenti ai progetti utilizzati come fonte tecnica o di ispirazione.
 
 La terminologia ufficiale è:
 
 ```text
-Bitcode
+bitcode
 Sats
 Sat Runtime
 Sat Registry
@@ -282,7 +282,7 @@ SAT STATE
 
 I Sats non devono diventare un framework separato.
 
-Devono essere un livello sopra l'attuale Bitcode Agent Engine:
+Devono essere un livello sopra l'attuale bitcode Agent Engine:
 
 ```text
 LLM Providers
@@ -293,7 +293,7 @@ Agent Engine
       │
    Sats
       │
-Bitcode Tools
+bitcode Tools
       │
 Bitcoin / Lightning / Liquid
 ```
@@ -314,7 +314,7 @@ Non duplicare funzionalità già presenti.
 
 ## Vincoli
 
-Bitcode deve rimanere:
+bitcode deve rimanere:
 
 - Bitcoin-native
 - local-first
@@ -338,8 +338,8 @@ deve continuare a funzionare senza richiedere infrastruttura esterna.
 
 Durante lo sviluppo utilizzare esclusivamente la terminologia **Sat/Sats** per il nuovo agent layer.
 
-Il risultato finale deve apparire come una componente nativa di Bitcode:
+Il risultato finale deve apparire come una componente nativa di bitcode:
 
-> **Sats are persistent Bitcoin-native agents running on the Bitcode agent runtime.**
+> **Sats are persistent Bitcoin-native agents running on the bitcode agent runtime.**
 
 Non come un'integrazione esterna.

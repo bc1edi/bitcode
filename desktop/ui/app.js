@@ -8,6 +8,7 @@ import { markdown } from '@codemirror/lang-markdown';
 import { python } from '@codemirror/lang-python';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { Terminal } from '@xterm/xterm';
+import { BRAND, THEME } from '../../src/design-tokens.mjs';
 import { FitAddon } from '@xterm/addon-fit';
 import { t, setLang, errorText } from './i18n.js';
 import { logo, sat, typing, SAT_META } from './marks.js';
@@ -254,7 +255,7 @@ const workingSat = sessionId => SATS.find(x => !['idle', 'happy', 'concerned'].i
 function runLine(run) {
   const waiting = S.pending.some(a => a.sessionId === run.sessionId), id = workingSat(run.sessionId);
   const mark = id ? sat(id, { size: 18, state: waiting ? 'waiting' : 'thinking' }) : logo({ size: 14 });
-  const el = h('div', { class: 'runline', 'data-run': run.runId, 'data-key': `${id}|${waiting}` }, mark, h('b', {}, id ? satName(id) : 'Bitcode'), h('span', { class: 'rl-phrase' }), h('span', { class: 'rl-datum num' }));
+  const el = h('div', { class: 'runline', 'data-run': run.runId, 'data-key': `${id}|${waiting}` }, mark, h('b', {}, id ? satName(id) : 'bitcode'), h('span', { class: 'rl-phrase' }), h('span', { class: 'rl-datum num' }));
   fillRunLine(el, run, waiting);
   return el;
 }
@@ -265,7 +266,7 @@ function fillRunLine(el, run, waiting) {
 }
 function closingLine(c) {
   const mark = c.id ? sat(c.id, { size: 16, state: c.ok ? 'happy' : 'concerned' }) : logo({ size: 14 });
-  return h('div', { class: 'runline runend' }, mark, h('b', {}, c.id ? satName(c.id) : 'Bitcode'), h('span', { class: 'rl-datum num' }, c.text));
+  return h('div', { class: 'runline runend' }, mark, h('b', {}, c.id ? satName(c.id) : 'bitcode'), h('span', { class: 'rl-datum num' }, c.text));
 }
 // Update texts in place: replacing the node would restart the avatar's animation every second.
 function tickRunLines() {
@@ -419,7 +420,9 @@ function remotePage() {
       h('div', { class: 'row', style: 'margin-top:12px' }, input, h('button', { class: 'btn sm', onClick: guard(async () => { const v = input.value.trim(); if (!v) return; S.remote = await api('remote.save', { hosts: [...r.saved, v] }); renderCenter(); }) }, t('wb_add'))),
       h('p', { class: 'status' }, t('wb_remoteSafety'))] : null]);
 }
-const termTheme = () => isDark() ? { background: '#0b0e11', foreground: '#eaecef', cursor: '#f7931a', selectionBackground: '#2b3139' } : { background: '#f7f7f4', foreground: '#26251e', cursor: '#f7931a', selectionBackground: '#e6e5e0' };
+const termTheme = () => isDark()
+  ? { background: THEME.dark.canvas, foreground: THEME.dark.text, cursor: BRAND.accent, selectionBackground: THEME.dark.elevated }
+  : { background: THEME.light.canvas, foreground: THEME.light.ink, cursor: BRAND.accent, selectionBackground: THEME.light.hairline };
 window.addEventListener('resize', () => { try { fit?.fit(); } catch {} });
 
 async function termCopy(clear = false) { const text = term?.getSelection(); if (!text) return; await api('clipboard.write', { text }).catch(() => {}); if (clear) term.clearSelection(); }
@@ -743,7 +746,7 @@ function renderThread() {
   s.messages.forEach((m, i) => {
     if (m.role === 'tool') return;
     if (m.role === 'user') { flushTools(); items.push(h('div', { class: 'm-user' }, m.content)); return; }
-    if (m.content) { flushTools(); items.push(h('div', { class: 'm-bot' }, h('div', { class: 'who' }, logo({ size: 16 }), 'Bitcode', h('span', { class: 'num' }, `· ${model}`), h('span', { class: 'spacer' }), h('button', { class: 'copy ghost', type: 'button', title: `${t('copyL')} (${/Mac/i.test(navigator.platform) ? '⌘' : 'Ctrl'}+Shift+C)`, onClick: e => copyText(m.content, e.currentTarget) }, t('copyL'))), md(m.content))); }
+    if (m.content) { flushTools(); items.push(h('div', { class: 'm-bot' }, h('div', { class: 'who' }, logo({ size: 16 }), 'bitcode', h('span', { class: 'num' }, `· ${model}`), h('span', { class: 'spacer' }), h('button', { class: 'copy ghost', type: 'button', title: `${t('copyL')} (${/Mac/i.test(navigator.platform) ? '⌘' : 'Ctrl'}+Shift+C)`, onClick: e => copyText(m.content, e.currentTarget) }, t('copyL'))), md(m.content))); }
     if (!m.tools?.length) return;
     toolGroup ??= { names: [], outputs: [] };
     toolGroup.names.push(...m.tools);
@@ -751,7 +754,7 @@ function renderThread() {
   });
   flushTools();
   for (const [runId, thought] of S.reasoning) if (S.runs.get(runId)?.sessionId === s.sessionId && !S.runs.get(runId)?.endedAt) items.push(h('details', { class: 'reasoning', open: S.reasoningOpen }, h('summary', { onClick: e => { S.reasoningOpen = !e.currentTarget.parentElement.open; } }, t('wb_reasoning')), h('pre', { class: 'toolpre' }, thought)));
-  for (const [, l] of S.live) items.push(h('div', { class: 'm-bot live' }, h('div', { class: 'who' }, SATS.includes(l.agent) ? sat(l.agent, { size: 20, state: S.sats[l.agent]?.st || 'drafting' }) : logo({ size: 16 }), SATS.includes(l.agent) ? satName(l.agent) : 'Bitcode', typing(SAT_META[l.agent]?.color)), md(l.text)));
+  for (const [, l] of S.live) items.push(h('div', { class: 'm-bot live' }, h('div', { class: 'who' }, SATS.includes(l.agent) ? sat(l.agent, { size: 20, state: S.sats[l.agent]?.st || 'drafting' }) : logo({ size: 16 }), SATS.includes(l.agent) ? satName(l.agent) : 'bitcode', typing(SAT_META[l.agent]?.color)), md(l.text)));
   items.push(...S.pending.filter(a => a.sessionId === s.sessionId).map(approvalCard));
   items.push(...S.notes.map(n => h('div', { class: 'note' }, h('div', { class: 'ntitle' }, n.title), n.lines.length ? h('div', { class: 'nbody mono' }, n.lines.map(l => h('div', {}, l))) : null)));
   if (run) items.push(runLine(run)); else if (S.closing.has(s.sessionId)) items.push(closingLine(S.closing.get(s.sessionId)));
@@ -913,7 +916,7 @@ function renderComposer() {
         const id = e.target.value;
         if (s) await api('session.update', { sessionId: s.sessionId, satId: id });
         S.agent = id;
-      }) }, h('option', { value: '', selected: !S.agent }, 'Bitcode'), SATS.map(a => h('option', { value: a, selected: S.agent === a }, satName(a)))),
+      }) }, h('option', { value: '', selected: !S.agent }, 'bitcode'), SATS.map(a => h('option', { value: a, selected: S.agent === a }, satName(a)))),
       modeSelect,
       s?.profile === 'rgb' ? h('span', { class: 'chip rgb', title: t('rgbProfileHint') }, `RGB · ${s.rgbNetwork || t('testNet')}`) : null,
       h('div', { class: 'modelpick' },
@@ -1040,7 +1043,7 @@ function approvalCard(a) {
   const kv = [[t('agentL'), `${sub.agentId || ''} · ${sub.model || ''}`], [t('mode'), t(sub.mode)],
     a.kind === 'command' ? [t('sandbox'), t('sandboxNoNet')] : null, a.kind === 'payment' ? [t('network'), `${sub.network} · ${sub.node}`] : null, [t('reason'), a.kind === 'payment' ? t('rgbReason') : sub.reason], [t('id'), `${a.id.slice(0, 12)} · ${t('expires')} ${new Date(a.expiresAt).toLocaleTimeString()}`]].filter(x => x && x[1]);
   return h('div', { class: 'approval', role: 'group', 'aria-label': t(`kind_${a.kind}`) },
-    h('h4', {}, SATS.includes(sub.agentId) ? sat(sub.agentId, { size: 24, state: 'waiting' }) : logo({ size: 18 }), `${sub.agentId === 'bitcode' || !sub.agentId ? 'Bitcode' : satName(sub.agentId)} ${t(`kind_${a.kind}`)}`), body,
+    h('h4', {}, SATS.includes(sub.agentId) ? sat(sub.agentId, { size: 24, state: 'waiting' }) : logo({ size: 18 }), `${sub.agentId === 'bitcode' || !sub.agentId ? 'bitcode' : satName(sub.agentId)} ${t(`kind_${a.kind}`)}`), body,
     h('dl', { class: 'kv' }, kv.map(([k, v]) => [h('dt', {}, k), h('dd', { class: 'mono' }, v)])),
     h('div', { class: 'row' }, h('button', { class: 'btn primary', onClick: resolve('approve') }, t('approveOnce')), h('button', { class: 'btn', onClick: resolve('deny') }, t('deny')),
       a.kind === 'command' && sub.argv ? h('button', { class: 'btn ghost', onClick: guard(async () => { if (confirm(`${t('addPolicy')}: ${sub.argv.join(' ')}`)) { await api('policy.propose', { projectId: sub.projectId, add: { command: sub.shell } }); toast(t('addPolicy')); } }) }, `${t('addPolicy')}…`) : null,
@@ -1363,5 +1366,5 @@ function retheme() {
     }
     matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { applyTheme(); retheme(); });
     renderShell();
-  } catch (e) { fill($('app'), h('div', { class: 'page' }, h('h1', {}, 'Bitcode'), h('p', {}, errorText(e)))); }
+  } catch (e) { fill($('app'), h('div', { class: 'page' }, h('h1', {}, 'bitcode'), h('p', {}, errorText(e)))); }
 })();

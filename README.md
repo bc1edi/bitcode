@@ -1,4 +1,9 @@
-# bitcode
+<h1>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/logo/wordmark-on-dark.svg">
+    <img src="brand/logo/wordmark.svg" alt="bitcode" height="44">
+  </picture>
+</h1>
 
 **Your code. Your Bitcoin. Your agents.**
 

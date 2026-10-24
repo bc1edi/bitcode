@@ -2,7 +2,7 @@
   "name": "bitcode-desktop",
   "version": "0.2.0",
   "private": true,
-  "description": "Bitcode desktop workspace for coding and Bitcoin",
+  "description": "bitcode desktop workspace for coding and Bitcoin",
   "homepage": "https://github.com/faktotum-project/bitcode",
   "author": {
     "name": "FAKTOTUM",
@@ -21,7 +21,7 @@
   },
   "build": {
     "appId": "org.faktotum.bitcode",
-    "productName": "Bitcode",
+    "productName": "bitcode",
     "asar": false,
     "directories": {
       "output": "release"
