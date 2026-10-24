@@ -130,10 +130,13 @@ try {
  assert.equal((await heroState(saver)).video,false,'Data saving keeps the poster');
  check('data saving keeps the poster and loads no video');
 
- await motion.locator('.genesis-trigger').click();assert.equal(await motion.locator('#genesis-dialog').evaluate(el=>el.open),true);
+ await motion.keyboard.type('/genesis');assert.equal(await motion.locator('#genesis-dialog').evaluate(el=>el.open),true);
  assert.match(await motion.locator('#genesis-dialog').textContent(),/The Times 03\/Jan\/2009/);await motion.keyboard.press('Escape');await motion.waitForFunction(()=>!document.getElementById('genesis-dialog').open);
- await motion.keyboard.type('/genesis');assert.equal(await motion.locator('#genesis-dialog').evaluate(el=>el.open),true);await motion.keyboard.press('Escape');
- check('genesis by logo and /genesis, dismissible with Escape');
+ // A different Sat greets each visit beside the hero recording.
+ const greeted=[];for(let i=0;i<3;i++){await motion.goto(base+'/');await motion.waitForFunction(()=>!document.querySelector('[data-hero-sat]').hidden);greeted.push(await motion.locator('[data-hero-sat]').getAttribute('data-sat'));}
+ assert.ok(greeted.every((id,i)=>i===0||id!==greeted[i-1]),'Hero Sat changes on every reload: '+greeted);
+ assert.ok((await motion.locator('.hero-sat-line').textContent()).length>10);
+ check('genesis by /genesis, dismissible with Escape; a different hero Sat on every reload');
  // Visibility pause preserves a partially typed command and resumes it.
  await motion.setViewportSize({width:390,height:844});await motion.goto(base+'/#cap-bitcoin');
  const player=motion.locator('#cap-bitcoin [data-session]');
@@ -158,7 +161,7 @@ try {
   for(const width of [320,1440]){
    await staticPage.setViewportSize({width,height:900});await staticPage.goto(base+path);
    assert.equal(await staticPage.locator('h1').isVisible(),true);assert.equal(await staticPage.locator('.hero-app .loop-poster').isVisible(),true);
-   assert.equal(await staticPage.locator('.loop-video').count(),0);
+   assert.equal(await staticPage.locator('.loop-video').count(),0);assert.equal(await staticPage.locator('.hero-sat').isVisible(),false);
    assert.equal(await staticPage.locator('#demo [data-view="cli"]').isVisible(),true);assert.equal(await staticPage.locator('#demo [data-view="desktop"]').isVisible(),true);assert.equal(await staticPage.locator('.view-switch').first().isVisible(),false);
    assert.equal(await staticPage.locator('#cap-bitcoin .inline-session').isVisible(),true);assert.equal(await staticPage.locator('#install-qvac').isVisible(),true);
    assert.equal(await staticPage.locator('#sat-merkle .sat-card-head img').isVisible(),true);
