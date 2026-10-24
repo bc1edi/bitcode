@@ -20,8 +20,15 @@ body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-even
 .site-header { transition: background-color 320ms, border-color 320ms; }
 
 /* The pixel b assembles once on load, with the transaction lifecycle colours. */
-.js .hero-logo-piece { animation: mined-piece 666ms steps(12,end) calc(var(--piece) * 120ms) both; }
-@keyframes mined-piece { 0% { transform: translateY(-6px); opacity: 0; fill: var(--pending); } 20% { opacity: 1; fill: var(--pending); } 40% { fill: var(--mempool); } 65% { fill: var(--confirming); } 85% { fill: var(--confirmed); } 100% { transform: translateY(0); opacity: 1; } }
+
+/* Hero frame: the lean and the light follow the pointer and the loop; the Sat steps in and bobs. */
+.hero-app { transition: transform 600ms var(--ease-reveal), box-shadow 700ms ease, border-color 700ms ease; }
+.hero-sat:not([hidden]) { animation: sat-enter 700ms var(--ease-reveal) 300ms both; }
+.hero-sat:not([hidden]) img { animation: sat-bob 3.2s ease-in-out 1s infinite; }
+.hero-sat:not([hidden]) .hero-sat-line { animation: sat-say 420ms var(--ease-reveal) 900ms both; }
+@keyframes sat-enter { from { opacity: 0; transform: translateY(40px) rotate(-6deg); } to { opacity: 1; transform: none; } }
+@keyframes sat-bob { 50% { transform: translateY(-8px) rotate(2deg); } }
+@keyframes sat-say { from { opacity: 0; transform: translateY(8px) scale(.92); transform-origin: 0 100%; } to { opacity: 1; transform: none; } }
 
 /* Loops: the poster is visible immediately; the video fades in only once it is playing. */
 .loop-video { opacity: 0; transition: opacity 700ms var(--ease-reveal); }

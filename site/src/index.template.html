@@ -82,17 +82,6 @@
       <div class="container hero-grid">
         <div class="hero-copy">
           <a class="release" href="#capabilities"><span class="release-tag">{{text.016}}</span><span class="release-copy">{{text.017}}</span><span aria-hidden="true">↓</span></a>
-          <div class="hero-logo-lockup" aria-label="{{text.003}}">
-            <button type="button" class="genesis-trigger" aria-label="{{ui.genesisOpen}}" hidden><svg class="hero-logo-build" viewBox="0 0 4 5" shape-rendering="crispEdges" aria-hidden="true">
-              <rect class="hero-logo-piece hero-logo-piece--ink" style="--piece:0" x="0" y="4" width="2" height="1" fill="#F7F7F4"/>
-              <rect class="hero-logo-piece" style="--piece:1" x="0" y="0" width="1" height="4" fill="#F7931A"/>
-              <rect class="hero-logo-piece" style="--piece:2" x="3" y="2" width="1" height="2" fill="#F7931A"/>
-              <rect class="hero-logo-piece" style="--piece:3" x="1" y="2" width="1" height="1" fill="#F7931A"/>
-              <rect class="hero-logo-piece" style="--piece:4" x="2" y="1" width="1" height="1" fill="#F7931A"/>
-              <rect class="hero-logo-piece" style="--piece:5" x="1" y="0" width="2" height="1" fill="#F7931A"/>
-            </svg></button><noscript><svg class="hero-logo-build" viewBox="0 0 4 5" shape-rendering="crispEdges" aria-hidden="true"><use href="#pixel-b"/></svg></noscript>
-            <span class="hero-logo-wordmark">{{text.003}}</span>
-          </div>
           <h1 id="hero-title" lang="en"><span>{{text.018}}</span><span class="accent-line">{{text.019}}</span></h1>
           <p class="hero-description">{{text.021}}</p>
           <div class="hero-actions">
@@ -101,9 +90,12 @@
           </div>
           <p class="hero-note"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>{{text.024}} <span aria-hidden="true">·</span> {{text.025}}</p>
         </div>
+        <div class="hero-stage" data-hero-stage>
         <figure class="hero-app" data-loop-video data-src="/assets/demos/desktop/hero">
           <img class="loop-poster" src="/assets/demos/desktop/hero.webp" srcset="/assets/demos/desktop/hero-720.webp 720w, /assets/demos/desktop/hero.webp 1440w" sizes="(max-width: 800px) calc(100vw - 48px), 56vw" width="1440" height="810" alt="{{hero.appAlt}}" fetchpriority="high" decoding="async">
         </figure>
+        {{heroSat}}
+        </div>
       </div>
     </section>
 

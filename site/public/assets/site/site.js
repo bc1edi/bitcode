@@ -173,6 +173,31 @@
   if (!pageLoaded) addEventListener('load', () => { pageLoaded = true; updateLoops(); }, { once: true });
   compact.addEventListener('change', () => loops.forEach(loop => { removeLoopVideo(loop); updateLoop(loop); }));
 
+  // A different Sat greets each visit beside the recording (decorative; the page reads the same without it).
+  const heroSat=document.querySelector('[data-hero-sat]');
+  if(heroSat){
+   const last=readPreference('localStorage','bitcode-hero-sat');
+   const choices=data.heroSats.filter(sat=>sat.id!==last);
+   const sat=choices[Math.floor(Math.random()*choices.length)];
+   savePreference('localStorage','bitcode-hero-sat',sat.id);
+   heroSat.dataset.sat=sat.id;heroSat.querySelector('img').src=sat.src;heroSat.querySelector('.hero-sat-line').textContent=sat.line;
+   heroSat.querySelector('img').addEventListener('load',()=>{heroSat.hidden=false;},{once:true});
+  }
+
+  // The recording sits in a tilted frame that leans a few degrees toward the pointer; its light
+  // turns from orange (the card waits) to green once the loop reaches the approval.
+  const stage=document.querySelector('[data-hero-stage]');
+  const heroLoop=loops.find(loop=>stage?.contains(loop.figure));
+  const APPROVED_AT=5.6;
+  if(stage&&matchMedia('(pointer: fine)').matches){
+   stage.addEventListener('pointermove',event=>{
+    if(paused)return;const r=stage.getBoundingClientRect();
+    stage.style.setProperty('--lean-x',((event.clientX-r.left)/r.width-.5).toFixed(3));stage.style.setProperty('--lean-y',((event.clientY-r.top)/r.height-.5).toFixed(3));
+   },{passive:true});
+   stage.addEventListener('pointerleave',()=>{stage.style.setProperty('--lean-x','0');stage.style.setProperty('--lean-y','0');});
+  }
+  if(heroLoop)heroLoop.figure.addEventListener('timeupdate',event=>{stage.dataset.phase=event.target.currentTime>=APPROVED_AT?'approved':'card';},true);
+
   function setMotion(value) {
     paused = value || reduced.matches;
     root.dataset.motion = paused ? 'paused' : 'playing';
@@ -304,14 +329,12 @@
   brandMenu.addEventListener('keydown',event=>{if(event.key==='Escape'){hideBrand();menuOrigin?.focus();}if(event.key==='Tab')hideBrand();});
 
   // Explicitly historical, separate from the recorded agent session.
-  const genesis=document.getElementById('genesis-dialog');const trigger=document.querySelector('.genesis-trigger');
-  trigger.hidden=false;
-  const openGenesis=()=>{if(!genesis.open){genesis.showModal();savePreference('sessionStorage','bitcode-genesis','open');}};
-  trigger.addEventListener('click',openGenesis);
+  const genesis=document.getElementById('genesis-dialog');let genesisReturn=null;
+  const openGenesis=()=>{if(!genesis.open){genesisReturn=document.activeElement;genesis.showModal();savePreference('sessionStorage','bitcode-genesis','open');}};
   function closeGenesis(){genesis.close();savePreference('sessionStorage','bitcode-genesis','dismissed');}
   genesis.querySelector('[data-genesis-close]').addEventListener('click',closeGenesis);
   genesis.addEventListener('cancel',()=>savePreference('sessionStorage','bitcode-genesis','dismissed'));
-  genesis.addEventListener('close',()=>trigger.focus({preventScroll:true}));
+  genesis.addEventListener('close',()=>genesisReturn?.focus?.({preventScroll:true}));
   genesis.addEventListener('click',event=>{if(event.target===genesis){const r=genesis.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)closeGenesis();}});
   let typed='';
   document.addEventListener('keydown',event=>{if(event.ctrlKey||event.metaKey||event.altKey||event.target.closest('input,textarea,[contenteditable],dialog'))return;if(event.key.length===1){typed=(typed+event.key).slice(-8);if(typed==='/genesis'){openGenesis();typed='';}}});
