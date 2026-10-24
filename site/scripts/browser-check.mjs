@@ -1,4 +1,4 @@
-// Development QA only: static routes -> hero loop -> Sats scene -> keyboard -> source recordings.
+// Development QA only: static routes -> desktop loops -> Desktop/CLI views -> Sats cards -> keyboard -> source recordings.
 import assert from 'node:assert/strict';
 import {createRequire} from 'node:module';
 import {mkdir,writeFile} from 'node:fs/promises';
@@ -16,7 +16,8 @@ const watch=page=>{
  page.on('request',r=>{if(!r.url().startsWith(base)&&!r.url().startsWith('data:'))external.push(r.url());});
 };
 const scrollToElement=(page,selector,ratio)=>page.evaluate(([selector,ratio])=>{const el=document.querySelector(selector);scrollTo({top:scrollY+el.getBoundingClientRect().top-innerHeight*ratio,behavior:'instant'});},[selector,ratio]);
-const heroState=page=>page.evaluate(()=>{const v=document.querySelector('.hero-video');return {video:!!v,paused:v?v.paused:null,state:document.querySelector('[data-hero-video]').dataset.video||null,src:v?.currentSrc||null};});
+const heroState=page=>page.evaluate(()=>{const v=document.querySelector('.hero-app .loop-video');return {video:!!v,paused:v?v.paused:null,state:document.querySelector('.hero-app').dataset.video||null,src:v?.currentSrc||null};});
+const heroPlaying=page=>page.waitForFunction(()=>document.querySelector('.hero-app').dataset.video==='playing');
 let cls=0;
 try {
  const context=await browser.newContext({locale:'en-US',viewport:{width:1440,height:1000},reducedMotion:'reduce'});
@@ -28,7 +29,7 @@ try {
   assert.equal(await page.locator('link[hreflang]').count(),3);
   assert.equal(await page.locator('link[rel=canonical]').getAttribute('href'),'https://bitcode-agent.vercel.app'+path);
   const ld=await page.locator('script[type="application/ld+json"]').textContent();assert.equal(JSON.parse(ld).inLanguage,lang);
-  assert.equal(await page.locator('.hero-poster').isVisible(),true);
+  assert.equal(await page.locator('.hero-app .loop-poster').isVisible(),true);
   assert.equal((await heroState(page)).video,false,'Reduced motion keeps the poster');
   assert.equal(await page.locator('h1').isVisible(),true);
   assert.equal(await page.locator('.hero-actions .button-primary').getAttribute('href'),'#get-started');
@@ -48,17 +49,19 @@ try {
   assert.equal(await page.locator('[data-panel][data-active]').getAttribute('data-panel'),'rgb');
   assert.match(await page.locator('[data-panel="rgb"] figcaption').textContent(),lang==='it'?/nessun node/:/no node/);
   await page.screenshot({path:output+lang+'-rail-rgb-desktop.png'});
-  for(const sat of ['node','script','hash','merkle']) {
-   await scrollToElement(page,'#sat-'+sat,.3);await page.waitForTimeout(120);
-   assert.equal(await page.locator('[data-sats-scene]').getAttribute('data-active-sat'),sat);
-   assert.equal(await page.locator(`[data-stage-sat="${sat}"]`).getAttribute('data-active'),'');
-   assert.equal(await page.locator('[data-stage-sat][data-active]').count(),1);
-  }
-  assert.equal(await page.locator('.sats-stage').isVisible(),true);
-  assert.equal(await page.locator('#sat-node .sat-chapter-figure').isVisible(),false);
-  await scrollToElement(page,'#sat-hash',.3);await page.waitForTimeout(120);
+  await page.goto(base+path+'#sats');await page.waitForTimeout(150);
+  const satBoxes=await page.locator('.sat-card').evaluateAll(cards=>cards.map(card=>card.getBoundingClientRect()));
+  assert.equal(satBoxes.length,4);assert.ok(new Set(satBoxes.map(box=>Math.round(box.top))).size===1,'Four Sats in one row at 1440 px');
+  assert.ok(await page.locator('.sats-grid').evaluate(el=>el.getBoundingClientRect().height<innerHeight),'Sats fit in one screen');
   await page.screenshot({path:output+lang+'-sats-desktop.png'});
-  assert.equal(await page.locator('.nav-link[aria-current="location"]').getAttribute('href'),'#sats');
+  // Desktop/CLI: one choice drives every paired recording and survives a reload.
+  await page.goto(base+path+'#demo');
+  assert.equal(await page.locator('#demo [data-view="desktop"]').isVisible(),true);assert.equal(await page.locator('#demo [data-view="cli"]').isVisible(),false);
+  await page.locator('#demo [data-view-tab="cli"]').click();
+  assert.equal(await page.locator('#demo [data-view="cli"]').isVisible(),true);assert.equal(await page.locator('#demo [data-view-tab="cli"]').getAttribute('aria-pressed'),'true');
+  assert.equal(await page.locator('#demos [data-view="cli"]:visible').count(),6);if(await page.locator('.demo-story--rgb').count())assert.equal(await page.locator('.demo-story--rgb').isVisible(),true);
+  await page.reload();assert.equal(await page.locator('#demo [data-view="cli"]').isVisible(),true);
+  await page.locator('#demo [data-view-tab="desktop"]').click();assert.equal(await page.locator('#demos [data-view="desktop"]:visible').count(),6);
   await page.goto(base+path+'#get-started');
   const source=page.locator('#tab-source');await source.focus();await page.keyboard.press('ArrowRight');
   assert.equal(await page.locator('#tab-ollama').getAttribute('aria-selected'),'true');
@@ -66,14 +69,12 @@ try {
   await page.keyboard.press('End');assert.equal(await page.locator('#tab-scriptable').getAttribute('aria-selected'),'true');
   await page.keyboard.press('Home');
   await page.locator('[data-copy="install-command"]').click();assert.match(await page.evaluate(()=>navigator.clipboard.readText()),/git clone/);
-  check(`${lang}: anchors, capability rail, Sats scene chapters, active navigation, keyboard tabs and clipboard`);
+  check(`${lang}: anchors, capability rail, Sats in one row, Desktop/CLI switch remembered, keyboard tabs and clipboard`);
   await page.setViewportSize({width:390,height:844});await page.goto(base+path+'#capabilities');
   assert.equal(await page.locator('.story-sticky').isVisible(),false);
   assert.equal(await page.locator('#cap-bitcoin .inline-session').isVisible(),true);
   await page.goto(base+path+'#sats');
-  assert.equal(await page.locator('.sats-stage').isVisible(),false);
-  for(const sat of ['node','script','hash','merkle'])assert.equal(await page.locator(`#sat-${sat} .sat-chapter-figure img`).count(),1);
-  await page.locator('#sat-node .sat-chapter-figure').scrollIntoViewIfNeeded();assert.equal(await page.locator('#sat-node .sat-chapter-figure').isVisible(),true);
+  for(const sat of ['node','script','hash','merkle'])assert.equal(await page.locator(`#sat-${sat} .sat-card-head img`).isVisible(),true);
   await page.screenshot({path:output+lang+'-sats-mobile.png'});
   await page.goto(base+path+'#capabilities');
   await page.locator('.menu-toggle').click();await page.screenshot({path:output+lang+'-menu-mobile.png'});assert.equal(await page.locator('html').getAttribute('data-menu-open'),'');
@@ -82,7 +83,7 @@ try {
   await page.keyboard.press('Escape');assert.equal(await last.getAttribute('aria-expanded'),'false');assert.equal(await page.locator('main').evaluate(el=>el.inert),false);
   const other=lang==='en'?'it':'en';assert.match(await page.locator(`.language-switch [data-language="${other}"]`).getAttribute('href'),/#capabilities$/);
   await page.locator(`.language-switch [data-language="${other}"]`).click();assert.equal(new URL(page.url()).hash,'#capabilities');assert.equal(await page.locator('html').getAttribute('lang'),other);
-  check(`${lang}: mobile inline terminals and Sats sequence, focus containment, Escape, scroll lock, language hash preservation`);
+  check(`${lang}: mobile inline terminals and Sats cards, focus containment, Escape, scroll lock, language hash preservation`);
  }
 
  // Motion allowed: the decorative loop starts after load, stops off screen, hidden or paused.
@@ -90,38 +91,39 @@ try {
  const motion=await motionContext.newPage();watch(motion);
  await motion.addInitScript(()=>{window.layoutShifts=[];new PerformanceObserver(list=>list.getEntries().filter(e=>!e.hadRecentInput).forEach(e=>window.layoutShifts.push(e.value))).observe({type:'layout-shift',buffered:true});});
  await motion.goto(base+'/');
- assert.equal(await motion.locator('.hero-poster').isVisible(),true);
- await motion.waitForFunction(()=>document.querySelector('[data-hero-video]').dataset.video==='playing');
- let hero=await heroState(motion);assert.match(hero.src,/sats-team-desktop\.webm$/);
- const t0=await motion.locator('.hero-video').evaluate(v=>v.currentTime);await motion.waitForTimeout(600);
- assert.ok(await motion.locator('.hero-video').evaluate(v=>v.currentTime)>t0,'Hero loop advances');
- assert.equal(await motion.locator('.hero-video').evaluate(v=>v.loop&&v.muted&&!v.controls&&v.getAttribute('aria-hidden')==='true'),true);
+ assert.equal(await motion.locator('.hero-app .loop-poster').isVisible(),true);
+ await heroPlaying(motion);
+ let hero=await heroState(motion);assert.match(hero.src,/desktop\/hero\.webm$/);
+ const t0=await motion.locator('.hero-app .loop-video').evaluate(v=>v.currentTime);await motion.waitForTimeout(600);
+ assert.ok(await motion.locator('.hero-app .loop-video').evaluate(v=>v.currentTime)>t0,'Hero loop advances');
+ assert.equal(await motion.locator('.hero-app .loop-video').evaluate(v=>v.loop&&v.muted&&!v.controls&&v.getAttribute('aria-hidden')==='true'),true);
  await motion.waitForTimeout(900);await motion.screenshot({path:output+'en-hero-desktop.png'});
  cls=await motion.evaluate(()=>window.layoutShifts.reduce((a,b)=>a+b,0));assert.ok(cls<.05,'Load CLS '+cls);
  assert.equal(await motion.locator('#reasoning .section-heading').evaluate(el=>el.classList.contains('is-revealed')),false,'Below-the-fold sections wait for their entrance');
  await scrollToElement(motion,'#reasoning .section-heading',.6);await motion.waitForTimeout(800);
  assert.equal(await motion.locator('#reasoning .section-heading').evaluate(el=>el.classList.contains('is-revealed')&&getComputedStyle(el).opacity==='1'),true);
  assert.equal((await heroState(motion)).paused,true,'Hero loop pauses off screen');
- await motion.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await motion.waitForFunction(()=>!document.querySelector('.hero-video').paused);
+ await motion.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await motion.waitForFunction(()=>!document.querySelector('.hero-app .loop-video').paused);
  await motion.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});
  assert.equal((await heroState(motion)).paused,true,'Hero loop pauses in a hidden tab');
- await motion.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});await motion.waitForFunction(()=>!document.querySelector('.hero-video').paused);
+ await motion.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});await motion.waitForFunction(()=>!document.querySelector('.hero-app .loop-video').paused);
  // Clicked in place so the hero stays in view; the control lives in the footer.
  await motion.evaluate(()=>document.getElementById('motion-toggle').click());assert.equal(await motion.locator('html').getAttribute('data-motion'),'paused');
  assert.equal((await heroState(motion)).paused,true,'Global pause stops the hero loop');
- await motion.evaluate(()=>document.getElementById('motion-toggle').click());await motion.waitForFunction(()=>!document.querySelector('.hero-video').paused);
+ await motion.evaluate(()=>document.getElementById('motion-toggle').click());await motion.waitForFunction(()=>!document.querySelector('.hero-app .loop-video').paused);
  check(`hero loop: poster first, plays after load, pauses off screen, hidden and on global pause; entrances on scroll; CLS ${cls.toFixed(4)}`);
- await motion.setViewportSize({width:2560,height:1200});await motion.goto(base+'/');await motion.waitForFunction(()=>document.querySelector('[data-hero-video]').dataset.video==='playing');
+ await motion.setViewportSize({width:2560,height:1200});await motion.goto(base+'/');await heroPlaying(motion);
  await motion.waitForTimeout(800);await motion.screenshot({path:output+'en-hero-ultrawide.png'});
- await motion.setViewportSize({width:1440,height:900});await motion.goto(base+'/it/');await motion.waitForFunction(()=>document.querySelector('[data-hero-video]').dataset.video==='playing');
+ await motion.setViewportSize({width:1440,height:900});await motion.goto(base+'/it/');await heroPlaying(motion);
  await motion.waitForTimeout(800);await motion.screenshot({path:output+'it-hero-desktop.png'});
+ // The workspace loop in the desktop section follows the same rules as the hero.
+ await scrollToElement(motion,'.desktop-shot',.3);await motion.waitForFunction(()=>document.querySelector('.desktop-shot').dataset.video==='playing');
+ assert.equal((await heroState(motion)).paused,true,'Hero pauses while the workspace loop plays');
  const mobileContext=await browser.newContext({locale:'en-US',viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2});
  const mobile=await mobileContext.newPage();watch(mobile);
- await mobile.goto(base+'/it/');await mobile.waitForFunction(()=>document.querySelector('[data-hero-video]').dataset.video==='playing');
- assert.match((await heroState(mobile)).src,/sats-team-mobile\.webm$/);
+ await mobile.goto(base+'/it/');await heroPlaying(mobile);
  await mobile.screenshot({path:output+'it-hero-mobile.png'});
- await mobile.evaluate(()=>scrollTo({top:520,behavior:'instant'}));await mobile.waitForTimeout(900);await mobile.screenshot({path:output+'it-hero-mobile-team.png'});
- check('hero loop: desktop and mobile compositions, ultrawide layout');
+ check('desktop loops: hero and workspace, mobile and ultrawide layouts');
  const lean=await browser.newContext({locale:'en-US',viewport:{width:1440,height:900}});const saver=await lean.newPage();watch(saver);
  await saver.addInitScript(()=>Object.defineProperty(navigator,'connection',{configurable:true,get:()=>({saveData:true})}));
  await saver.goto(base+'/');await saver.waitForLoadState('load');await saver.waitForTimeout(500);
@@ -146,7 +148,7 @@ try {
  assert.equal(await motion.locator('.brand').first().evaluate(el=>{const event=new MouseEvent('contextmenu',{bubbles:true,cancelable:true,shiftKey:true});el.dispatchEvent(event);return event.defaultPrevented;}),false);
  check('fine-pointer logo menu; Shift preserves native context menu');
  await page.setViewportSize({width:1440,height:1000});await page.goto(base+'/it/#demos');
- assert.equal(await page.locator('.recording-player video').count(),3);assert.equal(await page.locator('.video-start').count(),3);
+ const players=await page.locator('.recording-player video').count();assert.ok(players>=7,`${players} players`);assert.equal(await page.locator('.video-start').count(),players);
  const firstVideo=page.locator('.recording-player video').first();await page.locator('.video-start').first().click();await page.waitForFunction(()=>!document.querySelector('.recording-player video').paused);assert.equal(await firstVideo.evaluate(el=>el.controls),true);
  await page.evaluate(()=>{Object.defineProperty(document,'hidden',{configurable:true,get:()=>true});document.dispatchEvent(new Event('visibilitychange'));});assert.equal(await firstVideo.evaluate(el=>el.paused),true);await page.evaluate(()=>{delete document.hidden;document.dispatchEvent(new Event('visibilitychange'));});
  check('recorded demos keep their own players: play on request with native controls, pause when hidden');
@@ -155,15 +157,16 @@ try {
  for(const path of ['/','/it/']){
   for(const width of [320,1440]){
    await staticPage.setViewportSize({width,height:900});await staticPage.goto(base+path);
-   assert.equal(await staticPage.locator('h1').isVisible(),true);assert.equal(await staticPage.locator('.hero-poster').isVisible(),true);
-   assert.equal(await staticPage.locator('.hero-video').count(),0);
+   assert.equal(await staticPage.locator('h1').isVisible(),true);assert.equal(await staticPage.locator('.hero-app .loop-poster').isVisible(),true);
+   assert.equal(await staticPage.locator('.loop-video').count(),0);
+   assert.equal(await staticPage.locator('#demo [data-view="cli"]').isVisible(),true);assert.equal(await staticPage.locator('#demo [data-view="desktop"]').isVisible(),true);assert.equal(await staticPage.locator('.view-switch').first().isVisible(),false);
    assert.equal(await staticPage.locator('#cap-bitcoin .inline-session').isVisible(),true);assert.equal(await staticPage.locator('#install-qvac').isVisible(),true);
-   assert.equal(await staticPage.locator('.sats-stage').isVisible(),false);assert.equal(await staticPage.locator('#sat-merkle .sat-chapter-figure').isVisible(),true);
+   assert.equal(await staticPage.locator('#sat-merkle .sat-card-head img').isVisible(),true);
    assert.equal(await staticPage.locator('#get-started .section-title').evaluate(el=>getComputedStyle(el.closest('[data-reveal]')).opacity),'1');
    assert.ok(await staticPage.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   }
  }
- check('without JavaScript or video: poster, headings, Sats sequence, eight inline recordings, four installation methods, nothing hidden');
+ check('without JavaScript or video: poster, headings, both recording views, Sats cards, eight inline recordings, four installation methods, nothing hidden');
  const blocked=await browser.newContext({locale:'en-US'});const privacyPage=await blocked.newPage();
  await privacyPage.addInitScript(()=>{Storage.prototype.getItem=()=>{throw Error('blocked');};Storage.prototype.setItem=()=>{throw Error('blocked');};});
  await privacyPage.goto(base+'/it/#get-started');assert.equal(await privacyPage.locator('[role="tablist"]').count(),1);
