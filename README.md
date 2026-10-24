@@ -14,7 +14,7 @@ money differently from code: it works on test networks by default, every
 payment needs your explicit approval, and spending limits are enforced by code,
 not by the prompt. A Linux desktop app ships the same agent in a full workspace.
 
-![bitcode desktop](assets/desktop/desktop-preview.webp)
+![bitcode desktop](site/public/assets/desktop/desktop-preview.webp)
 
 ## Quick start
 
@@ -87,7 +87,7 @@ Tools are grouped in profiles. Switch with `--profile` or `/profile`.
 | `rgb` | operates an RGB Lightning Node through `kaleido-mcp`: balances, invoices, transfers |
 
 Extend it with [MCP servers](docs/reference.md#mcp), local skills, custom slash
-commands in `commands/` and [plugins](docs/reference.md#plugins). The full list
+commands in `content/commands/` and [plugins](docs/reference.md#plugins). The full list
 is in [tools](docs/reference.md#tools).
 
 ### RGB assets
@@ -135,7 +135,7 @@ bitcode-desktop                   # or: bitcode desktop
 The package (amd64) also installs the CLI as `/usr/bin/bitcode`, unless another
 `bitcode` already owns that path. The app lives in the tray, can start at login
 and blocks system suspension only while an agent run is active. See
-[desktop/](desktop/) and the [plan](docs/desktop-plan.md).
+[desktop/](desktop/) and the [plan](docs/archive/desktop-plan.md).
 
 ## Sats
 
@@ -167,6 +167,20 @@ See [docs/sats.md](docs/sats.md).
 | **Wavelength** | Lightning Labs toolkit for self-custodial Bitcoin, Lightning and Ark payments without running a node |
 | **Signet / Mutinynet** | Bitcoin test networks: coins with no value |
 | **MCP** | Model Context Protocol, the standard way to plug external tools into an agent |
+
+## Repository layout
+
+| Folder | What |
+|---|---|
+| `src/` | CLI source (`bitcode.mjs` is the entry point) |
+| `content/` | Markdown the CLI loads at runtime: `agents/`, `commands/`, `sats/` |
+| `ui/sats/`, `assets/sats/` | The `/sats` web view and the Sats images it serves |
+| `desktop/` | Electron desktop app |
+| `integrations/`, `deps/` | QVAC and Kaleido integrations; Cashu `cdk` submodule |
+| `brand/` | Design system: tokens, logo, Sats profiles, social kit ([brand/README.md](brand/README.md)) |
+| `site/` | Website: `src/` template and i18n, `public/` what Vercel serves, `scripts/` build and checks |
+| `docs/` | Reference and Sats docs; `docs/archive/` holds completed plans |
+| `scripts/`, `tests/` | Build helpers (Cashu, Wavelength, lint, Sats assets) and the test suite |
 
 ## Development
 

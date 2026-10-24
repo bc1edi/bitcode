@@ -4,23 +4,21 @@ deps/cdk/bin/
 deps/wavelength/
 .demo-archive/
 .vercel
-artifacts/sats/
+artifacts/
 .sats-build/
 desktop/dist/
 desktop/release/
-artifacts/desktop/
 __pycache__/
 
 # Local tooling
 .swarm/
 .opencode/
 .claude/
-design/instagram/
 
 # Product video: generated stage, stills and renders
-design/video/stage/
-design/video/preview/
-design/video/out/
+brand/video/stage/
+brand/video/preview/
+brand/video/out/
 
 # Local attachments and scratch copies
 allegati/

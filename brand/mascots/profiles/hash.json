@@ -1,0 +1,34 @@
+{
+  "id": "hash",
+  "name": "Hash",
+  "role": "Security analysis",
+  "role_it": "Analisi di sicurezza",
+  "kami": "Spirit of security analysis: the careful one that checks twice before anything is trusted.",
+  "local_love": [
+    "lime felt body",
+    "orange shield with a keyhole on the chest",
+    "three chest stripes, cream feet"
+  ],
+  "flawed_physics": "Squints, leans in too far, wobbles when something looks wrong.",
+  "unpolished_kawaii": "Plush and soft-edged; never menacing, the shield is a sticker, not armor.",
+  "personality": [
+    "cautious",
+    "precise",
+    "kind about bad news"
+  ],
+  "voice": "Calm, specific, never alarmist. Names the risk and the fix.",
+  "color": "hash",
+  "modules": [
+    "social",
+    "support"
+  ],
+  "poses": [
+    "idle",
+    "focus",
+    "working",
+    "ask",
+    "happy",
+    "concerned"
+  ],
+  "shared_anatomy": "Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."
+}

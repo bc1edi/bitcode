@@ -37,16 +37,14 @@ writeFileSync(path.join(dist, 'ui/icon.png'), iconPng(256));
 // electron-builder installs a directory of NxN.png files as the hicolor icon theme sizes.
 mkdirSync(path.join(dist, 'icons'));
 for (const size of [16, 24, 32, 48, 64, 128, 256, 512]) writeFileSync(path.join(dist, 'icons', `${size}x${size}.png`), iconPng(size));
-cpSync(path.join(repo, 'agents'), path.join(dist, 'agents'), { recursive: true });
-cpSync(path.join(repo, 'commands'), path.join(dist, 'commands'), { recursive: true });
-cpSync(path.join(repo, 'sats'), path.join(dist, 'sats'), { recursive: true });
+for (const dir of ['agents', 'commands', 'sats']) cpSync(path.join(repo, 'content', dir), path.join(dist, dir), { recursive: true });
 copyCli(path.join(dist, 'cli'));
 console.log('desktop build → dist/');
 
 // The CLI resolves agents, commands, Sats and its version relative to src/, so
 // it ships as a tree rather than a bundle, with only its production dependencies.
 function copyCli(out) {
-  for (const entry of ['bitcode.mjs', 'package.json', 'LICENSE', 'src', 'agents', 'commands', 'sats', 'ui/sats'])
+  for (const entry of ['bitcode.mjs', 'package.json', 'LICENSE', 'src', 'content', 'ui/sats'])
     cpSync(path.join(repo, entry), path.join(out, entry), { recursive: true, filter: f => !f.endsWith('.test.mjs') });
   cpSync(path.join(repo, 'assets/sats'), path.join(out, 'assets/sats'), { recursive: true, filter: f => !f.includes(`${path.sep}sources`) });
   const copied = new Set();

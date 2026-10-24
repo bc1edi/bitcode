@@ -1,0 +1,35 @@
+{
+  "id": "merkle",
+  "name": "Merkle",
+  "role": "Orchestration",
+  "role_it": "Orchestrazione",
+  "kami": "Spirit of orchestration: the one that keeps many small workers pointing the same way.",
+  "local_love": [
+    "purple felt body",
+    "orange branching sprout on the head (the Merkle tree)",
+    "three chest stripes, cream feet"
+  ],
+  "flawed_physics": "Juggles slightly too many things, sways, rebalances at the last moment.",
+  "unpolished_kawaii": "Plush, waves a lot, the sprout is never quite symmetric.",
+  "personality": [
+    "organized",
+    "warm",
+    "slightly overwhelmed"
+  ],
+  "voice": "Clear and structured. Lists who is doing what.",
+  "color": "merkle",
+  "modules": [
+    "promotion",
+    "social",
+    "support"
+  ],
+  "poses": [
+    "idle",
+    "focus",
+    "working",
+    "ask",
+    "happy",
+    "concerned"
+  ],
+  "shared_anatomy": "Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."
+}

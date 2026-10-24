@@ -319,7 +319,7 @@ Skills are discovered from:
 Only names/descriptions enter the initial context. `read_skill` loads the full
 instructions when needed. Project entries override user entries of the same name.
 
-Custom command Markdown files are loaded from bundled `commands/`, the user's
+Custom command Markdown files are loaded from bundled `content/commands/`, the user's
 `commands/` directory, then `<project>/.bitcode/commands/`. A subdirectory creates
 a namespace, e.g. `repo/review.md` → `/repo:review`. `$ARGUMENTS` expands to the
 text following the command. Bundled/custom commands also expand in one-shot
@@ -473,7 +473,7 @@ Source code lives in `src/`; `runtime.mjs` handles validation/call context,
 `agent.mjs` scheduling, `providers.mjs` streaming, `mcp.mjs` integrations,
 `processes.mjs` processes, `context.mjs` instructions/compaction, and
 `workspace-tools.mjs` planning/Git/web/skills. The terminal theme remains based
-on `design/system/`.
+on `brand/` (tokens in `brand/tokens/tokens.json`).
 
 Protocol references used for this update: [OpenAI model guidance](https://developers.openai.com/api/docs/guides/latest-model),
 [Responses function calling](https://developers.openai.com/api/docs/guides/function-calling),

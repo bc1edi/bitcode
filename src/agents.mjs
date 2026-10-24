@@ -13,7 +13,7 @@ export function agentsDir() {
 
 export function loadAgents({
   userDir = agentsDir(),
-  bundledDir = fileURLToPath(new URL("../agents/", import.meta.url)),
+  bundledDir = fileURLToPath(new URL("../content/agents/", import.meta.url)),
 } = {}) {
   const order = ["node", "script", "hash", "merkle"];
   const byName = new Map(

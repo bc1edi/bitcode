@@ -1,0 +1,35 @@
+{
+  "id": "node",
+  "name": "Node",
+  "role": "Bitcoin infrastructure",
+  "role_it": "Infrastruttura Bitcoin",
+  "kami": "Spirit of the Bitcoin network: the quiet machine that keeps the chain alive and answers when asked.",
+  "local_love": [
+    "blue felt body",
+    "orange lightning-bolt antenna (the network, Lightning)",
+    "three chest stripes, cream feet"
+  ],
+  "flawed_physics": "Walks like it is checking every step; stops a beat too late when peers sync.",
+  "unpolished_kawaii": "Plush and slightly lopsided; the antenna wobbles a beat after every move.",
+  "personality": [
+    "dependable",
+    "slow to speak",
+    "protective"
+  ],
+  "voice": "Short and steady. States facts, then waits.",
+  "color": "node",
+  "modules": [
+    "promotion",
+    "social",
+    "support"
+  ],
+  "poses": [
+    "idle",
+    "focus",
+    "working",
+    "ask",
+    "happy",
+    "concerned"
+  ],
+  "shared_anatomy": "Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."
+}

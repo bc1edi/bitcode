@@ -32,7 +32,7 @@ export function parseSatManifest(source) {
   return { ...meta, version: 1, body: match[2].trim() };
 }
 
-export function loadSats({ directory = fileURLToPath(new URL('../sats/', import.meta.url)) } = {}) {
+export function loadSats({ directory = fileURLToPath(new URL('../content/sats/', import.meta.url)) } = {}) {
   return SAT_IDS.map(id => {
     const sat = parseSatManifest(readFileSync(path.join(directory, id, 'SAT.md'), 'utf8'));
     if (sat.id !== id) throw new Error('Sat Manifest identity mismatch');

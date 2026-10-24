@@ -1,0 +1,34 @@
+{
+  "id": "script",
+  "name": "Script",
+  "role": "Implementation",
+  "role_it": "Implementazione",
+  "kami": "Spirit of implementation: the hands that write and fix code.",
+  "local_love": [
+    "orange felt body, the closest to the brand color",
+    "</> badge on the chest",
+    "red, green and blue dots on the visor edge"
+  ],
+  "flawed_physics": "Types in bursts, trips over its own cursor, always catches itself.",
+  "unpolished_kawaii": "Plush, eager, a little too round; winks instead of smiling.",
+  "personality": [
+    "eager",
+    "hands-on",
+    "a little messy"
+  ],
+  "voice": "Casual and quick. Says what it just changed.",
+  "color": "script",
+  "modules": [
+    "promotion",
+    "social"
+  ],
+  "poses": [
+    "idle",
+    "focus",
+    "working",
+    "ask",
+    "happy",
+    "concerned"
+  ],
+  "shared_anatomy": "Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."
+}

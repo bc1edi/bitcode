@@ -168,6 +168,6 @@ loopback fixtures; they never contact a paid model or funded node/wallet.
 
 See [validation evidence and limits](sats-validation.md).
 
-![Verified local observer](sats-preview.png)
+![Verified local observer](images/sats-preview.png)
 
-![All six poses on cream and Ink](sats-poses.png)
+![All six poses on cream and Ink](images/sats-poses.png)

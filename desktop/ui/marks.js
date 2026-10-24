@@ -21,10 +21,10 @@ export function logo({ size = 24, build = false, variant = 'ink' } = {}) {
 }
 
 export const SAT_META = {
-  node: { color: '#3297ff', shape: 'circle' },
-  script: { color: '#f7931a', shape: 'square' },
-  hash: { color: '#b6f500', shape: 'hex' },
-  merkle: { color: '#c96bff', shape: 'diamond' }
+  node: { color: 'var(--sat-node)', shape: 'circle' },
+  script: { color: 'var(--sat-script)', shape: 'square' },
+  hash: { color: 'var(--sat-hash)', shape: 'hex' },
+  merkle: { color: 'var(--sat-merkle)', shape: 'diamond' }
 };
 const BODY = {
   circle: () => el('circle', { cx: 50, cy: 52, r: 38, class: 'body' }),

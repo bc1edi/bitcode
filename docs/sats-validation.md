@@ -80,8 +80,8 @@ masters are resampled from 512px atlas cells, as documented in the asset report.
 | A21–A22 | Actual npm extraction and foreign-cwd smoke; all UI requests constrained to loopback, local fonts, images and manifest load without external services |
 
 Screenshots and the machine-readable browser report are generated under
-`artifacts/sats/`. A checked-in overview is [sats-preview.png](sats-preview.png);
-the visual pose review is [sats-poses.png](sats-poses.png).
+`artifacts/sats/`. A checked-in overview is [sats-preview.png](images/sats-preview.png);
+the visual pose review is [sats-poses.png](images/sats-poses.png).
 
 The CI workflow retains the Node 22/24 Linux matrix and adds Chromium, asset and
 archive checks. A configured workflow is not evidence of a completed remote run.

@@ -1,20 +1,6 @@
-# Development sources and local archives are not part of the static site.
-.git/
-.github/
-.vercel/
-.demo-archive/
-commands/
-deps/
-design/
-node_modules/
-scripts/
-src/
-tests/
-*.md
-/docs/
-*.mjs
-*.json
-package-lock.json
-package.json
-/desktop/
-/artifacts/
+# Only site/public is served (outputDirectory in vercel.json); upload nothing else.
+/*
+!/site
+/site/*
+!/site/public
+!/vercel.json

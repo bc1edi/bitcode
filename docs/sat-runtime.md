@@ -1,7 +1,7 @@
 # Sat Runtime
 
 I Sats sono un livello del motore Bitcode esistente, non un framework separato.
-CLI e desktop usano gli stessi quattro `sats/<id>/SAT.md`, la stessa selezione
+CLI e desktop usano gli stessi quattro `content/sats/<id>/SAT.md`, la stessa selezione
 dei tool e lo stesso `runAgent`. Non sono richiesti servizi o dipendenze nuovi.
 
 ## Uso

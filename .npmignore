@@ -14,10 +14,9 @@ assets/sats/sources/
 assets/sats/*/masters/
 assets/sats/*/brand-*.png
 assets/sats/*/working.gif
-docs/sats-preview.png
-docs/sats-poses.png
-design/system/
-design/instagram/
+docs/images/
+brand/
+site/
+docs/archive/
 *.tgz
 desktop/
-design/desktop-mockups.html

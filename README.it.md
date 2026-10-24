@@ -15,7 +15,7 @@ reti di test, ogni pagamento richiede la tua approvazione esplicita e i limiti d
 spesa sono imposti dal codice, non dal prompt. Un'app desktop per Linux offre lo
 stesso agente in un ambiente di lavoro completo.
 
-![bitcode desktop](assets/desktop/desktop-preview.webp)
+![bitcode desktop](site/public/assets/desktop/desktop-preview.webp)
 
 ## Avvio rapido
 
@@ -88,7 +88,7 @@ Gli strumenti sono raggruppati in profili. Si cambiano con `--profile` o `/profi
 | `rgb` | gestisce un RGB Lightning Node tramite `kaleido-mcp`: saldi, fatture, trasferimenti |
 
 Puoi estenderlo con [server MCP](docs/reference.md#mcp), skill locali, comandi
-slash personalizzati in `commands/` e [plugin](docs/reference.md#plugins).
+slash personalizzati in `content/commands/` e [plugin](docs/reference.md#plugins).
 L'elenco completo è in [tools](docs/reference.md#tools).
 
 ### Asset RGB
@@ -139,7 +139,7 @@ bitcode-desktop                   # oppure: bitcode desktop
 Il pacchetto (amd64) installa anche la CLI come `/usr/bin/bitcode`, a meno che
 quel percorso non appartenga già a un altro `bitcode`. L'app resta nella barra
 di sistema, può avviarsi al login e blocca la sospensione solo mentre un agente
-è al lavoro. Vedi [desktop/](desktop/) e il [piano](docs/desktop-plan.md).
+è al lavoro. Vedi [desktop/](desktop/) e il [piano](docs/archive/desktop-plan.md).
 
 ## Sats
 
@@ -171,6 +171,20 @@ Vedi [docs/sats.md](docs/sats.md).
 | **Wavelength** | toolkit di Lightning Labs per pagamenti Bitcoin, Lightning e Ark self-custodial senza gestire un nodo |
 | **Signet / Mutinynet** | reti di test di Bitcoin: monete senza valore |
 | **MCP** | Model Context Protocol, lo standard per collegare strumenti esterni a un agente |
+
+## Struttura del repository
+
+| Cartella | Contenuto |
+|---|---|
+| `src/` | Sorgente della CLI (`bitcode.mjs` è il punto di ingresso) |
+| `content/` | Markdown caricato a runtime dalla CLI: `agents/`, `commands/`, `sats/` |
+| `ui/sats/`, `assets/sats/` | La vista web `/sats` e le immagini dei Sats che serve |
+| `desktop/` | App desktop Electron |
+| `integrations/`, `deps/` | Integrazioni QVAC e Kaleido; submodule Cashu `cdk` |
+| `brand/` | Design system: token, logo, profili dei Sats, kit social ([brand/README.md](brand/README.md)) |
+| `site/` | Sito: `src/` template e i18n, `public/` ciò che pubblica Vercel, `scripts/` build e controlli |
+| `docs/` | Riferimento e documenti sui Sats; `docs/archive/` contiene i piani completati |
+| `scripts/`, `tests/` | Script di build (Cashu, Wavelength, lint, asset dei Sats) e test |
 
 ## Sviluppo
 

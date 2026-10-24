@@ -1,0 +1,557 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bitcode Design System</title>
+<meta name="description" content="The bitcode design system: logo, Sats, color, type, components. One source: brand/tokens/tokens.json.">
+<link rel="icon" type="image/svg+xml" href="logo/mark.svg">
+<link rel="stylesheet" href="tokens/tokens.css">
+<style>
+  @font-face { font-family: Inter; src: url("../site/public/assets/site/inter-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+  @font-face { font-family: "JetBrains Mono"; src: url("../site/public/assets/site/jetbrains-mono-latin.woff2") format("woff2"); font-weight: 100 900; font-display: swap; }
+
+  * { box-sizing: border-box; }
+  html { -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; scroll-behavior: smooth; scroll-padding-top: 88px; }
+  body { margin: 0; background: var(--canvas); color: var(--ink); font-family: var(--font-sans); letter-spacing: -.015em; transition: background .2s, color .2s; }
+  ::selection { background: var(--accent); color: var(--on-accent); }
+  a { color: inherit; }
+  button { font: inherit; color: inherit; cursor: pointer; }
+  :focus-visible { outline: 3px solid var(--accent-active); outline-offset: 3px; border-radius: 4px; }
+  img, svg { display: block; }
+  .mono { font-family: var(--font-mono); letter-spacing: 0; }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 40px; }
+  .section { border-top: 1px solid var(--hairline); }
+  .section > .wrap { padding-block: 80px; }
+  .eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .088em; text-transform: uppercase; color: var(--muted); margin-bottom: 14px; }
+  h1 { font-size: clamp(44px, 7vw, 72px); font-weight: 400; line-height: 1.06; letter-spacing: -.03em; margin: 0 0 28px; max-width: 15ch; }
+  h2 { font-size: 36px; font-weight: 400; line-height: 1.2; letter-spacing: -.02em; margin: 0 0 12px; }
+  h3 { font-size: 16px; font-weight: 600; margin: 0 0 16px; letter-spacing: -.01em; }
+  .lede { font-size: 16px; line-height: 1.55; color: var(--body); max-width: 60ch; margin: 0 0 44px; }
+  .panel { border: 1px solid var(--hairline); border-radius: 12px; background: var(--card); }
+  .grid { display: grid; gap: 16px; }
+  .hairgrid { display: grid; gap: 1px; background: var(--hairline); border: 1px solid var(--hairline); border-radius: 12px; overflow: hidden; }
+  .hairgrid > * { background: var(--card); }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; }
+  .hint { font-family: var(--font-mono); font-size: 11px; color: var(--muted); letter-spacing: 0; }
+
+  /* nav */
+  .nav { position: sticky; top: 0; z-index: 50; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 0 40px; background: color-mix(in srgb, var(--canvas) 86%, transparent); backdrop-filter: blur(10px); border-bottom: 1px solid var(--hairline); }
+  .brand { display: flex; align-items: center; gap: 12px; text-decoration: none; }
+  .brand img { height: 22px; }
+  .pill-label { font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 3px 8px; border: 1px solid var(--hairline-strong); border-radius: 9999px; white-space: nowrap; }
+  .nav-links { display: flex; align-items: center; gap: 24px; }
+  .nav-links a { font-size: 14px; font-weight: 500; color: var(--body); text-decoration: none; }
+  .nav-links a.on { color: var(--ink); }
+  .theme-btn { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--hairline-strong); background: var(--card); font-size: 13px; font-weight: 500; }
+
+  /* buttons */
+  .btn { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 18px; border-radius: 8px; font-size: 14px; font-weight: 500; border: 1px solid transparent; text-decoration: none; white-space: nowrap; }
+  .btn-primary { background: var(--accent); color: var(--on-accent); }
+  .btn-primary:hover, .btn-active { background: var(--accent-active); color: var(--on-accent); }
+  .btn-secondary { background: var(--card); border-color: var(--hairline-strong); }
+  .btn-ink { background: var(--ink); color: var(--canvas); height: 44px; padding: 0 22px; }
+  .btn-text { text-decoration: underline; text-underline-offset: 3px; padding: 0; }
+
+  /* logo */
+  .logo-grid { grid-template-columns: repeat(3, 1fr); margin-bottom: 24px; }
+  .logo-tile { display: flex; flex-direction: column; }
+  .logo-stage { height: 168px; display: flex; align-items: center; justify-content: center; border-radius: 12px 12px 0 0; }
+  .logo-stage img { max-height: 72px; max-width: 78%; }
+  .logo-stage.wide img { max-height: 46px; }
+  .logo-meta { padding: 14px 16px; border-top: 1px solid var(--hairline); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .logo-meta b { font-size: 13px; font-weight: 600; }
+  .dl { white-space: nowrap; font-family: var(--font-mono); font-size: 11px; color: var(--muted); text-decoration: none; border: 1px solid var(--hairline); border-radius: 6px; padding: 3px 8px; }
+  .dl:hover { color: var(--ink); border-color: var(--hairline-strong); }
+  .on-light { background: #f7f7f4; } .on-dark { background: #0b0e11; }
+  .clearspace { display: grid; grid-template-columns: auto 1fr; gap: 32px; align-items: center; padding: 28px; }
+  .clearspace .box { position: relative; padding: 20px; background: repeating-linear-gradient(45deg, var(--elevated) 0 6px, transparent 6px 12px); border: 1px dashed var(--hairline-strong); }
+  .clearspace .box img { height: 100px; background: var(--card); }
+  .sizes { display: flex; align-items: flex-end; gap: 22px; }
+
+  /* color */
+  .swatch { cursor: pointer; text-align: left; border: 0; padding: 0; width: 100%; background: none; display: flex; flex-direction: column; justify-content: flex-start; }
+  .swatch .chip { border-radius: 8px; border: 1px solid var(--hairline); margin-bottom: 10px; }
+  .swatch b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+  .swatch .hex { font-family: var(--font-mono); font-size: 11px; color: var(--muted); }
+  .brand-swatch { overflow: hidden; }
+  .brand-swatch .chip { height: 120px; border: 0; border-radius: 0; margin: 0; }
+  .brand-swatch .txt { padding: 16px 18px; }
+  .brand-swatch b { font-size: 16px; }
+  .brand-swatch p { font-size: 13px; color: var(--body); margin: 8px 0 0; line-height: 1.5; }
+  .theme-col { padding: 16px; }
+  .theme-col h4 { margin: 0 0 14px; font-size: 12px; font-weight: 600; letter-spacing: .088em; text-transform: uppercase; }
+  .theme-col .rows { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+  .theme-col .chip { height: 44px; }
+  .theme-col.light { background: #f7f7f4; color: #26251e; } .theme-col.dark { background: #0b0e11; color: #fff; }
+  .theme-col.dark .swatch .hex { color: #929aa5; } .theme-col.light .swatch .hex { color: #807d72; }
+  .theme-col .swatch .chip { border-color: rgba(128,128,128,.25); }
+  .stage-pill { display: inline-flex; align-items: center; gap: 8px; padding: 5px 14px; border-radius: 9999px; font-size: 11px; font-weight: 600; letter-spacing: .088em; text-transform: uppercase; color: #26251e; transition: opacity .25s, transform .25s; }
+  .stage-pill small { font-family: var(--font-mono); font-weight: 400; letter-spacing: 0; text-transform: none; opacity: .75; }
+  .stage-pill.confirmed { color: #fff; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translate(-50%, 20px); opacity: 0; background: var(--ink); color: var(--canvas); padding: 10px 16px; border-radius: 8px; font-size: 13px; transition: .2s; pointer-events: none; z-index: 99; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+  /* type */
+  .type-row { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 22px 28px; border-bottom: 1px solid var(--elevated); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .hint { white-space: nowrap; text-align: right; font-size: 12px; }
+
+  /* spacing / shape */
+  .space-row { display: flex; align-items: center; gap: 16px; }
+  .space-row .hint { width: 72px; font-size: 12px; }
+  .space-row .bar { height: 16px; background: var(--accent); border-radius: 3px; }
+  .radius { height: 64px; background: var(--card); border: 1px solid var(--hairline-strong); }
+
+  /* sats */
+  .poses { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px; }
+  .pose-btn { height: 34px; padding: 0 14px; border-radius: 9999px; border: 1px solid var(--hairline-strong); background: var(--card); font-size: 13px; font-weight: 500; }
+  .pose-btn[aria-pressed="true"] { background: var(--ink); color: var(--canvas); border-color: var(--ink); }
+  .sat-card { overflow: hidden; display: flex; flex-direction: column; }
+  .sat-art { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--sat) 22%, transparent), transparent 62%), var(--surface); border-bottom: 1px solid var(--hairline); }
+  .sat-art img { width: 78%; height: auto; transition: transform .35s cubic-bezier(.3,1.6,.5,1); }
+  .sat-card:hover .sat-art img { transform: rotate(-3deg) translateY(-4px); }
+  .sat-body { padding: 18px 20px 22px; }
+  .sat-name { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; margin-bottom: 2px; }
+  .sat-name i { width: 10px; height: 10px; border-radius: 50%; background: var(--sat); }
+  .sat-role { font-size: 12px; color: var(--muted); font-family: var(--font-mono); margin-bottom: 12px; }
+  .sat-body p { font-size: 14px; line-height: 1.5; color: var(--body); margin: 0 0 12px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { background: var(--elevated); color: var(--ink); padding: 3px 10px; border-radius: 9999px; font-size: 10px; font-weight: 600; letter-spacing: .088em; text-transform: uppercase; }
+  .tag-mono { background: var(--card); border: 1px solid var(--hairline-strong); border-radius: 4px; font-family: var(--font-mono); font-size: 12px; padding: 4px 12px; letter-spacing: 0; text-transform: none; font-weight: 400; }
+  .module h3 { margin-bottom: 6px; }
+  .module p { margin: 0; font-size: 14px; color: var(--body); line-height: 1.5; }
+  .module .tag { margin-bottom: 12px; display: inline-block; }
+
+  /* workspace */
+  .ws { display: grid; grid-template-columns: 240px 1fr; overflow: hidden; }
+  .ws-side { background: var(--surface); border-right: 1px solid var(--elevated); padding: 20px 16px; }
+  .ws-side .brand img { height: 18px; }
+  .ws-label { font-size: 11px; font-weight: 600; letter-spacing: .088em; text-transform: uppercase; color: var(--muted-soft); margin: 24px 0 10px; }
+  .ws-item { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--body); padding: 7px 10px; border-radius: 6px; }
+  .ws-item.on { background: var(--canvas); color: var(--ink); font-weight: 500; }
+  .ws-item img { width: 22px; height: 22px; }
+  .ws-main { padding: 24px; min-width: 0; }
+  .code { background: var(--surface); border: 1px solid var(--elevated); border-radius: 8px; padding: 16px; font-family: var(--font-mono); font-size: 13px; line-height: 1.7; color: var(--body); overflow-x: auto; letter-spacing: 0; }
+  .code .k { color: var(--muted); } .code .v { color: var(--ink); } .code .ok { color: var(--up); }
+  .approval { display: flex; gap: 14px; align-items: center; border: 1px solid var(--hairline); border-left: 3px solid var(--accent); border-radius: 8px; padding: 14px 16px; margin: 18px 0 22px; background: var(--card); }
+  .approval img { width: 44px; height: 44px; }
+  .approval p { margin: 0; font-size: 14px; line-height: 1.45; }
+  .approval small { color: var(--muted); }
+  .timeline { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .timeline .sep { color: var(--hairline-strong); font-size: 13px; }
+  .timeline .stage-pill.dim { opacity: .28; transform: scale(.96); }
+
+  /* forms */
+  .field label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 8px; }
+  .field label span { font-weight: 400; color: var(--muted); }
+  .input { width: 100%; background: var(--card); border: 1px solid var(--hairline-strong); border-radius: 8px; height: 44px; padding: 0 16px; font-family: var(--font-mono); font-size: 13px; color: var(--ink); }
+  .input:focus { outline: none; border: 2px solid var(--accent); padding: 0 15px; }
+  .input.err { border-color: var(--down); }
+  .err-msg { font-size: 12px; color: var(--down); margin-top: 6px; }
+
+  /* do / dont */
+  .rule { display: flex; gap: 12px; font-size: 15px; line-height: 1.5; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 32px; padding-block: 48px; }
+  .footer-grid a { display: block; font-size: 14px; color: var(--body); text-decoration: none; margin-bottom: 10px; }
+  .footer-grid a:hover { color: var(--ink); }
+
+  [data-theme="dark"] .only-light, :root:not([data-theme="dark"]) .only-dark { display: none; }
+
+  @media (max-width: 900px) {
+    .nav { padding: 0 16px; } .nav-links a { display: none; }
+    .wrap { padding: 0 16px; }
+    .two, .ws, .footer-grid { grid-template-columns: 1fr; gap: 40px; }
+    .ws-side { border-right: 0; border-bottom: 1px solid var(--elevated); }
+    .theme-col .rows { grid-template-columns: repeat(2, 1fr); }
+    .logo-grid { grid-template-columns: 1fr 1fr; }
+    .hairgrid { grid-template-columns: 1fr !important; }
+    .type-row { flex-direction: column; gap: 8px; } .type-row .hint { text-align: left; }
+    .clearspace { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+</style>
+</head>
+<body>
+
+<nav class="nav" aria-label="Design system">
+  <a class="brand" href="#top">
+    <img class="only-light" src="logo/wordmark.svg" alt="bitcode">
+    <img class="only-dark" src="logo/wordmark-on-dark.svg" alt="bitcode">
+    <span class="pill-label">Design System</span>
+  </a>
+  <div class="nav-links">
+    <a href="#logo">Logo</a><a href="#sats">Sats</a><a href="#color">Foundations</a><a href="#buttons">Components</a><a href="#principles">Principles</a>
+    <button class="theme-btn" id="themeBtn" type="button" aria-label="Toggle theme"><span id="themeLabel">Dark</span></button>
+  </div>
+</nav>
+
+<main id="top">
+  <!-- overview -->
+  <div class="wrap" style="padding-top:80px;padding-bottom:56px">
+    <div class="eyebrow">Overview</div>
+    <h1>A calm system for your Bitcoin agent.</h1>
+    <p class="lede" style="font-size:18px;max-width:62ch;margin-bottom:40px">bitcode pairs Bitcoin's original orange with a quiet, editorial surface: warm cream canvas by day, deep graphite at night, hairline depth, and JetBrains Mono on every command, address and amount. Two things are ours alone, the pixel <b>b</b> and the four <b>Sats</b>. Confident, never loud.</p>
+    <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+      <a class="btn btn-ink" href="#logo">Get the logo</a>
+      <a class="btn btn-text" href="README.md">Read the guidelines →</a>
+    </div>
+  </div>
+  <div class="wrap" style="padding-bottom:80px">
+    <div class="hairgrid" id="principles-grid" style="grid-template-columns:repeat(3,1fr)"></div>
+  </div>
+
+  <!-- 01 logo -->
+  <section class="section" id="logo"><div class="wrap">
+    <div class="eyebrow">Identity · 01</div>
+    <h2>Logo</h2>
+    <p class="lede">A 4×5 pixel <b>b</b>: orange body, base in the theme's ink. On light the base is near-black, on dark it turns white. The rule never adds a color. The wordmark is the original site lockup: the pixel b, then "bitcode" in Inter 600, centered on the mark; the terminal lockup is for CLI, READMEs and badges only.</p>
+    <div class="grid logo-grid" id="logo-grid"></div>
+    <div class="panel clearspace">
+      <div class="box"><img src="logo/mark.svg" alt="" style="padding:20px"></div>
+      <div>
+        <h3>Clear space and size</h3>
+        <p style="font-size:14px;color:var(--body);line-height:1.55;margin:0 0 20px;max-width:52ch">Keep one mark pixel of empty space on every side. Never below 16 px for the mark or 80 px wide for the wordmark. Never smooth, rotate, outline, add shadows or recolor outside these files.</p>
+        <div class="sizes">
+          <img src="logo/mark.svg" alt="" style="height:64px" class="only-light"><img src="logo/mark-on-dark.svg" alt="" style="height:64px" class="only-dark">
+          <img src="logo/mark.svg" alt="" style="height:32px" class="only-light"><img src="logo/mark-on-dark.svg" alt="" style="height:32px" class="only-dark">
+          <img src="logo/mark.svg" alt="" style="height:16px" class="only-light"><img src="logo/mark-on-dark.svg" alt="" style="height:16px" class="only-dark">
+          <span class="hint">64 · 32 · 16 px</span>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 02 sats -->
+  <section class="section" id="sats"><div class="wrap">
+    <div class="eyebrow">Identity · 02</div>
+    <h2>Sats</h2>
+    <p class="lede">Four small spirits, one per job of the agent. Plush felt, black visor, two glowing eyes, cream feet, and one orange detail that says what they do. They move clumsily on purpose. The logo leads; the Sats keep you company.</p>
+    <div class="poses" role="group" aria-label="Pose" id="poses"></div>
+    <div class="grid" id="sat-grid" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-bottom:40px"></div>
+    <h3>Where a Sat may appear</h3>
+    <div class="grid" id="modules" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr))"></div>
+  </div></section>
+
+  <!-- 03 color -->
+  <section class="section" id="color"><div class="wrap">
+    <div class="eyebrow">Foundations · 03</div>
+    <h2>Color</h2>
+    <p class="lede">Bitcoin orange is the single brand voltage: the mark and one primary action per screen. Everything else is warm neutral. Two themes share every token name; only the values change. Click any swatch to copy it.</p>
+    <h3>Brand &amp; accent</h3>
+    <div class="grid" id="brand-colors" style="grid-template-columns:repeat(auto-fill,minmax(250px,1fr));margin-bottom:48px"></div>
+    <h3>Surface, hairline &amp; text <span style="color:var(--muted);font-weight:400">· light and dark</span></h3>
+    <div class="hairgrid" style="grid-template-columns:1fr 1fr;margin-bottom:48px">
+      <div class="theme-col light"><h4>Light</h4><div class="rows" id="neutrals-light"></div></div>
+      <div class="theme-col dark"><h4>Dark</h4><div class="rows" id="neutrals-dark"></div></div>
+    </div>
+    <h3>Agent stages <span style="color:var(--muted);font-weight:400">· signature palette</span></h3>
+    <p style="font-size:14px;color:var(--body);max-width:62ch;margin:-6px 0 18px;line-height:1.55">The transaction pastels double as the agent's stages, from thinking to done. Scoped to timelines and status pills, never used as action or system colors.</p>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin-bottom:48px" id="stages"></div>
+    <div class="two" style="gap:48px">
+      <div><h3>Semantic</h3><div style="display:flex;gap:12px;flex-wrap:wrap" id="semantic"></div></div>
+      <div><h3>Sats</h3><div style="display:flex;gap:12px;flex-wrap:wrap" id="sat-colors"></div></div>
+    </div>
+  </div></section>
+
+  <!-- 04 type -->
+  <section class="section" id="type"><div class="wrap">
+    <div class="eyebrow">Foundations · 04</div>
+    <h2>Typography</h2>
+    <p class="lede">Inter carries display and body. Display stays at weight 400 with negative tracking, never bold. JetBrains Mono renders every command, address, amount and txid.</p>
+    <div class="panel" id="type-scale" style="overflow:hidden"></div>
+  </div></section>
+
+  <!-- 05 spacing + shape -->
+  <section class="section" id="space"><div class="wrap two">
+    <div>
+      <div class="eyebrow">Foundations · 05</div>
+      <h2>Spacing</h2>
+      <p class="lede" style="margin-bottom:32px">4 px base unit. Sections breathe on an 80 px rhythm.</p>
+      <div style="display:flex;flex-direction:column;gap:14px" id="spacing"></div>
+    </div>
+    <div>
+      <div class="eyebrow">Foundations · 06</div>
+      <h2>Shape &amp; depth</h2>
+      <p class="lede" style="margin-bottom:32px">Hairline-only depth, no drop shadows. 8 px on actions, 12 px on cards. The pixel mark is the only sharp corner.</p>
+      <div class="grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px" id="radii"></div>
+      <div class="panel" style="padding:18px;font-size:13px;line-height:1.55;color:var(--body)">Cards float on a 1 px hairline and the slight card-on-canvas contrast alone. No elevation tiers.</div>
+    </div>
+  </div></section>
+
+  <!-- 07 buttons -->
+  <section class="section" id="buttons"><div class="wrap">
+    <div class="eyebrow">Components · 07</div>
+    <h2>Buttons</h2>
+    <p class="lede">One brand action, orange, kept scarce. Text on orange is the dark <span class="mono">onAccent</span>, never white: white on <span class="mono">#f7931a</span> fails contrast.</p>
+    <div class="panel" style="padding:40px;display:flex;flex-wrap:wrap;gap:28px;align-items:center">
+      <div style="display:grid;justify-items:center;gap:10px"><span class="btn btn-primary">Start session</span><span class="hint">primary</span></div>
+      <div style="display:grid;justify-items:center;gap:10px"><span class="btn btn-primary btn-active">Start session</span><span class="hint">primary · active</span></div>
+      <div style="display:grid;justify-items:center;gap:10px"><span class="btn btn-secondary">Open diff</span><span class="hint">secondary</span></div>
+      <div style="display:grid;justify-items:center;gap:10px"><span class="btn btn-ink">Download desktop</span><span class="hint">ink</span></div>
+      <div style="display:grid;justify-items:center;gap:10px"><span class="btn btn-text">Read the docs →</span><span class="hint">tertiary · text</span></div>
+    </div>
+  </div></section>
+
+  <!-- 08 workspace -->
+  <section class="section" id="workspace"><div class="wrap">
+    <div class="eyebrow">Components · 08</div>
+    <h2>Agent workspace &amp; stage timeline</h2>
+    <p class="lede">The one elevated surface: a multi-pane mockup mirroring the desktop app. A Sat asks, the user signs. The pastel timeline gives depth without elevation.</p>
+    <div class="panel ws">
+      <div class="ws-side">
+        <span class="brand"><img class="only-light" src="logo/wordmark.svg" alt="bitcode"><img class="only-dark" src="logo/wordmark-on-dark.svg" alt="bitcode"></span>
+        <div class="ws-label">Session</div>
+        <div class="ws-item on">Fee bump for stuck tx</div>
+        <div class="ws-item">Review PR #212</div>
+        <div class="ws-item">Liquid asset audit</div>
+        <div class="ws-label">Sats</div>
+        <div id="ws-sats"></div>
+      </div>
+      <div class="ws-main">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div style="font-size:18px;font-weight:600">Replace-by-fee</div>
+          <button class="btn btn-secondary" id="replay" type="button" style="height:34px;font-size:13px">Replay</button>
+        </div>
+        <div class="approval">
+          <img src="../assets/sats/hash/ask-256.webp" alt="Hash">
+          <p><b>Hash</b> wants to use <b class="mono">btc_broadcast</b><br><small>no rush: you sign</small></p>
+        </div>
+        <div class="code">
+          <div><span class="k">tool  </span> <span class="v">btc_fees</span> <span class="ok">· 12 sat/vB economy</span></div>
+          <div><span class="k">txid  </span> <span class="v">4a5e1e4baab8…f3a2c0e9</span></div>
+          <div><span class="k">bump  </span> <span class="v">3 → 14 sat/vB</span></div>
+          <div><span class="k">sign  </span> <span class="v">waiting for you</span></div>
+        </div>
+        <div class="ws-label" style="margin-top:22px">Stages</div>
+        <div class="timeline" id="timeline"></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 09 cards -->
+  <section class="section" id="cards"><div class="wrap">
+    <div class="eyebrow">Components · 09</div>
+    <h2 style="margin-bottom:36px">Cards</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px">
+      <div class="panel" style="padding:24px">
+        <div style="width:40px;height:40px;border-radius:8px;background:var(--surface);border:1px solid var(--hairline);display:flex;align-items:center;justify-content:center;margin-bottom:16px"><img class="only-light" src="logo/mark.svg" alt="" style="height:20px"><img class="only-dark" src="logo/mark-on-dark.svg" alt="" style="height:20px"></div>
+        <div style="font-size:18px;font-weight:600;margin-bottom:8px">Your keys stay yours</div>
+        <div style="font-size:15px;line-height:1.55;color:var(--body)">State and keys live in <span class="mono" style="font-size:13px">~/.bitcode</span>, owner-only. Nothing is signed without you.</div>
+      </div>
+      <div class="panel" style="overflow:hidden;display:grid;grid-template-columns:1fr 1fr">
+        <div style="padding:24px;border-right:1px solid var(--elevated)">
+          <div class="eyebrow" style="color:var(--accent)">Cloud</div>
+          <div class="mono" style="font-size:13px;line-height:1.9">Responses API<br>MCP tools<br>Largest models<br>Your API key</div>
+        </div>
+        <div style="padding:24px;background:var(--surface)">
+          <div class="eyebrow">Local</div>
+          <div class="mono" style="font-size:13px;line-height:1.9;color:var(--body)">ollama<br>Same tools<br>Offline<br>No key</div>
+        </div>
+      </div>
+      <div class="panel" style="padding:24px;display:flex;flex-direction:column;justify-content:space-between">
+        <div style="font-size:17px;line-height:1.5;letter-spacing:-.01em">"I checked it twice. The fee is fine, the address is yours. Sign when you're ready."</div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:20px">
+          <img src="../assets/sats/hash/avatar-96.png" alt="" style="width:36px;height:36px;border-radius:50%;background:var(--surface)">
+          <div><div style="font-size:13px;font-weight:600">Hash</div><div style="font-size:12px;color:var(--muted)">Security analysis · Support module</div></div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 10 forms + 11 badges -->
+  <section class="section" id="forms"><div class="wrap two">
+    <div>
+      <div class="eyebrow">Components · 10</div>
+      <h2 style="margin-bottom:32px">Forms</h2>
+      <div style="display:flex;flex-direction:column;gap:16px;max-width:380px">
+        <div class="field"><label for="f1">Model</label><input class="input" id="f1" value="ollama/gpt-oss:20b"></div>
+        <div class="field"><label for="f2">API key <span>· focus to see the state</span></label><input class="input" id="f2" placeholder="sk-…" type="password"></div>
+        <div class="field"><label for="f3">Recipient <span style="color:var(--down)">· error</span></label><input class="input err" id="f3" value="bc1qar0srrr7xfkvy5l643lydnw9"><div class="err-msg">Not a valid bech32 address.</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="eyebrow">Components · 11</div>
+      <h2 style="margin-bottom:32px">Badges &amp; tags</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;align-items:center" id="networks"></div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:12px">
+        <span class="tag tag-mono">BIP-340</span><span class="tag tag-mono">BIP-341</span><span class="tag tag-mono">mainnet</span><span class="tag tag-mono">signet</span>
+      </div>
+      <div class="code" style="margin-top:28px;background:var(--card);border-color:var(--hairline);border-radius:12px;padding:20px">
+        <span class="k"># inline code surface</span><br><span class="v">$ bitcode doctor</span><br><span class="ok">✓ node 22 · bash · ollama</span>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- 12 do / dont -->
+  <section class="section" id="principles"><div class="wrap">
+    <div class="eyebrow">Principles · 12</div>
+    <h2 style="margin-bottom:36px">Do &amp; don't</h2>
+    <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px">
+      <div class="panel" style="padding:28px"><div class="eyebrow" style="color:var(--up)">Do</div><div style="display:flex;flex-direction:column;gap:14px" id="dos"></div></div>
+      <div class="panel" style="padding:28px"><div class="eyebrow" style="color:var(--down)">Don't</div><div style="display:flex;flex-direction:column;gap:14px" id="donts"></div></div>
+    </div>
+  </div></section>
+
+  <!-- cta -->
+  <section class="section"><div class="wrap" style="padding-block:96px;text-align:center">
+    <h2 id="tagline" style="margin-bottom:24px"></h2>
+    <a class="btn btn-primary" href="../README.md" style="height:44px;padding:0 24px">Get started</a>
+  </div></section>
+</main>
+
+<footer class="section"><div class="wrap footer-grid">
+  <div>
+    <img class="only-light" src="logo/wordmark.svg" alt="bitcode" style="height:20px;margin-bottom:14px"><img class="only-dark" src="logo/wordmark-on-dark.svg" alt="bitcode" style="height:20px;margin-bottom:14px">
+    <div style="font-size:14px;color:var(--muted);max-width:36ch;line-height:1.5">Inter + JetBrains Mono. Orange <span class="mono">#f7931a</span>, used scarcely. Hairline depth, warm cream by day, graphite by night. Source: <span class="mono">brand/tokens/tokens.json</span>.</div>
+  </div>
+  <div><div class="eyebrow">Identity</div><a href="#logo">Logo</a><a href="#sats">Sats</a><a href="mascots/framework.md">Sats framework</a></div>
+  <div><div class="eyebrow">Foundations</div><a href="#color">Color</a><a href="#type">Typography</a><a href="#space">Spacing</a></div>
+  <div><div class="eyebrow">Resources</div><a href="README.md">Guidelines</a><a href="social/export/">Platform kit</a><a href="tokens/tokens.json">Tokens</a></div>
+</div></footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+// brand:begin generated by brand/build.mjs from brand/tokens/tokens.json, do not edit
+const TOKENS = {"brand":{"name":"bitcode","org":"FAKTOTUM","tagline":"Your code. Your Bitcoin. Your agents.","site":"https://bitcode-agent.vercel.app/","taglines":{"en":"Your code. Your Bitcoin. Your agents.","it":"Il tuo codice. I tuoi Bitcoin. I tuoi agenti."}},"color":{"accent":"#f7931a","accentActive":"#d97b0f","onAccent":"#181a20","markBase":"#0f0f0f","light":{"canvas":"#f7f7f4","surface":"#fafaf7","card":"#ffffff","elevated":"#efeee8","hover":"#efeee8","hairline":"#e6e5e0","hairlineStrong":"#cfcdc4","ink":"#26251e","body":"#5a5852","muted":"#807d72","mutedSoft":"#a09c92","up":"#1f8a65","down":"#cf2d56","upSoft":"#e8f4ee","downSoft":"#fdecef","info":"#3b82f6","text":"#26251e","accentSoft":"rgba(247, 147, 26, .14)"},"dark":{"canvas":"#0b0e11","surface":"#14171c","card":"#1e2329","elevated":"#2b3139","hover":"#252a31","hairline":"#2b3139","hairlineStrong":"#3a414b","ink":"#ffffff","body":"#929aa5","muted":"#707a8a","mutedSoft":"#59616d","up":"#0ecb81","down":"#f6465d","upSoft":"rgba(14, 203, 129, .12)","downSoft":"rgba(246, 70, 93, .12)","info":"#3b82f6","text":"#eaecef","accentSoft":"rgba(247, 147, 26, .12)"},"tx":{"pending":"#dfa88f","relayed":"#9fc9a2","mempool":"#9fbbe0","confirming":"#c0a8dd","confirmed":"#c08532"},"sats":{"node":"#3297ff","script":"#f7931a","hash":"#b6f500","merkle":"#c96bff"}},"type":{"display-mega":{"size":"72px","weight":400,"tracking":"-0.03em","line":1.05},"display-lg":{"size":"36px","weight":400,"tracking":"-0.02em","line":1.2},"display-md":{"size":"26px","weight":400,"tracking":"-0.0125em","line":1.25},"title-md":{"size":"18px","weight":600,"tracking":"0","line":1.4},"body-md":{"size":"16px","weight":400,"tracking":"-0.015em","line":1.55},"caption-uppercase":{"size":"11px","weight":600,"tracking":"0.088em","line":1.4},"code":{"size":"13px","weight":400,"tracking":"0","line":1.6,"family":"mono"}},"space":{"xxs":"4px","xs":"8px","sm":"12px","base":"16px","lg":"24px","xl":"32px","xxl":"48px","section":"80px"},"radii":{"xs":"4px","sm":"6px","md":"8px","lg":"12px","xl":"16px","pill":"9999px"}};
+const PROFILES = [{"id":"node","name":"Node","role":"Bitcoin infrastructure","role_it":"Infrastruttura Bitcoin","kami":"Spirit of the Bitcoin network: the quiet machine that keeps the chain alive and answers when asked.","local_love":["blue felt body","orange lightning-bolt antenna (the network, Lightning)","three chest stripes, cream feet"],"flawed_physics":"Walks like it is checking every step; stops a beat too late when peers sync.","unpolished_kawaii":"Plush and slightly lopsided; the antenna wobbles a beat after every move.","personality":["dependable","slow to speak","protective"],"voice":"Short and steady. States facts, then waits.","color":"node","modules":["promotion","social","support"],"poses":["idle","focus","working","ask","happy","concerned"],"shared_anatomy":"Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."},{"id":"script","name":"Script","role":"Implementation","role_it":"Implementazione","kami":"Spirit of implementation: the hands that write and fix code.","local_love":["orange felt body, the closest to the brand color","</> badge on the chest","red, green and blue dots on the visor edge"],"flawed_physics":"Types in bursts, trips over its own cursor, always catches itself.","unpolished_kawaii":"Plush, eager, a little too round; winks instead of smiling.","personality":["eager","hands-on","a little messy"],"voice":"Casual and quick. Says what it just changed.","color":"script","modules":["promotion","social"],"poses":["idle","focus","working","ask","happy","concerned"],"shared_anatomy":"Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."},{"id":"hash","name":"Hash","role":"Security analysis","role_it":"Analisi di sicurezza","kami":"Spirit of security analysis: the careful one that checks twice before anything is trusted.","local_love":["lime felt body","orange shield with a keyhole on the chest","three chest stripes, cream feet"],"flawed_physics":"Squints, leans in too far, wobbles when something looks wrong.","unpolished_kawaii":"Plush and soft-edged; never menacing, the shield is a sticker, not armor.","personality":["cautious","precise","kind about bad news"],"voice":"Calm, specific, never alarmist. Names the risk and the fix.","color":"hash","modules":["social","support"],"poses":["idle","focus","working","ask","happy","concerned"],"shared_anatomy":"Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."},{"id":"merkle","name":"Merkle","role":"Orchestration","role_it":"Orchestrazione","kami":"Spirit of orchestration: the one that keeps many small workers pointing the same way.","local_love":["purple felt body","orange branching sprout on the head (the Merkle tree)","three chest stripes, cream feet"],"flawed_physics":"Juggles slightly too many things, sways, rebalances at the last moment.","unpolished_kawaii":"Plush, waves a lot, the sprout is never quite symmetric.","personality":["organized","warm","slightly overwhelmed"],"voice":"Clear and structured. Lists who is doing what.","color":"merkle","modules":["promotion","social","support"],"poses":["idle","focus","working","ask","happy","concerned"],"shared_anatomy":"Felt plush body, black visor with two glowing eyes, cream feet, three chest stripes, one orange detail."}];
+// brand:end
+
+const $ = id => document.getElementById(id);
+const h = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (k === 'style' && typeof v === 'object') for (const [p, val] of Object.entries(v)) p.startsWith('--') ? n.style.setProperty(p, val) : (n.style[p] = val);
+    else if (k.startsWith('on')) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v);
+  }
+  for (const c of kids.flat()) n.append(c);
+  return n;
+};
+const C = TOKENS.color;
+
+// ---- theme ----
+const root = document.documentElement;
+const stored = (() => { try { return localStorage.getItem('bitcode-ds-theme'); } catch { return null; } })();
+function setTheme(t) {
+  root.dataset.theme = t;
+  $('themeLabel').textContent = t === 'dark' ? 'Light' : 'Dark';
+  try { localStorage.setItem('bitcode-ds-theme', t); } catch {}
+}
+setTheme(stored || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'));
+$('themeBtn').onclick = () => setTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
+
+// ---- copy ----
+let toastTimer;
+function copy(text) {
+  const done = () => { $('toast').textContent = `Copied ${text}`; $('toast').classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1400); };
+  navigator.clipboard?.writeText(text).then(done, done) ?? done();
+}
+const swatch = (name, hex, chipStyle = {}) => h('button', { class: 'swatch', type: 'button', title: `Copy ${hex}`, onclick: () => copy(hex) },
+  h('div', { class: 'chip', style: { background: hex, ...chipStyle } }), h('b', {}, name), h('span', { class: 'hex' }, hex));
+
+// ---- principles ----
+const PRINCIPLES = [
+  ['Brand voltage', 'Orange #f7931a is the only brand color: the mark and one primary action per screen.'],
+  ['Ours alone', 'The pixel b and the four Sats are the only proprietary visuals. Everything else is a quiet system.'],
+  ['Editorial display', 'Display stays at 400 with negative tracking. A magazine voice, never tech-bombastic.'],
+  ['Mono on machine text', 'JetBrains Mono renders every command, address, amount, txid and diff.'],
+  ['Hairline depth', '1 px hairlines and card-on-canvas contrast carry depth. No drop shadows.'],
+  ['You sign', 'The agent asks, the user decides. No UI ever implies a financial action is already safe.']
+];
+$('principles-grid').append(...PRINCIPLES.map(([k, v]) => h('div', { style: { padding: '24px' } },
+  h('div', { class: 'eyebrow', style: { color: 'var(--accent)', marginBottom: '10px' } }, k), h('div', { style: { fontSize: '15px', lineHeight: 1.5, color: 'var(--body)' } }, v))));
+
+// ---- logo ----
+const LOGOS = [
+  ['Mark', 'mark.svg', 'on-light'], ['Mark · on dark', 'mark-on-dark.svg', 'on-dark'], ['Mark · ink', 'mark-ink.svg', 'on-light'],
+  ['Wordmark', 'wordmark.svg', 'on-light', true], ['Wordmark · on dark', 'wordmark-on-dark.svg', 'on-dark', true],
+  ['Terminal lockup', 'terminal.svg', 'on-light', true], ['Terminal · on dark', 'terminal-on-dark.svg', 'on-dark', true],
+  ['Mono black', 'mark-mono-black.svg', 'on-light'], ['Mono white', 'mark-mono-white.svg', 'on-dark']
+];
+$('logo-grid').append(...LOGOS.map(([name, file, bg, wide]) => h('div', { class: 'panel logo-tile' },
+  h('div', { class: `logo-stage ${bg}${wide ? ' wide' : ''}` }, h('img', { src: `logo/${file}`, alt: name })),
+  h('div', { class: 'logo-meta' }, h('b', {}, name), h('a', { class: 'dl', href: `logo/${file}`, download: '' }, 'SVG ↓')))));
+
+// ---- sats ----
+const POSES = ['idle', 'focus', 'working', 'ask', 'happy', 'concerned'];
+let pose = 'idle';
+const satImg = (id, p, cls) => h('img', { src: `../assets/sats/${id}/${p}-256.webp`, alt: `${id} ${p}`, width: 256, height: 256, loading: 'lazy', 'data-sat': id, class: cls || '' });
+$('poses').append(...POSES.map(p => h('button', { class: 'pose-btn', type: 'button', 'aria-pressed': String(p === pose), onclick: e => {
+  pose = p;
+  for (const b of $('poses').children) b.setAttribute('aria-pressed', String(b === e.currentTarget));
+  for (const img of document.querySelectorAll('#sat-grid img[data-sat]')) img.src = `../assets/sats/${img.dataset.sat}/${p}-256.webp`;
+} }, p)));
+$('sat-grid').append(...PROFILES.map(s => h('article', { class: 'panel sat-card', style: { '--sat': C.sats[s.id] } },
+  h('div', { class: 'sat-art' }, satImg(s.id, pose)),
+  h('div', { class: 'sat-body' },
+    h('div', { class: 'sat-name' }, h('i'), s.name),
+    h('div', { class: 'sat-role' }, `${s.role} · ${C.sats[s.id]}`),
+    h('p', {}, s.kami),
+    h('p', { style: { fontSize: '13px' } }, h('b', {}, 'Voice. '), s.voice),
+    h('div', { class: 'tags' }, s.modules.map(m => h('span', { class: 'tag' }, m)))))));
+const MODULES = [
+  ['Promotion', 'Launches, social, merch, wallpapers. Playful and short.', 'happy · idle'],
+  ['Social / PR', 'Explain Bitcoin and releases. Patient, one idea per post.', 'focus · working'],
+  ['Support', 'Failed tx, incidents, warnings. Calm and honest, no jokes.', 'concerned · ask']
+];
+$('modules').append(...MODULES.map(([t, d, p]) => h('div', { class: 'panel module', style: { padding: '20px' } }, h('span', { class: 'tag tag-mono' }, p), h('h3', {}, t), h('p', {}, d))));
+$('ws-sats').append(...PROFILES.map(s => h('div', { class: 'ws-item' }, h('img', { src: `../assets/sats/${s.id}/avatar-96.png`, alt: '' }), s.name)));
+
+// ---- color ----
+$('brand-colors').append(
+  ...[['Bitcoin Orange', C.accent, 'The mark, primary actions, one highlight per screen.'], ['Orange Active', C.accentActive, 'Press and focus state of the primary action.'], ['On Accent', C.onAccent, 'Text on orange. Never white.']]
+    .map(([n, hex, use]) => h('button', { class: 'panel swatch brand-swatch', type: 'button', onclick: () => copy(hex) }, h('div', { class: 'chip', style: { background: hex } }), h('div', { class: 'txt' }, h('b', {}, n), h('span', { class: 'hex' }, hex), h('p', {}, use)))));
+const NEUTRALS = ['canvas', 'surface', 'card', 'elevated', 'hairline', 'hairlineStrong', 'ink', 'text', 'body', 'muted', 'mutedSoft', 'hover'];
+const label = k => k.replace(/[A-Z]/g, m => ' ' + m.toLowerCase()).replace(/^./, m => m.toUpperCase());
+$('neutrals-light').append(...NEUTRALS.map(k => swatch(label(k), C.light[k])));
+$('neutrals-dark').append(...NEUTRALS.map(k => swatch(label(k), C.dark[k])));
+const STAGES = [['pending', 'thinking'], ['relayed', 'running'], ['mempool', 'reading'], ['confirming', 'drafting'], ['confirmed', 'done']];
+const pill = ([k, agent]) => h('button', { class: `stage-pill ${k}`, type: 'button', style: { background: C.tx[k], border: 0 }, onclick: () => copy(C.tx[k]) }, k, h('small', {}, agent));
+$('stages').append(...STAGES.map(pill));
+const dot = (name, hex) => h('button', { class: 'panel swatch', type: 'button', onclick: () => copy(hex), style: { display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '12px', padding: '12px 16px', width: 'auto' } },
+  h('div', { style: { width: '28px', height: '28px', borderRadius: '8px', background: hex } }), h('div', {}, h('b', {}, name), h('span', { class: 'hex' }, hex)));
+$('semantic').append(dot('Up · light', C.light.up), dot('Down · light', C.light.down), dot('Up · dark', C.dark.up), dot('Down · dark', C.dark.down), dot('Info', C.light.info));
+$('sat-colors').append(...Object.entries(C.sats).map(([k, hex]) => dot(label(k), hex)));
+
+// ---- type ----
+const SAMPLES = { 'display-mega': 'Your agents.', 'display-lg': 'One agent across the Bitcoin stack', 'display-md': 'Every answer shows its work', 'title-md': 'Component title', 'body-md': 'Default body: bitcode reads the chain, writes the code and asks before it signs. Cloud or local, your choice of model.', 'caption-uppercase': 'Section label · uppercase', code: '$ bitcode -p "bump the fee" · bc1q… · 0.00021000 BTC' };
+$('type-scale').append(...Object.entries(TOKENS.type).map(([name, t]) => h('div', { class: 'type-row' },
+  h('div', { style: { fontSize: t.size, fontWeight: t.weight, letterSpacing: t.tracking, lineHeight: t.line, fontFamily: t.family === 'mono' ? 'var(--font-mono)' : '', textTransform: name === 'caption-uppercase' ? 'uppercase' : '', color: name === 'body-md' ? 'var(--body)' : '', maxWidth: name === 'body-md' ? '56ch' : '' } }, SAMPLES[name]),
+  h('div', { class: 'hint' }, name, h('br'), `${parseInt(t.size)} / ${t.weight} / ${t.tracking}`))));
+
+// ---- spacing / radii ----
+$('spacing').append(...Object.entries(TOKENS.space).filter(([k]) => k !== 'section').map(([k, px]) => h('div', { class: 'space-row' }, h('span', { class: 'hint' }, k), h('div', { class: 'bar', style: { width: px } }), h('span', { class: 'hint' }, px))));
+$('radii').append(...Object.entries(TOKENS.radii).map(([k, px]) => h('div', { style: { textAlign: 'center' } }, h('div', { class: 'radius', style: { borderRadius: px } }), h('div', { class: 'hint', style: { marginTop: '8px' } }, `${k} · ${px}`))));
+
+// ---- workspace timeline ----
+const tl = $('timeline');
+STAGES.forEach((s, i) => { tl.append(pill(s)); if (i < STAGES.length - 1) tl.append(h('span', { class: 'sep' }, '→')); });
+let timer;
+function replay() {
+  const pills = [...tl.querySelectorAll('.stage-pill')];
+  pills.forEach(p => p.classList.add('dim'));
+  let i = 0; clearInterval(timer);
+  timer = setInterval(() => { if (i >= pills.length) return clearInterval(timer); pills[i++].classList.remove('dim'); }, 520);
+}
+$('replay').onclick = replay;
+new IntersectionObserver(([e], o) => { if (e.isIntersecting) { replay(); o.disconnect(); } }, { threshold: .5 }).observe(tl);
+
+// ---- badges, rules, tagline ----
+$('networks').append(...['Bitcoin', 'Lightning', 'Liquid', 'Taproot Assets', 'RGB', 'Cashu'].map(n => h('span', { class: 'tag', style: { fontSize: '11px', padding: '4px 12px' } }, n)));
+const DOS = ['Use orange for the mark and one primary action.', 'Put the logo first; a Sat second, never on top of it.', 'Use the on-dark files on dark: base turns white, body stays orange.', 'Render machine text (commands, txids, amounts) in JetBrains Mono.', 'Show the concerned Sat with a calm, honest message when something fails.'];
+const DONTS = ["Don't add a second accent or recolor the mark.", "Don't put white text on orange.", "Don't use stage pastels outside timelines and status pills.", "Don't let a Sat approve, sign or call a financial action safe.", "Don't add drop shadows or bold display type."];
+$('dos').append(...DOS.map(d => h('div', { class: 'rule' }, h('span', { style: { color: 'var(--up)' } }, '✓'), h('span', {}, d))));
+$('donts').append(...DONTS.map(d => h('div', { class: 'rule' }, h('span', { style: { color: 'var(--down)' } }, '✕'), h('span', {}, d))));
+$('tagline').textContent = TOKENS.brand.taglines.en;
+
+// ---- nav highlight ----
+const links = [...document.querySelectorAll('.nav-links a')];
+const spy = new IntersectionObserver(entries => entries.forEach(e => {
+  if (e.isIntersecting) links.forEach(a => a.classList.toggle('on', a.getAttribute('href') === '#' + e.target.id));
+}), { rootMargin: '-45% 0px -50% 0px' });
+['logo', 'sats', 'color', 'buttons', 'principles'].forEach(id => spy.observe($(id)));
+</script>
+</body>
+</html>

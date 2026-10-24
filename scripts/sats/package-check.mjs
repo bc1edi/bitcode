@@ -20,9 +20,9 @@ function run(bin, args, cwd = root) {
 try {
   const archive = JSON.parse(run("npm", ["pack", "--json", "--ignore-scripts", "--pack-destination", temp, "--cache", path.join(temp, "cache")]))[0];
   const files = new Set(archive.files.map(f => f.path));
-  for (const id of ['node', 'script', 'hash', 'merkle']) assert.ok(files.has(`sats/${id}/SAT.md`));
+  for (const id of ['node', 'script', 'hash', 'merkle']) assert.ok(files.has(`content/sats/${id}/SAT.md`));
   for (const name of ['sats', 'sat-runtime', 'sat-workspace', 'sat-permissions', 'sat-events', 'sat-computer']) assert.ok(files.has(`src/${name}.mjs`));
-  for (const f of ["agents/node.md", "agents/script.md", "agents/hash.md", "agents/merkle.md", "ui/sats/fonts/Inter-LICENSE.txt", "ui/sats/fonts/JetBrainsMono-OFL.txt", "src/subagents.mjs", "assets/sats/manifest.json"]) assert.ok(files.has(f), f);
+  for (const f of ["content/agents/node.md", "content/agents/script.md", "content/agents/hash.md", "content/agents/merkle.md", "ui/sats/fonts/Inter-LICENSE.txt", "ui/sats/fonts/JetBrainsMono-OFL.txt", "src/subagents.mjs", "assets/sats/manifest.json"]) assert.ok(files.has(f), f);
   assert.equal([...files].some(f => f.includes("assets/sats/sources/") || f.includes("/masters/") || f.endsWith("/working.gif") || f.startsWith("bitcode sats/")), false);
   run("tar", ["-xzf", path.join(temp, archive.filename), "-C", temp]);
   const pkg = path.join(temp, "package");

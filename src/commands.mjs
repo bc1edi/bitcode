@@ -5,7 +5,7 @@ import { bitcodeHome } from "./paths.mjs";
 // name; with no placeholder, typed text is just appended.
 //
 // Two sources are merged, user entries winning on name collisions:
-//   - bundled:  <repo>/commands/       (shipped with bitcode)
+//   - bundled:  <repo>/content/commands/  (shipped with bitcode)
 //   - user:     ~/.bitcode/commands/   (personal additions/overrides)
 // In either source, a file directly inside becomes /<name> (e.g. fees.md ->
 // /fees); a file one directory down becomes /<dir>:<name> (e.g.
@@ -20,7 +20,7 @@ export function commandsDir() {
 }
 
 function bundledCommandsDir() {
-  return path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "commands");
+  return path.join(path.dirname(fileURLToPath(import.meta.url)), "..", "content", "commands");
 }
 
 function loadCommandsFrom(dir) {

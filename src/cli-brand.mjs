@@ -2,12 +2,13 @@
 // breathing states. Pure rendering helpers; timing and I/O live in cli-live.mjs.
 import * as t from './theme.mjs';
 import { visualState } from './sat-states.mjs';
+import { TOKEN, SAT } from './design-tokens.mjs';
 
-const ACCENT = '#f7931a';
+const ACCENT = TOKEN.bitcoinOrange;
 export const SAT_LOOK = Object.freeze({
-  node: { color: '#3297ff', glyph: '●' }, script: { color: '#f7931a', glyph: '■' },
-  hash: { color: '#b6f500', glyph: '⬢' }, merkle: { color: '#c96bff', glyph: '◆' },
-  bitcode: { color: '#f7931a', glyph: '●' }
+  node: { color: SAT.node, glyph: '●' }, script: { color: SAT.script, glyph: '■' },
+  hash: { color: SAT.hash, glyph: '⬢' }, merkle: { color: SAT.merkle, glyph: '◆' },
+  bitcode: { color: ACCENT, glyph: '●' }
 });
 const rgb = hex => [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16));
 const mix = (hex, k) => { const [r, g, b] = rgb(hex), f = 0.3 + 0.7 * k; return `\x1b[38;2;${Math.round(r * f)};${Math.round(g * f)};${Math.round(b * f)}m`; };

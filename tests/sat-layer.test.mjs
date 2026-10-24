@@ -17,7 +17,7 @@ const tc = (name, args = {}) => ({ id: name, name, args });
 
 test('Sat Registry validates manifests and rejects permission escalation', () => {
   assert.deepEqual(registry.map(s => s.id), ['node', 'script', 'hash', 'merkle']);
-  const source = readFileSync(new URL('../sats/node/SAT.md', import.meta.url), 'utf8');
+  const source = readFileSync(new URL('../content/sats/node/SAT.md', import.meta.url), 'utf8');
   assert.throws(() => parseSatManifest(source.replace('wallet: deny', 'wallet: allow')));
   assert.throws(() => parseSatManifest(source.replace('version: 1', 'version: 1\nversion: 2')));
   assert.throws(() => parseSatManifest(source.replace('id: node', 'id: ../../escape')));
