@@ -23,16 +23,16 @@ for(const [i,lang] of ['en','it'].entries()){
  assert.equal(ld['@type'],'SoftwareApplication');assert.equal(ld.inLanguage,lang);assert.equal(ld.url,'https://bitcode-agent.vercel.app/'+(lang==='it'?'it/':''));
  for(const hreflang of ['en','it','x-default'])assert.match(html,new RegExp(`rel="alternate" hreflang="${hreflang}"`));
  assert.equal((html.match(/<script(?:\s|>)/g)||[]).length,3,'JSON-LD, static data, and one runtime only');
- for(const match of html.matchAll(/(?<![\w-])(?:src|poster)="(\/assets\/[^"]+)"/g))assert.ok((await stat(new URL(pub+match[1].slice(1),root))).isFile(),match[1]);
+ for(const match of html.matchAll(/(?<![\w-])(?:src|poster)="(\/assets\/[^"?]+)(?:\?v=[0-9a-f]{10})?"/g))assert.ok((await stat(new URL(pub+match[1].slice(1),root))).isFile(),match[1]);
  const players=3+Object.values(desktop.demos).filter(d=>!d.loop).length;
  assert.equal((html.match(/preload="none" loading="lazy"/g)||[]).length,players);
  assert.equal((html.match(/srclang="it"/g)||[]).length,players);
  assert.equal((html.match(/<video\b/g)||[]).length,players,"Only recorded walkthroughs are video elements; loops are added by the runtime");
- for(const match of html.matchAll(/srcset="([^"]+)"/g))for(const candidate of match[1].split(',').map(c=>c.trim().split(/\s+/)[0]))assert.ok((await stat(new URL(pub+candidate.slice(1),root))).isFile(),candidate);
- const loops=[...html.matchAll(/data-loop-video data-src="([^"]+)"/g)].map(m=>m[1]);
+ for(const match of html.matchAll(/srcset="([^"]+)"/g))for(const candidate of match[1].split(',').map(c=>c.trim().split(/\s+/)[0].split('?')[0]))assert.ok((await stat(new URL(pub+candidate.slice(1),root))).isFile(),candidate);
+ const loops=[...html.matchAll(/data-loop-video data-src="([^"]+)" data-v="[0-9a-f]{10}"/g)].map(m=>m[1]);
  assert.deepEqual(loops,['/assets/demos/desktop/hero','/assets/demos/desktop/workspace'],"Hero and desktop section declare their loops");
  for(const base of loops)for(const ext of ["webm","mp4","webp"])assert.ok((await stat(new URL(pub+base.slice(1)+"."+ext,root))).isFile(),base+"."+ext);
- assert.match(html,/<img class="loop-poster" src="\/assets\/demos\/desktop\/hero\.webp"[^>]+alt="[^"]+"/,"Hero poster is a real image with alternative text");
+ assert.match(html,/<img class="loop-poster" src="\/assets\/demos\/desktop\/hero\.webp\?v=[0-9a-f]{10}"[^>]+alt="[^"]+"/,"Hero poster is a real image with alternative text");
  assert.equal((html.match(/class="view-switch"/g)||[]).length,4,"Desktop/CLI switch on the demo and the three paired walkthroughs");
  for(const view of ['desktop','cli'])assert.equal((html.match(new RegExp(`data-view="${view}"`,'g'))||[]).length,7,`Paired ${view} views`);
 }

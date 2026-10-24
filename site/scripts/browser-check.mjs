@@ -93,7 +93,7 @@ try {
  await motion.goto(base+'/');
  assert.equal(await motion.locator('.hero-app .loop-poster').isVisible(),true);
  await heroPlaying(motion);
- let hero=await heroState(motion);assert.match(hero.src,/desktop\/hero\.webm$/);
+ let hero=await heroState(motion);assert.match(hero.src,/desktop\/hero\.webm\?v=[0-9a-f]{10}$/);
  const t0=await motion.locator('.hero-app .loop-video').evaluate(v=>v.currentTime);await motion.waitForTimeout(600);
  assert.ok(await motion.locator('.hero-app .loop-video').evaluate(v=>v.currentTime)>t0,'Hero loop advances');
  assert.equal(await motion.locator('.hero-app .loop-video').evaluate(v=>v.loop&&v.muted&&!v.controls&&v.getAttribute('aria-hidden')==='true'),true);

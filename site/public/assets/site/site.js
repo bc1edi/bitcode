@@ -144,9 +144,9 @@
     video.muted = true; video.loop = true; video.playsInline = true; video.preload = 'auto';
     video.disablePictureInPicture = true; video.tabIndex = -1;
     video.setAttribute('aria-hidden', 'true'); video.setAttribute('muted', ''); video.setAttribute('playsinline', '');
-    video.poster = base + '.webp';
+    video.poster = base + '.webp' + (loop.figure.dataset.v ? '?v=' + loop.figure.dataset.v : '');
     [['webm', 'video/webm'], ['mp4', 'video/mp4']].forEach(([extension, type]) => {
-      const source = document.createElement('source'); source.src = base + '.' + extension; source.type = type; video.appendChild(source);
+      const source = document.createElement('source'); source.src = base + '.' + extension + (loop.figure.dataset.v ? '?v=' + loop.figure.dataset.v : ''); source.type = type; video.appendChild(source);
     });
     video.addEventListener('playing', () => { loop.figure.dataset.video = 'playing'; });
     video.addEventListener('pause', () => { if (loop.figure.dataset.video === 'playing') loop.figure.dataset.video = 'paused'; });
