@@ -6,7 +6,7 @@
     "it: metadata, poster under reduced motion, CTA, no overflow at 320/390/800/1023/1024/1440/1920/2560",
     "it: anchors, capability rail, Sats in one row, Desktop/CLI switch remembered, keyboard tabs and clipboard",
     "it: mobile inline terminals and Sats cards, focus containment, Escape, scroll lock, language hash preservation",
-    "hero loop: poster first, plays after load, pauses off screen, hidden and on global pause; entrances on scroll; CLS 0.0000",
+    "intro builds the logo and clears itself; hero loop: poster first, plays after load, pauses off screen, hidden and on global pause; entrances on scroll; CLS 0.0000",
     "desktop loops: hero and workspace, mobile and ultrawide layouts",
     "data saving keeps the poster and loads no video",
     "genesis by /genesis, dismissible with Escape; a different hero Sat on every reload",
